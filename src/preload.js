@@ -6,8 +6,8 @@ import { contextBridge, ipcRenderer } from 'electron'
 window["ipcRenderer"] = require('electron').ipcRenderer;
 
 contextBridge.exposeInMainWorld('ipc', {
-    send: async (eventName, data) => {
-        const result = await ipcRenderer.invoke('send', JSON.stringify({eventName, data}));
+    send: async (eventName, args) => {
+        const result = await ipcRenderer.invoke('send', JSON.stringify({eventName, args}));
         return result;
     },
     test: (string) => ipcRenderer.send('test', string)

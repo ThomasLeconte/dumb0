@@ -24,6 +24,11 @@ const active = ref("");
 onMounted(() => {
   active.value = tablesStore.tables[0];
 })
+
+function onTableClick(tableName: string) {
+  active.value = tableName;
+  tablesStore.getTableStats(tableName).then(() => console.log(tablesStore.tableStats));
+}
 </script>
 
 <template>
@@ -39,7 +44,7 @@ onMounted(() => {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem v-for="(item, index) in tablesStore.tables" :key="index" class="m-5">
-                    <SidebarMenuButton :isActive="active === item" @click="active = item">
+                    <SidebarMenuButton :isActive="active === item" @click="onTableClick(item)">
                       <span>{{item}}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
