@@ -3,7 +3,6 @@ import Sidebar from 'primevue/sidebar';
 import SidebarAside from 'primevue/sidebaraside';
 import SidebarContent from 'primevue/sidebarcontent';
 import SidebarMenuItem from 'primevue/sidebarmenuitem';
-import SidebarFooter from 'primevue/sidebarfooter';
 import SidebarHeader from 'primevue/sidebarheader';
 import SidebarMain from 'primevue/sidebarmain';
 import SidebarGroup from 'primevue/sidebargroup';
@@ -14,9 +13,9 @@ import SidebarMenuButton from 'primevue/sidebarmenubutton';
 import SidebarLayout from 'primevue/sidebarlayout';
 import SidebarPanel from 'primevue/sidebarpanel';
 import SidebarSpacer from 'primevue/sidebarspacer';
-import SidebarTrigger from 'primevue/sidebartrigger';
 import {useTablesStore} from "../stores/tables-store";
 import {onMounted, ref} from "vue";
+import TableDetails from "./table-details.vue";
 
 const tablesStore = useTablesStore();
 const active = ref("");
@@ -27,20 +26,20 @@ onMounted(() => {
 
 function onTableClick(tableName: string) {
   active.value = tableName;
-  tablesStore.getTableStats(tableName).then(() => console.log(tablesStore.tableStats));
+  tablesStore.getTableStats(tableName);
 }
 </script>
 
 <template>
-  <SidebarLayout>
-    <Sidebar>
+  <SidebarLayout class="dba-sidebar-layout">
+    <Sidebar variant="floating" class="dba-sidebar">
       <SidebarSpacer />
       <SidebarAside>
         <SidebarPanel>
           <SidebarHeader></SidebarHeader>
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel>Tables</SidebarGroupLabel>
+              <SidebarGroupLabel>Tables ({{tablesStore.tables.length}})</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem v-for="(item, index) in tablesStore.tables" :key="index" class="m-5">
@@ -52,13 +51,24 @@ function onTableClick(tableName: string) {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
-          <SidebarFooter>...</SidebarFooter>
         </SidebarPanel>
       </SidebarAside>
     </Sidebar>
-    <SidebarMain>
-      <h1>Coucou</h1>
-      <SidebarTrigger></SidebarTrigger>
+    <SidebarMain class="dba-sidebar-aside-content">
+      <TableDetails v-if="tablesStore.tableStats != null" :table-name="active" />
     </SidebarMain>
   </SidebarLayout>
 </template>
+
+<style scoped>
+  .dba-sidebar-layout {
+    min-height: 0 !important;
+  }
+  .dba-sidebar {
+    height: 100dvh;
+  }
+
+  .dba-sidebar-aside-content {
+    padding: 0.5rem 0.5rem 0.5rem 0;
+  }
+</style>

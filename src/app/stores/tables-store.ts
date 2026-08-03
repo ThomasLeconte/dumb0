@@ -3,7 +3,7 @@ import {defineStore} from "pinia";
 export const useTablesStore = defineStore('tables', {
     state: () => ({
         tables: [] as string[],
-        tableStats: {} as any
+        tableStats: null as any
     }),
     actions: {
         loadTables() {
