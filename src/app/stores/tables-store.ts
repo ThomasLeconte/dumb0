@@ -1,9 +1,10 @@
 import {defineStore} from "pinia";
+import {TableStatsDto} from "../../commons/data/dto/table-stats-dto";
 
 export const useTablesStore = defineStore('tables', {
     state: () => ({
         tables: [] as string[],
-        tableStats: null as any
+        tableStats: null as unknown as TableStatsDto
     }),
     actions: {
         loadTables() {

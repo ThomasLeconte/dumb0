@@ -3,13 +3,14 @@ import {TableStatsDto} from "../commons/data/dto/table-stats-dto";
 import {TableSizeDto} from "../commons/data/dto/table-size-dto";
 import {TableRowsStatsDto} from "../commons/data/dto/table-rows-stats-dto";
 import {TableLocksDto} from "../commons/data/dto/table-locks-dto";
+import {TableIOStatsDto} from "../commons/data/dto/table-io-stats-dto";
 
 export default class PostgresqlService {
 
     static async getTables() {
         const client = await PostgresqlService.initConnection();
         if(client != null) {
-            return client.query("SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema = 'public' ORDER BY table_name")
+            return client.query("SELECT distinct table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' and table_schema not in ('pg_catalog', 'information_schema') ORDER BY table_name")
                 .then(result => result.rows.map(row => {
                     return row['table_name']
                 }))
@@ -27,22 +28,14 @@ export default class PostgresqlService {
             const size = await this.getTableSize(client, tableName);
             const rows = await this.getTableRowsStats(client, tableName);
             const locks = await this.getTableLocks(client, tableName);
+            const ioStats = await this.getTableIOStats(client, tableName);
 
-            const request = `SELECT distinct relname AS table_name, seq_scan, seq_tup_read, idx_scan, idx_tup_fetch, n_live_tup FROM pg_stat_user_tables where relname = '${tableName}' ORDER BY seq_tup_read desc LIMIT 1;`
-            return client.query(request).then(res => {
-                if(res.rowCount === null || res.rowCount === 0) {
-                    return null;
-                }
-                const row = res.rows[0];
+            console.log(size, rows, locks, ioStats);
 
-                return {
-                    sequential_scan: row['seq_scan'],
-                    sequential_tuples_read: row['seq_tup_read'],
-                    index_scan: row['idx_scan'],
-                    index_tuples_fetched: row['idx_tup_fetch'],
-                    live_tuples: row['n_live_tup']
-                }
-            })
+            // @ts-ignore
+            const result = new TableStatsDto(tableName, size, locks, rows, ioStats);
+
+            return result;
         }
     }
 
@@ -79,11 +72,8 @@ export default class PostgresqlService {
             relname = '${tableName}';`
 
         return client.query(query).then(res => {
-            if(res.rowCount === null || res.rowCount === 0) {
-                return null;
-            }
+            if(res.rowCount === null || res.rowCount === 0) return null;
             const row = res.rows[0];
-            console.log(row)
 
             return new TableRowsStatsDto(row['live_rows'], row['dead_rows'], row['last_analyze'], row['last_autovacuum']);
         })
@@ -103,12 +93,10 @@ export default class PostgresqlService {
         JOIN
             pg_stat_activity ON pg_locks.pid = pg_stat_activity.pid
         WHERE
-            relation::regclass = 'user_platform_link'::regclass;`;
+            relation::regclass = '${tableName}'::regclass;`;
 
         return client.query(query).then(res => {
-            if(res.rowCount === null || res.rowCount === 0) {
-                return null;
-            }
+            if(res.rowCount === null || res.rowCount === 0) return null;
 
             const result = [];
 
@@ -127,14 +115,37 @@ export default class PostgresqlService {
         })
     }
 
+    private static async getTableIOStats(client: any, tableName: string) {
+        const query = `select stat.seq_scan, stat.seq_tup_read, stat.n_live_tup, stat.n_dead_tup, stat_io.heap_blks_read, stat_io.heap_blks_hit, stat_io.idx_blks_read, stat_io.idx_blks_hit
+            from pg_stat_all_tables stat
+            join pg_statio_all_tables stat_io on stat_io.relname = stat.relname
+            where stat.relname = '${tableName}'
+            limit 1;`;
+
+        return client.query(query).then(res => {
+            if (res.rowCount === null || res.rowCount === 0) return null;
+            const row = res.rows[0];
+            return new TableIOStatsDto(
+                row['seq_scan'],
+                row['seq_tup_read'],
+                row['n_live_tup'],
+                row['n_dead_tup'],
+                row['heap_blks_read'],
+                row['heap_blks_hit'],
+                row['idx_blks_read'],
+                row['idx_blks_hit']
+            );
+        });
+    }
+
 
     private static async initConnection() {
         const {Client} = require('pg');
 
         let client = new Client({
-            database: 'pacer-api',
-            user: 'pacer',
-            password: 'pacer'
+            database: 'caisse-api',
+            user: 'caisse',
+            password: 'caisse',
         });
 
         client = await client.connect();

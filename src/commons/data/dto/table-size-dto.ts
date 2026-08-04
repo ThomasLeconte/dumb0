@@ -1,12 +1,25 @@
 export class TableSizeDto {
-    private total: string;
-    private dataSize: string;
-    private indexSize: string;
+    private _total: string;
+    private _dataSize: string;
+    private _indexSize: string;
 
 
     constructor(total: string, dataSize: string, indexSize: string) {
-        this.total = total;
-        this.dataSize = dataSize;
-        this.indexSize = indexSize;
+        this._total = total;
+        this._dataSize = dataSize;
+        this._indexSize = indexSize;
+    }
+
+
+    get total(): string {
+        return this._total;
+    }
+
+    get dataSize(): string {
+        return this._dataSize;
+    }
+
+    get indexSize(): string {
+        return this._indexSize;
     }
 }
