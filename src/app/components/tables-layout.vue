@@ -42,7 +42,7 @@ function onTableClick(tableName: string) {
               <SidebarGroupLabel>Tables ({{tablesStore.tables.length}})</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  <SidebarMenuItem v-for="(item, index) in tablesStore.tables" :key="index" class="m-5">
+                  <SidebarMenuItem v-for="(item, index) in tablesStore.tables" :key="index">
                     <SidebarMenuButton :isActive="active === item" @click="onTableClick(item)">
                       <span>{{item}}</span>
                     </SidebarMenuButton>
@@ -54,7 +54,7 @@ function onTableClick(tableName: string) {
         </SidebarPanel>
       </SidebarAside>
     </Sidebar>
-    <SidebarMain class="dba-sidebar-aside-content">
+    <SidebarMain class="dba-sidebar-aside-content mt-2 mr-2">
       <TableDetails v-if="tablesStore.tableStats != null" :table-name="active" />
     </SidebarMain>
   </SidebarLayout>
@@ -66,9 +66,5 @@ function onTableClick(tableName: string) {
   }
   .dba-sidebar {
     height: 100dvh;
-  }
-
-  .dba-sidebar-aside-content {
-    padding: 0.5rem 0.5rem 0.5rem 0;
   }
 </style>

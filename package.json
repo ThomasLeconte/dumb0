@@ -31,11 +31,16 @@
     "@types/electron": "^1.4.38",
     "@types/pg": "^8.20.3",
     "@vitejs/plugin-vue": "^6.0.8",
+    "autoprefixer": "^10.5.4",
     "electron": "43.2.0",
+    "postcss": "^8.5.25",
+    "tailwindcss": "^4.3.3",
     "vite": "^5.4.21"
   },
   "dependencies": {
+    "@primeicons/vue": "^8.0.0",
     "@primeuix/themes": "^3.0.0",
+    "@tailwindcss/vite": "^4.3.3",
     "@vueuse/electron": "^14.4.0",
     "electron-squirrel-startup": "^1.0.1",
     "pg": "^8.22.0",

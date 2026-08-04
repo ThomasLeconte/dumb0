@@ -20,9 +20,6 @@ export default class PostgresqlService {
     static async getTableStats(args: any) {
         const tableName = args["tableName"];
 
-        const tableStats = new TableStatsDto();
-        tableStats.name = tableName;
-
         const client = await PostgresqlService.initConnection();
         if(client !== null) {
             const size = await this.getTableSize(client, tableName);
@@ -143,9 +140,9 @@ export default class PostgresqlService {
         const {Client} = require('pg');
 
         let client = new Client({
-            database: 'caisse-api',
-            user: 'caisse',
-            password: 'caisse',
+            database: 'pacer-api',
+            user: 'pacer',
+            password: 'pacer',
         });
 
         client = await client.connect();
