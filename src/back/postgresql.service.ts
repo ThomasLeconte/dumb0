@@ -4,6 +4,7 @@ import {TableSizeDto} from "../commons/data/dto/table-size-dto";
 import {TableRowsStatsDto} from "../commons/data/dto/table-rows-stats-dto";
 import {TableLocksDto} from "../commons/data/dto/table-locks-dto";
 import {TableIOStatsDto} from "../commons/data/dto/table-io-stats-dto";
+import {TableIndexesDto} from "../commons/data/dto/table-indexes-dto";
 
 export default class PostgresqlService {
 
@@ -26,11 +27,12 @@ export default class PostgresqlService {
             const rows = await this.getTableRowsStats(client, tableName);
             const locks = await this.getTableLocks(client, tableName);
             const ioStats = await this.getTableIOStats(client, tableName);
+            const indexes = await this.getTableIndexes(client, tableName);
 
             console.log(size, rows, locks, ioStats);
 
             // @ts-ignore
-            const result = new TableStatsDto(tableName, size, locks, rows, ioStats);
+            const result = new TableStatsDto(tableName, size, locks, rows, ioStats, indexes);
 
             return result;
         }
@@ -135,14 +137,33 @@ export default class PostgresqlService {
         });
     }
 
+    private static async getTableIndexes(client: Client, tableName: string) {
+        const query = `select stat_io.indexrelname, stat_io.idx_blks_read, stat_io.idx_blks_hit, stat.idx_scan
+            from pg_statio_all_indexes stat_io 
+            join pg_stat_all_indexes stat on stat.indexrelname = stat_io.indexrelname and stat.schemaname = stat_io.schemaname
+            where stat_io.relname = '${tableName}';`
+
+        return client.query(query).then(res => {
+            if (res.rowCount === null || res.rowCount === 0) return null;
+
+            return res.rows.map((row) => {
+                return new TableIndexesDto(
+                    row['indexrelname'],
+                    row['idx_blks_read'],
+                    row['idx_blks_hit']
+                );
+            })
+        })
+    }
+
 
     private static async initConnection() {
         const {Client} = require('pg');
 
         let client = new Client({
-            database: 'pacer-api',
-            user: 'pacer',
-            password: 'pacer',
+            database: 'caisse-api',
+            user: 'caisse',
+            password: 'caisse',
         });
 
         client = await client.connect();
