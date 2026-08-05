@@ -13,6 +13,9 @@ export default class PostgresqlService {
         if(client != null) {
             return client.query("SELECT distinct table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' and table_schema not in ('pg_catalog', 'information_schema') ORDER BY table_name")
                 .then(result => result.rows.map(row => {
+
+                    client.end();
+
                     return row['table_name']
                 }))
         }
@@ -28,6 +31,8 @@ export default class PostgresqlService {
             const locks = await this.getTableLocks(client, tableName);
             const ioStats = await this.getTableIOStats(client, tableName);
             const indexes = await this.getTableIndexes(client, tableName);
+
+            client.end();
 
             console.log(size, rows, locks, ioStats);
 
@@ -157,13 +162,15 @@ export default class PostgresqlService {
     }
 
 
-    private static async initConnection() {
+    private static async initConnection(): Promise<Client> {
         const {Client} = require('pg');
 
         let client = new Client({
             database: 'pacer-api',
             user: 'pacer',
             password: 'pacer',
+            connectionTimeoutMillis: 0,
+            idle_in_transaction_session_timeout: 0
         });
 
         client = await client.connect();
