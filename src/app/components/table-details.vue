@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import {useTablesStore} from "../stores/tables-store";
-  import {Card, Divider, Chip, DataTable, Column} from "primevue";
-  import {CheckCircle, TimesCircle, ExclamationCircle} from '@primeicons/vue'
+  import {Card, Divider, Chip, DataTable, Column, Button} from "primevue";
+  import {CheckCircle, TimesCircle, ExclamationCircle, Refresh} from '@primeicons/vue'
   import {onMounted, computed} from "vue";
 
   const props = defineProps({
@@ -22,12 +22,19 @@
     console.log(props.tableName, tablesStore.tableStats?.size);
   })
 
+  function reloadDetails() {
+    tablesStore.getTableStats(props.tableName)
+  }
+
 </script>
 
 <template>
   <div class="flex-col justify-center align-top mx-2">
-    <div class="text-2xl font-light my-5 table-title">
-      {{ tableName }}
+    <div class="my-5">
+      <div class="flex justify-between items-center">
+        <span class="table-title text-2xl font-light">{{ tableName }}</span>
+        <Button severity="info" @click="reloadDetails"><Refresh />Reload</Button>
+      </div>
       <Divider />
     </div>
 
@@ -180,6 +187,7 @@
 <style scoped>
   .table-title, .section-title {
     font-family: 'consolas';
+    font-family: 'menlo';
   }
 
   .section-title {

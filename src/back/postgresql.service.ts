@@ -161,9 +161,9 @@ export default class PostgresqlService {
         const {Client} = require('pg');
 
         let client = new Client({
-            database: 'caisse-api',
-            user: 'caisse',
-            password: 'caisse',
+            database: 'pacer-api',
+            user: 'pacer',
+            password: 'pacer',
         });
 
         client = await client.connect();
