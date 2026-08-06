@@ -1,8 +1,8 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
-import IpcMessageEvent = Electron.WebViewElement.IpcMessageEvent;
 import PostgresqlService from "./back/postgresql.service";
+import {SqliteService} from "./back/sqlite.service";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -35,6 +35,8 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  SqliteService.init();
+  console.log(SqliteService.getDatabases())
   ipcMain.handle('send', async (event, args) => {
     return handleMessageIncoming(event, args);
   })

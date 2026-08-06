@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import {Card} from "primevue";
+import {Card, Button} from "primevue";
+import {Plus} from '@primeicons/vue'
 </script>
 
 <template>
@@ -10,11 +11,18 @@ import {Card} from "primevue";
       <div class="text-xl">Your personal DBA for PostgreSQL 🐘</div>
     </div>
 
-    <div class="databases-list my-20">
-      <Card  class="bg-amber-200">
-        <template #title>Add</template>
-      </Card>
-    </div>
+    <Card class="my-20">
+      <template #content>
+        <span class="text-xl font-light">Datasources</span>
+        <div class="databases-list p-10">
+          <div class="border-dashed border-2 border-gray-400 rounded-lg p-10">
+            <Button outlined severity="contrast"><Plus />Create</Button>
+          </div>
+        </div>
+      </template>
+    </Card>
+
+
   </div>
 </template>
 
@@ -22,6 +30,7 @@ import {Card} from "primevue";
   .home-background {
     background-color: #E5E5F7;
     opacity: 0.1;
+    z-index: -9999;
     position: absolute;
     height: 100dvh;
     width: 100dvh;
