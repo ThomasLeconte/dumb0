@@ -7,12 +7,12 @@ export const useTablesStore = defineStore('tables', {
         tableStats: null as unknown as TableStatsDto
     }),
     actions: {
-        loadTables() {
-            return window.ipc.send('get-tables')
+        loadTables(datasourceId: number) {
+            return window.ipc.send('get-tables', {datasourceId})
                 .then((res) => this.tables = res)
         },
-        getTableStats(tableName: string) {
-            return window.ipc.send('get-table-stats', {tableName})
+        getTableStats(datasourceId: number, tableName: string) {
+            return window.ipc.send('get-table-stats', {tableName, datasourceId})
                 .then((res) => this.tableStats = res)
         }
     }

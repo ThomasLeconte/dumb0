@@ -34,9 +34,8 @@ const createWindow = () => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   SqliteService.init();
-  console.log(SqliteService.getDatabases())
   ipcMain.handle('send', async (event, args) => {
     return handleMessageIncoming(event, args);
   })
@@ -67,10 +66,14 @@ app.on('window-all-closed', () => {
 async function handleMessageIncoming(event, data) {
   const {eventName, args} = JSON.parse(data)
   let result;
+  console.log(args)
 
   switch (eventName) {
+    case 'get-datasources':
+      result = await SqliteService.getDatasources();
+      break;
     case 'get-tables':
-      result = await PostgresqlService.getTables();
+      result = await PostgresqlService.getTables(args);
       break;
     case 'get-table-stats':
       console.log(args)

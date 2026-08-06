@@ -13,20 +13,29 @@ import SidebarMenuButton from 'primevue/sidebarmenubutton';
 import SidebarLayout from 'primevue/sidebarlayout';
 import SidebarPanel from 'primevue/sidebarpanel';
 import SidebarSpacer from 'primevue/sidebarspacer';
+import Divider from 'primevue/divider';
+import Button from 'primevue/button';
+import {Database, SignOut} from '@primeicons/vue'
 import {useTablesStore} from "../stores/tables-store";
-import {onMounted, ref} from "vue";
-import TableDetails from "./table-details.vue";
+import {computed, onMounted, ref} from "vue";
+import TableDetails from "../components/table-details.vue";
+import {useDatasourcesStore} from "../stores/datasource-store";
 
 const tablesStore = useTablesStore();
+const datasourceStore = useDatasourcesStore();
 const active = ref("");
 
 onMounted(() => {
   active.value = tablesStore.tables[0];
 })
 
+const datasource = computed(() => {
+  return datasourceStore.datasourceChoosen;
+})
+
 function onTableClick(tableName: string) {
   active.value = tableName;
-  tablesStore.getTableStats(tableName);
+  tablesStore.getTableStats(datasourceStore.datasourceChoosen.id, tableName);
 }
 </script>
 
@@ -36,7 +45,13 @@ function onTableClick(tableName: string) {
       <SidebarSpacer />
       <SidebarAside>
         <SidebarPanel>
-          <SidebarHeader></SidebarHeader>
+          <SidebarHeader>
+            <div class="flex justify-between items-center p-2">
+              <span class="flex items-center gap-2 title"><Database />{{datasource.name}}</span>
+              <Button outlined severity="danger"><SignOut />Log out</Button>
+            </div>
+            <Divider class="m-0!" />
+          </SidebarHeader>
           <SidebarContent>
             <SidebarGroup>
               <SidebarGroupLabel>Tables ({{tablesStore.tables.length}})</SidebarGroupLabel>
@@ -61,10 +76,10 @@ function onTableClick(tableName: string) {
 </template>
 
 <style scoped>
-  .dba-sidebar-layout {
-    min-height: 0 !important;
-  }
-  .dba-sidebar {
-    height: 100dvh;
-  }
+.dba-sidebar-layout {
+  min-height: 0 !important;
+}
+.dba-sidebar {
+  height: 100dvh;
+}
 </style>

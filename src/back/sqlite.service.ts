@@ -1,6 +1,8 @@
 import {Database} from "sqlite3";
 import {DatasourceDto} from "../commons/data/dto/datasource-dto";
 
+import * as sqlite from "node:sqlite";
+
 export class SqliteService {
 
     private static getDatabase(): Database {
@@ -35,16 +37,36 @@ export class SqliteService {
         console.log('Database connected successfully');
     }
 
-    public static getDatabases() {
+    public static getDatasources() {
         const db = this.getDatabase();
         let result: DatasourceDto[] = [];
 
-        db.serialize(() => {
-            db.each("SELECT * FROM datasource", (err, row: any) => {
-                result.push(new DatasourceDto(row['name'], row['username'], row['password'], row['hostname'], row['port']));
-            });
-        });
+        return new Promise((resolve, reject) => {
+            db.all("SELECT * FROM datasource", (err, rows) => {
+                if(err) reject(err);
+                if(rows == null || rows.length === 0) resolve(result);
 
-        return result;
+                rows.map((row: any) => {
+                    new DatasourceDto(row['id'], row['name'], row['username'], row['password'], row['hostname'], row['port']);
+                });
+
+                resolve(rows);
+            })
+        })
+    }
+
+    static getDatasourceById(datasourceId: string): Promise<DatasourceDto> {
+        const id = Number.parseInt(datasourceId);
+        const db = this.getDatabase();
+        let result = null;
+
+        return new Promise((resolve, reject) => {
+            db.get(`SELECT * FROM datasource where id = ${id}`, (err, row) => {
+                if(err) reject(err);
+                if(row == null) resolve(result);
+
+                resolve(new DatasourceDto(row['id'], row['name'], row['username'], row['password'], row['hostname'], row['port']));
+            })
+        })
     }
 }

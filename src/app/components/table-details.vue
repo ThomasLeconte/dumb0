@@ -1,8 +1,9 @@
 <script setup lang="ts">
   import {useTablesStore} from "../stores/tables-store";
   import {Card, Divider, Chip, DataTable, Column, Button} from "primevue";
-  import {CheckCircle, TimesCircle, ExclamationCircle, Refresh} from '@primeicons/vue'
+  import {CheckCircle, TimesCircle, ExclamationCircle, Refresh, Table} from '@primeicons/vue'
   import {onMounted, computed} from "vue";
+  import {useDatasourcesStore} from "../stores/datasource-store";
 
   const props = defineProps({
     tableName: {
@@ -12,6 +13,7 @@
   });
 
   const tablesStore = useTablesStore();
+  const datasourceStore = useDatasourcesStore();
 
   const sizeStats = computed(() => tablesStore.tableStats?.size);
   const rowsStats = computed(() => tablesStore.tableStats?.rowsStats);
@@ -23,7 +25,7 @@
   })
 
   function reloadDetails() {
-    tablesStore.getTableStats(props.tableName)
+    tablesStore.getTableStats(datasourceStore.datasourceChoosen.id, props.tableName)
   }
 
 </script>
@@ -32,7 +34,7 @@
   <div class="flex-col justify-center align-top mx-2">
     <div class="my-5">
       <div class="flex justify-between items-center">
-        <span class="table-title text-2xl font-light">{{ tableName }}</span>
+        <span class="table-title text-2xl font-light flex items-center gap-2"><Table :size="20" />{{ tableName }}</span>
         <Button severity="info" @click="reloadDetails"><Refresh />Reload</Button>
       </div>
       <Divider />
@@ -73,7 +75,7 @@
         </template>
       </Card>
 
-      <Card class="w-2/4 my-2" v-if="rowsStats">
+      <Card class="w-2/4 my-2" style="height: stretch" v-if="rowsStats">
         <template #title>
           <div class="flex justify-between items-start">
             <span class="section-title">Rows</span>

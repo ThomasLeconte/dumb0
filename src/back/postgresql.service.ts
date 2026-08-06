@@ -5,11 +5,15 @@ import {TableRowsStatsDto} from "../commons/data/dto/table-rows-stats-dto";
 import {TableLocksDto} from "../commons/data/dto/table-locks-dto";
 import {TableIOStatsDto} from "../commons/data/dto/table-io-stats-dto";
 import {TableIndexesDto} from "../commons/data/dto/table-indexes-dto";
+import {SqliteService} from "./sqlite.service";
+import {DatasourceDto} from "../commons/data/dto/datasource-dto";
 
 export default class PostgresqlService {
 
-    static async getTables() {
-        const client = await PostgresqlService.initConnection();
+    static async getTables(args) {
+        const datasource = await SqliteService.getDatasourceById(args['datasourceId']);
+
+        const client = await PostgresqlService.initConnection(datasource);
         if(client != null) {
             return client.query("SELECT distinct table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' and table_schema not in ('pg_catalog', 'information_schema') ORDER BY table_name")
                 .then(result => result.rows.map(row => {
@@ -23,8 +27,11 @@ export default class PostgresqlService {
 
     static async getTableStats(args: any) {
         const tableName = args["tableName"];
+        const datasourceId = args["datasourceId"];
 
-        const client = await PostgresqlService.initConnection();
+        const datasource = await SqliteService.getDatasourceById(datasourceId);
+
+        const client = await PostgresqlService.initConnection(datasource);
         if(client !== null) {
             const size = await this.getTableSize(client, tableName);
             const rows = await this.getTableRowsStats(client, tableName);
@@ -162,13 +169,15 @@ export default class PostgresqlService {
     }
 
 
-    private static async initConnection(): Promise<Client> {
+    private static async initConnection(datasource: DatasourceDto): Promise<Client> {
         const {Client} = require('pg');
 
         let client = new Client({
-            database: 'pacer-api',
-            user: 'pacer',
-            password: 'pacer',
+            host: datasource.hostname,
+            port: datasource.port,
+            database: datasource.name,
+            user: datasource.username,
+            password: datasource.password,
             connectionTimeoutMillis: 0,
             idle_in_transaction_session_timeout: 0
         });
