@@ -40,7 +40,7 @@
       <Divider />
     </div>
 
-    <div class="flex items-start gap-2">
+    <div class="flex items-start gap-4">
       <Card class="w-2/4 my-2" v-if="sizeStats">
         <template #title>
           <div class="flex justify-between items-start">

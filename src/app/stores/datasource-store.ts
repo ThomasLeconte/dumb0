@@ -5,14 +5,14 @@ import {DatasourceDto} from "../../commons/data/dto/datasource-dto";
 export const useDatasourcesStore = defineStore('datasources', {
     state: () => ({
         datasources: [] as DatasourceDto[],
-        datasourceChoosen: null as DatasourceDto
+        datasourceChoosen: null as DatasourceDto | null
     }),
     actions: {
         loadDatasources() {
             return window.ipc.send('get-datasources')
                 .then((res) => this.datasources = res)
         },
-        selectDatasource(datasource: DatasourceDto) {
+        selectDatasource(datasource: DatasourceDto | null) {
             this.datasourceChoosen = datasource;
         }
     }

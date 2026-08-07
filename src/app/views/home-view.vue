@@ -35,18 +35,15 @@ function connect(datasource: DatasourceDto) {
       <div class="text-xl">Your personal DBA for PostgreSQL 🐘</div>
     </div>
 
-    <Card class="my-20" v-if="datasources.length === 0">
-      <template #content>
+    <div class="flex flex-col justify-center items-center w-6/12 mt-10">
+      <div class="list-header flex justify-between items-center w-full">
         <span class="text-xl font-light">Datasources</span>
-        <div class="databases-list p-10">
-          <div class="border-dashed border-2 border-gray-400 rounded-lg p-10">
-            <Button outlined severity="contrast"><Plus />Create</Button>
-          </div>
-        </div>
-      </template>
-    </Card>
+        <Button severity="contrast"><Plus />Create</Button>
+      </div>
+      <Divider />
+    </div>
 
-    <div v-else class="flex justify-center items-start p-10 my-20">
+    <div class="flex justify-center items-start p-10">
       <Card v-for="(item, index) in datasources" :key="index">
         <template #title>
           <div class="flex items-center gap-2 title"><Database />{{item.name}}</div>
@@ -74,8 +71,6 @@ function connect(datasource: DatasourceDto) {
         </template>
       </Card>
     </div>
-
-
   </div>
 </template>
 

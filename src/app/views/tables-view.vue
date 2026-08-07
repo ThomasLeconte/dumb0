@@ -20,10 +20,12 @@ import {useTablesStore} from "../stores/tables-store";
 import {computed, onMounted, ref} from "vue";
 import TableDetails from "../components/table-details.vue";
 import {useDatasourcesStore} from "../stores/datasource-store";
+import {useRouter} from "vue-router";
 
 const tablesStore = useTablesStore();
 const datasourceStore = useDatasourcesStore();
 const active = ref("");
+const router = useRouter();
 
 onMounted(() => {
   active.value = tablesStore.tables[0];
@@ -35,20 +37,24 @@ const datasource = computed(() => {
 
 function onTableClick(tableName: string) {
   active.value = tableName;
-  tablesStore.getTableStats(datasourceStore.datasourceChoosen.id, tableName);
+  if(datasource) tablesStore.getTableStats(datasource.value!.id, tableName);
+}
+function logout() {
+  datasourceStore.selectDatasource(null);
+  router.push("/");
 }
 </script>
 
 <template>
-  <SidebarLayout class="dba-sidebar-layout">
+  <SidebarLayout v-if="datasource" class="dba-sidebar-layout">
     <Sidebar variant="floating" class="dba-sidebar">
       <SidebarSpacer />
       <SidebarAside>
         <SidebarPanel>
           <SidebarHeader>
             <div class="flex justify-between items-center p-2">
-              <span class="flex items-center gap-2 title"><Database />{{datasource.name}}</span>
-              <Button outlined severity="danger"><SignOut />Log out</Button>
+              <span class="flex items-center gap-2 title"><Database />{{datasource!.name}}</span>
+              <Button outlined severity="danger" @click="logout"><SignOut />Log out</Button>
             </div>
             <Divider class="m-0!" />
           </SidebarHeader>
