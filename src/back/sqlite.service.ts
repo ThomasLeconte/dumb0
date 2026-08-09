@@ -2,6 +2,7 @@ import {Database} from "sqlite3";
 import {DatasourceDto} from "../commons/data/dto/datasource-dto";
 
 import * as sqlite from "node:sqlite";
+import {CreateDatasourceFormDto} from "../commons/data/dto/forms/create-datasource-form-dto";
 
 export class SqliteService {
 
@@ -24,10 +25,11 @@ export class SqliteService {
             CREATE TABLE IF NOT EXISTS datasource (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL UNIQUE,
-                username TEXT NOT NULL,
-                password TEXT NOT NULL,
                 hostname TEXT NOT NULL,
                 port INTEGER NOT NULL,
+                dbname TEXT NOT NULL,
+                username TEXT NOT NULL,
+                password TEXT NOT NULL,
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP,
                 updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
                 is_active INTEGER DEFAULT 1
@@ -47,7 +49,7 @@ export class SqliteService {
                 if(rows == null || rows.length === 0) resolve(result);
 
                 rows.map((row: any) => {
-                    new DatasourceDto(row['id'], row['name'], row['username'], row['password'], row['hostname'], row['port']);
+                    new DatasourceDto(row['id'], row['name'], row['username'], row['password'], row['hostname'], row['port'], row['dbname']);
                 });
 
                 resolve(rows);
@@ -65,8 +67,23 @@ export class SqliteService {
                 if(err) reject(err);
                 if(row == null) resolve(result);
 
-                resolve(new DatasourceDto(row['id'], row['name'], row['username'], row['password'], row['hostname'], row['port']));
+                resolve(new DatasourceDto(row['id'], row['name'], row['username'], row['password'], row['hostname'], row['port'], row['dbname']));
             })
+        })
+    }
+
+    static async createDatasource(args: any) {
+        const form = args["form"] as CreateDatasourceFormDto;
+
+        const db = this.getDatabase();
+
+        return new Promise((resolve, reject) => {
+            db.exec(`INSERT INTO datasource (name, username, password, hostname, port, dbname)
+                          VALUES ('${form.name}', '${form.username}', '${form.password}', '${form.hostname}', ${form.port}, '${form.dbname}');`, (err) => {
+                if(err) reject(err);
+
+                resolve(null);
+            });
         })
     }
 }

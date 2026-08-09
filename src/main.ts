@@ -72,6 +72,15 @@ async function handleMessageIncoming(event, data) {
     case 'get-datasources':
       result = await SqliteService.getDatasources();
       break;
+    case 'create-datasource':
+      result = await SqliteService.createDatasource(args);
+      break;
+    case 'delete-datasource':
+      result = await SqliteService.deleteDatasource(args);
+      break;
+    case 'update-datasource':
+      result = await SqliteService.updateDatasource(argss);
+      break;
     case 'get-tables':
       result = await PostgresqlService.getTables(args);
       break;

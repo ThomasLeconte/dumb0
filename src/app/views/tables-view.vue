@@ -41,6 +41,7 @@ function onTableClick(tableName: string) {
 }
 function logout() {
   datasourceStore.selectDatasource(null);
+  tablesStore.clear();
   router.push("/");
 }
 </script>
@@ -54,7 +55,7 @@ function logout() {
           <SidebarHeader>
             <div class="flex justify-between items-center p-2">
               <span class="flex items-center gap-2 title"><Database />{{datasource!.name}}</span>
-              <Button outlined severity="danger" @click="logout"><SignOut />Log out</Button>
+              <Button outlined severity="danger" @click="logout()"><SignOut />Log out</Button>
             </div>
             <Divider class="m-0!" />
           </SidebarHeader>

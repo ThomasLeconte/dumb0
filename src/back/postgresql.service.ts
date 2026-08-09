@@ -175,7 +175,7 @@ export default class PostgresqlService {
         let client = new Client({
             host: datasource.hostname,
             port: datasource.port,
-            database: datasource.name,
+            database: datasource.dbname,
             user: datasource.username,
             password: datasource.password,
             connectionTimeoutMillis: 0,

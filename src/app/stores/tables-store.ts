@@ -14,6 +14,10 @@ export const useTablesStore = defineStore('tables', {
         getTableStats(datasourceId: number, tableName: string) {
             return window.ipc.send('get-table-stats', {tableName, datasourceId})
                 .then((res) => this.tableStats = res)
+        },
+        clear() {
+            this.tables = [];
+            this.tableStats = null;
         }
     }
 })

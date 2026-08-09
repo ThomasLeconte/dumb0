@@ -1,20 +1,21 @@
 <script setup lang="ts">
-import {Card, Button, Divider} from "primevue";
-import {Plus, Database, SignIn} from '@primeicons/vue'
+import {Card, Button, Divider, Carousel, CarouselPrev, CarouselNext, CarouselContent, CarouselItem, CarouselIndicators} from "primevue";
+import {Plus, Database, SignIn, Times, ChevronLeft, ChevronRight} from '@primeicons/vue'
 import {useDatasourcesStore} from "../stores/datasource-store";
-import {computed, onMounted} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {DatasourceDto} from "../../commons/data/dto/datasource-dto";
 import {useRouter} from "vue-router";
 import {useTablesStore} from "../stores/tables-store";
+import CreateDatasourceDialog from "../components/create-datasource-dialog.vue";
 
 const tableStore = useTablesStore();
 const datasourceStore = useDatasourcesStore();
 const router = useRouter();
 
+const createDialog = ref(false);
+
 onMounted(() => {
-  datasourceStore.loadDatasources().then(() => {
-    console.log(datasources.value)
-  });
+  datasourceStore.loadDatasources();
 });
 
 const datasources = computed(() => datasourceStore.datasources);
@@ -23,6 +24,10 @@ function connect(datasource: DatasourceDto) {
   datasourceStore.selectDatasource(datasource);
   tableStore.loadTables(datasource.id);
   router.push('tables');
+}
+
+function showCreateDialog() {
+  createDialog.value = true;
 }
 
 </script>
@@ -38,40 +43,64 @@ function connect(datasource: DatasourceDto) {
     <div class="flex flex-col justify-center items-center w-6/12 mt-10">
       <div class="list-header flex justify-between items-center w-full">
         <span class="text-xl font-light">Datasources</span>
-        <Button severity="contrast"><Plus />Create</Button>
+        <Button severity="contrast" @click="showCreateDialog()"><Plus />Create</Button>
       </div>
       <Divider />
     </div>
 
-    <div class="flex justify-center items-start p-10">
-      <Card v-for="(item, index) in datasources" :key="index">
-        <template #title>
-          <div class="flex items-center gap-2 title"><Database />{{item.name}}</div>
-        </template>
-        <template #content>
-          <Divider />
-          <div class="datasource-details">
-            <span class="datasource-details-title title">Host</span>
-            <span class="datasource-details-value">{{item.hostname}}</span>
+    <div class="flex justify-center items-start p-10 gap-4">
+      <Carousel>
+        <div class="flex items-center justify-between mb-4">
+          <div class="font-bold">Last Used</div>
+          <div class="flex items-center gap-2">
+            <CarouselPrev :as="Button" size="small" severity="secondary" iconOnly>
+              <ChevronLeft />
+            </CarouselPrev>
+            <CarouselNext :as="Button" size="small" severity="secondary" iconOnly>
+              <ChevronRight />
+            </CarouselNext>
           </div>
-          <div class="datasource-details">
-            <span class="datasource-details-title title">Port</span>
-            <span class="datasource-details-value">{{item.port}}</span>
-          </div>
-          <div class="datasource-details">
-            <span class="datasource-details-title title">Username</span>
-            <span class="datasource-details-value">{{item.username}}</span>
-          </div>
-          <Divider />
-        </template>
-        <template #footer>
-          <div class="flex justify-center">
-            <Button @click="connect(item)"><SignIn />Connect</Button>
-          </div>
-        </template>
-      </Card>
+        </div>
+        <CarouselContent>
+          <CarouselItem v-for="(item, index) in datasources" :key="index" class="basis-0 w-full">
+            <Card class="w-6/12">
+              <template #title>
+                <div class="flex justify-between items-center p-2 pb-0">
+                  <div class="flex items-center gap-2 title"><Database />{{item.name}}</div>
+                  <Button iconOnly outlined rounded severity="danger"><Times /></Button>
+                </div>
+              </template>
+              <template #content>
+                <Divider />
+                <div class="datasource-details">
+                  <span class="datasource-details-title title">Host</span>
+                  <span class="datasource-details-value">{{item.hostname}}</span>
+                </div>
+                <div class="datasource-details">
+                  <span class="datasource-details-title title">Port</span>
+                  <span class="datasource-details-value">{{item.port}}</span>
+                </div>
+                <div class="datasource-details">
+                  <span class="datasource-details-title title">Username</span>
+                  <span class="datasource-details-value">{{item.username}}</span>
+                </div>
+                <Divider />
+              </template>
+              <template #footer>
+                <div class="flex justify-center">
+                  <Button @click="connect(item)"><SignIn />Connect</Button>
+                </div>
+              </template>
+            </Card>
+          </CarouselItem>
+        </CarouselContent>
+        <CarouselIndicators />
+      </Carousel>
+
     </div>
   </div>
+
+  <CreateDatasourceDialog v-model="createDialog" />
 </template>
 
 <style scoped>
