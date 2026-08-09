@@ -175,6 +175,7 @@
                 </Column>
                 <Column field="indexBlocksRead" header="Disk read" />
                 <Column field="cacheIndexBlocksRead" header="Cache read" />
+                <Column field="scansTime" header="Scans" />
               </DataTable>
             </div>
           </div>

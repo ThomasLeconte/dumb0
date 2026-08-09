@@ -162,7 +162,8 @@ export default class PostgresqlService {
                 return new TableIndexesDto(
                     row['indexrelname'],
                     row['idx_blks_read'],
-                    row['idx_blks_hit']
+                    row['idx_blks_hit'],
+                    row['idx_scan']
                 );
             })
         })

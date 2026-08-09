@@ -49,7 +49,7 @@ function showCreateDialog() {
     </div>
 
     <div class="flex justify-center items-start p-10 gap-4">
-      <Carousel>
+      <Carousel align="center" loop :slidesPerPage="1.8">
         <div class="flex items-center justify-between mb-4">
           <div class="font-bold">Last Used</div>
           <div class="flex items-center gap-2">
@@ -62,8 +62,8 @@ function showCreateDialog() {
           </div>
         </div>
         <CarouselContent>
-          <CarouselItem v-for="(item, index) in datasources" :key="index" class="basis-0 w-full">
-            <Card class="w-6/12">
+          <CarouselItem v-for="(item, index) in datasources" :key="index" class="basis-16">
+            <Card class="w-full">
               <template #title>
                 <div class="flex justify-between items-center p-2 pb-0">
                   <div class="flex items-center gap-2 title"><Database />{{item.name}}</div>
@@ -94,7 +94,7 @@ function showCreateDialog() {
             </Card>
           </CarouselItem>
         </CarouselContent>
-        <CarouselIndicators />
+
       </Carousel>
 
     </div>
