@@ -4,6 +4,7 @@
   import {CheckCircle, TimesCircle, ExclamationCircle, Refresh, Table} from '@primeicons/vue'
   import {onMounted, computed} from "vue";
   import {useDatasourcesStore} from "../stores/datasource-store";
+  import TableLocks from "./table-stats/table-locks.vue";
 
   const props = defineProps({
     tableName: {
@@ -19,6 +20,7 @@
   const rowsStats = computed(() => tablesStore.tableStats?.rowsStats);
   const ioStats = computed(() => tablesStore.tableStats?.ioStats);
   const indexesStats = computed(() => tablesStore.tableStats?.indexesStats);
+  const locks = computed(() => tablesStore.tableStats?.locks);
 
   onMounted(() => {
     console.log(props.tableName, tablesStore.tableStats?.size);
@@ -153,35 +155,35 @@
       </Card>
     </div>
 
-    <div class="flex items-start gap-2">
-      <Card class="w-full my-2" v-if="indexesStats">
-        <template #title>
-          <div class="flex justify-between items-start">
-            <span class="section-title">Indexes</span>
-            <Chip class="bg-orange-100! dark:bg-orange-950! text-orange-700! dark:text-orange-300!">
-              <template #icon><ExclamationCircle /></template>
-            </Chip>
+    <Card class="w-full my-2" v-if="indexesStats">
+      <template #title>
+        <div class="flex justify-between items-start">
+          <span class="section-title">Indexes ({{indexesStats.length}})</span>
+          <Chip class="bg-orange-100! dark:bg-orange-950! text-orange-700! dark:text-orange-300!">
+            <template #icon><ExclamationCircle /></template>
+          </Chip>
+        </div>
+      </template>
+      <template #content>
+        <Divider />
+        <div class="flex">
+          <div class="flex justify-evenly w-full mt-4">
+            <DataTable :value="indexesStats" stripedRows class="w-full">
+              <Column field="name" header="Name">
+                <template #body="{ data }">
+                  <span class="font-medium">{{ data.name }}</span>
+                </template>
+              </Column>
+              <Column field="indexBlocksRead" header="Disk read" />
+              <Column field="cacheIndexBlocksRead" header="Cache read" />
+              <Column field="scansTime" header="Scans" />
+            </DataTable>
           </div>
-        </template>
-        <template #content>
-          <Divider />
-          <div class="flex">
-            <div class="flex justify-evenly w-full mt-4">
-              <DataTable :value="indexesStats" stripedRows class="w-full">
-                <Column field="name" header="Name">
-                  <template #body="{ data }">
-                    <span class="font-medium">{{ data.name }}</span>
-                  </template>
-                </Column>
-                <Column field="indexBlocksRead" header="Disk read" />
-                <Column field="cacheIndexBlocksRead" header="Cache read" />
-                <Column field="scansTime" header="Scans" />
-              </DataTable>
-            </div>
-          </div>
-        </template>
-      </Card>
-    </div>
+        </div>
+      </template>
+    </Card>
+
+    <TableLocks v-if="locks" :locks="locks" />
 
     <span>{{tablesStore.tableStats}}</span>
   </div>

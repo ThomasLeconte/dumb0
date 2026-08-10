@@ -1,6 +1,8 @@
 import {RouteRecordRaw} from "vue-router";
 import HomeView from "../views/home-view.vue";
-import TablesView from "../views/tables-view.vue";
+import TablesView from "../views/datasource/tables-view.vue";
+import Index from "../views/datasource/index.vue";
+import GeneralView from "../views/datasource/general-view.vue";
 
 export default [
     {
@@ -9,8 +11,20 @@ export default [
         component: HomeView
     },
     {
-        name: 'tables',
-        path: '/tables',
-        component: TablesView
+        name: 'datasource',
+        path: '/datasource',
+        component: Index,
+        children: [
+            {
+                name: 'tables',
+                path: '/tables',
+                component: TablesView
+            },
+            {
+                name: 'general',
+                path: '/general',
+                component: GeneralView
+            }
+        ]
     }
 ] as RouteRecordRaw[]

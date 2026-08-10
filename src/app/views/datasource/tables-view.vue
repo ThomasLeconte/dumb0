@@ -3,7 +3,6 @@ import Sidebar from 'primevue/sidebar';
 import SidebarAside from 'primevue/sidebaraside';
 import SidebarContent from 'primevue/sidebarcontent';
 import SidebarMenuItem from 'primevue/sidebarmenuitem';
-import SidebarHeader from 'primevue/sidebarheader';
 import SidebarMain from 'primevue/sidebarmain';
 import SidebarGroup from 'primevue/sidebargroup';
 import SidebarGroupLabel from 'primevue/sidebargrouplabel';
@@ -13,13 +12,10 @@ import SidebarMenuButton from 'primevue/sidebarmenubutton';
 import SidebarLayout from 'primevue/sidebarlayout';
 import SidebarPanel from 'primevue/sidebarpanel';
 import SidebarSpacer from 'primevue/sidebarspacer';
-import Divider from 'primevue/divider';
-import Button from 'primevue/button';
-import {Database, SignOut} from '@primeicons/vue'
-import {useTablesStore} from "../stores/tables-store";
+import {useTablesStore} from "../../stores/tables-store";
 import {computed, onMounted, ref} from "vue";
-import TableDetails from "../components/table-details.vue";
-import {useDatasourcesStore} from "../stores/datasource-store";
+import TableDetails from "../../components/table-details.vue";
+import {useDatasourcesStore} from "../../stores/datasource-store";
 import {useRouter} from "vue-router";
 
 const tablesStore = useTablesStore();
@@ -52,13 +48,6 @@ function logout() {
       <SidebarSpacer />
       <SidebarAside>
         <SidebarPanel>
-          <SidebarHeader>
-            <div class="flex justify-between items-center p-2">
-              <span class="flex items-center gap-2 title"><Database />{{datasource!.name}}</span>
-              <Button outlined severity="danger" @click="logout()"><SignOut />Log out</Button>
-            </div>
-            <Divider class="m-0!" />
-          </SidebarHeader>
           <SidebarContent>
             <SidebarGroup>
               <SidebarGroupLabel>Tables ({{tablesStore.tables.length}})</SidebarGroupLabel>

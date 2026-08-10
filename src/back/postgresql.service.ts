@@ -7,6 +7,9 @@ import {TableIOStatsDto} from "../commons/data/dto/table-io-stats-dto";
 import {TableIndexesDto} from "../commons/data/dto/table-indexes-dto";
 import {SqliteService} from "./sqlite.service";
 import {DatasourceDto} from "../commons/data/dto/datasource-dto";
+import {DatasourceLockDto} from "../commons/data/dto/datasource-lock-dto";
+import {DatasourceConnectionDto} from "../commons/data/dto/datasource-connection-dto";
+import {DatasourceStatsDto} from "../commons/data/dto/datasource-stats-dto";
 
 export default class PostgresqlService {
 
@@ -48,6 +51,21 @@ export default class PostgresqlService {
 
             return result;
         }
+        return null;
+    }
+
+    static async getDatasourceStats(args: any) {
+        const datasourceId = args["datasourceId"];
+
+        const datasource = await SqliteService.getDatasourceById(datasourceId);
+        const client = await PostgresqlService.initConnection(datasource);
+        if(client !== null) {
+            const locks = await this.getDatasourceLocks(client);
+            const connections = await this.getDatasourceConnections(client);
+
+            return new DatasourceStatsDto(locks, connections);
+        }
+        return null;
     }
 
     private static async getTableSize(client: Client, tableName: string) {
@@ -96,7 +114,8 @@ export default class PostgresqlService {
             relation::regclass AS table_name,
             mode,
             pg_locks.pid,
-            usename,
+            pg_stat_activity.datname as username,
+            pg_stat_activity.application_name,
             query_start,
             query
         FROM
@@ -109,6 +128,8 @@ export default class PostgresqlService {
         return client.query(query).then(res => {
             if(res.rowCount === null || res.rowCount === 0) return null;
 
+            console.log("lock", res)
+
             const result = [];
 
             res.rows.forEach((row) => {
@@ -117,6 +138,7 @@ export default class PostgresqlService {
                     row['mode'],
                     row['pid'],
                     row['username'],
+                    row['application_name'],
                     row['query'],
                     row['query_start']
                 ))
@@ -169,6 +191,50 @@ export default class PostgresqlService {
         })
     }
 
+    private static async getDatasourceLocks(client: Client) {
+        const query = `select l.locktype, l.relation::regclass as table_name, l.mode, l.pid, a.datname as username, a.application_name, a.query, a.query_start
+                       from pg_locks l
+                       join pg_database d on d.oid = l.database
+                       join pg_stat_activity a on a.pid = l.pid
+                       where d.datname = '${client.database}'
+                       and l.relation::regclass::TEXT not like 'pg_%';`;
+
+        return client.query(query).then(res => {
+            if (res.rowCount === null || res.rowCount === 0) return null;
+
+            return res.rows.map((row) => {
+                return new DatasourceLockDto(
+                    row['type'],
+                    row['table_name'],
+                    row['mode'],
+                    row['pid'],
+                    row['username'],
+                    row['application_name'],
+                    row['query'],
+                    row['query_start']
+                );
+            })
+        });
+    }
+
+    private static async getDatasourceConnections(client: Client) {
+        const query = `SELECT * FROM pg_stat_activity WHERE state = 'active' and datname = '${client.database}';`;
+
+        return client.query(query).then((res) => {
+            if (res.rowCount === null || res.rowCount === 0) return null;
+
+            return res.rows.map((row) => {
+                return new DatasourceConnectionDto(
+                    row['username'],
+                    row['application_name'],
+                    row['client_addr'],
+                    row['backend_start'],
+                    row['query']
+                )
+            })
+        })
+    }
+
 
     private static async initConnection(datasource: DatasourceDto): Promise<Client> {
         const {Client} = require('pg');
@@ -179,6 +245,7 @@ export default class PostgresqlService {
             database: datasource.dbname,
             user: datasource.username,
             password: datasource.password,
+            application_name: 'dba-app',
             connectionTimeoutMillis: 0,
             idle_in_transaction_session_timeout: 0
         });

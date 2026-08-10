@@ -7,12 +7,12 @@ import {TableIndexesDto} from "./table-indexes-dto";
 export class TableStatsDto {
     public name: string;
     public size: TableSizeDto;
-    public locks: TableLocksDto;
+    public locks: TableLocksDto[];
     public rowsStats: TableRowsStatsDto;
     public ioStats: TableIOStatsDto;
     public indexesStats: TableIndexesDto[];
 
-    constructor(name: string, size: TableSizeDto, locks: TableLocksDto, rowsStats: TableRowsStatsDto, ioStats: TableIOStatsDto, indexesStats: TableIndexesDto[]) {
+    constructor(name: string, size: TableSizeDto, locks: TableLocksDto[], rowsStats: TableRowsStatsDto, ioStats: TableIOStatsDto, indexesStats: TableIndexesDto[]) {
         this.name = name;
         this.size = size;
         this.locks = locks;

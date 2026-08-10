@@ -23,7 +23,7 @@ const datasources = computed(() => datasourceStore.datasources);
 function connect(datasource: DatasourceDto) {
   datasourceStore.selectDatasource(datasource);
   tableStore.loadTables(datasource.id);
-  router.push('tables');
+  router.push('datasource');
 }
 
 function showCreateDialog() {
@@ -127,10 +127,5 @@ function showCreateDialog() {
 
   .datasource-details-value {
     font-weight: lighter;
-  }
-
-  .title {
-    font-family: 'consolas';
-    font-family: 'menlo';
   }
 </style>

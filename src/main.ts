@@ -85,8 +85,10 @@ async function handleMessageIncoming(event, data) {
       result = await PostgresqlService.getTables(args);
       break;
     case 'get-table-stats':
-      console.log(args)
       result = await PostgresqlService.getTableStats(args);
+      break;
+    case 'get-datasource-stats':
+      result = await PostgresqlService.getDatasourceStats(args);
       break;
     default: throw new Error(`Unknown event ${eventName}!`)
   }
