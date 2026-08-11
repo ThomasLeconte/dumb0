@@ -10,6 +10,7 @@ import {DatasourceDto} from "../commons/data/dto/datasource-dto";
 import {DatasourceLockDto} from "../commons/data/dto/datasource-lock-dto";
 import {DatasourceConnectionDto} from "../commons/data/dto/datasource-connection-dto";
 import {DatasourceStatsDto} from "../commons/data/dto/datasource-stats-dto";
+import {DatasourceMainStatsDto} from "../commons/data/dto/datasource-main-stats-dto";
 
 export default class PostgresqlService {
 
@@ -60,10 +61,11 @@ export default class PostgresqlService {
         const datasource = await SqliteService.getDatasourceById(datasourceId);
         const client = await PostgresqlService.initConnection(datasource);
         if(client !== null) {
+            const mainStats = await this.getDatasourceMainStats(client);
             const locks = await this.getDatasourceLocks(client);
             const connections = await this.getDatasourceConnections(client);
 
-            return new DatasourceStatsDto(locks, connections);
+            return new DatasourceStatsDto(mainStats, locks, connections);
         }
         return null;
     }
@@ -225,7 +227,7 @@ export default class PostgresqlService {
 
             return res.rows.map((row) => {
                 return new DatasourceConnectionDto(
-                    row['username'],
+                    row['usename'],
                     row['application_name'],
                     row['client_addr'],
                     row['backend_start'],
@@ -233,6 +235,41 @@ export default class PostgresqlService {
                 )
             })
         })
+    }
+
+    private static async getDatasourceMainStats(client: Client) {
+        const statsQuery = `SELECT relkind AS object_type,
+                              COUNT(*) AS count
+                       FROM
+                           pg_class c
+                           JOIN
+                           pg_namespace n
+                       ON n.oid = c.relnamespace
+                       WHERE
+                           n.nspname NOT LIKE 'pg_%'
+                         AND n.nspname != 'information_schema'
+                         and c.relkind in ('r', 'i', 'S')
+                       GROUP BY
+                           relkind;`;
+
+        const sizeQuery = 'SELECT pg_size_pretty(pg_database_size(current_database())) AS total_size;';
+
+        return Promise.all([client.query(statsQuery), client.query(sizeQuery)])
+            .then((res) => {
+                const statsRes = res[0];
+                const sizeRes = res[1];
+
+                if(statsRes == null || sizeRes == null) return null;
+
+                let tablesCount, indexesCount, sequencesCount = 0;
+
+                tablesCount = statsRes.rows.find(r => 'r' === r['object_type'])['count'];
+                indexesCount = statsRes.rows.find(r => 'i' === r['object_type'])['count'];
+                sequencesCount = statsRes.rows.find(r => 'S' === r['object_type'])['count'];
+                const size = sizeRes.rows[0]['total_size'];
+
+                return new DatasourceMainStatsDto(tablesCount, indexesCount, sequencesCount, size);
+            })
     }
 
 

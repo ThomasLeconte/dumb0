@@ -12,6 +12,7 @@ const router = useRouter();
 
 const menuItems = ref([
   {
+    key: 1,
     label: 'General',
     icon: Cog,
     active: true,
@@ -20,6 +21,7 @@ const menuItems = ref([
     }
   },
   {
+    key: 2,
     label: 'Tables',
     icon: Table,
     command: () => {
@@ -27,6 +29,7 @@ const menuItems = ref([
     }
   },
   {
+    key: 3,
     label: 'IA',
     icon: PenLine,
     disabled: true,

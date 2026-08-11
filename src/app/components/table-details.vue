@@ -108,7 +108,7 @@
     </div>
 
     <div class="flex items-start gap-2">
-      <Card class="w-full my-2" v-if="rowsStats">
+      <Card class="w-full my-2" v-if="ioStats">
         <template #title>
           <div class="flex justify-between items-start">
             <span class="section-title">I/O</span>

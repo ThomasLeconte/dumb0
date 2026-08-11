@@ -21,9 +21,11 @@ onMounted(() => {
 const datasources = computed(() => datasourceStore.datasources);
 
 function connect(datasource: DatasourceDto) {
-  datasourceStore.selectDatasource(datasource);
-  tableStore.loadTables(datasource.id);
-  router.push('datasource');
+  datasourceStore.selectDatasource(datasource).then(() => {
+    return tableStore.loadTables(datasource.id);
+  }).finally(() => {
+    router.push({name: 'general'});
+  });
 }
 
 function showCreateDialog() {
