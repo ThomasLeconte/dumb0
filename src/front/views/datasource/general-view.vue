@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {useDatasourcesStore} from "../../stores/datasource-store";
 import {computed, onBeforeMount, onMounted} from "vue";
-import {Box, ExclamationCircle, Indent, ListOl, ListTree, Table} from "@primeicons/vue";
-import {Card, Chip, Column, DataTable, Divider} from "primevue";
+import {Box, ExclamationCircle, Indent, ListOl, ListTree, Table, SignOut, Refresh} from "@primeicons/vue";
+import {Card, Chip, Column, DataTable, Divider, Button} from "primevue";
 
 const datasourceStore = useDatasourcesStore();
 
@@ -10,18 +10,29 @@ const datasourceDetails = computed(() => datasourceStore.datasourceDetails);
 const connections = computed(() => datasourceDetails.value?.connections);
 const locks = computed(() => datasourceDetails.value?.locks);
 
+function formatDate(date: Date) {
+  return date.toLocaleDateString();
+}
+
+function reloadDetails() {
+  datasourceStore.loadDatasourceDetails();
+}
+
 </script>
 
 <template>
   <div class="general p-4 min-h-dvh bg-gray-50">
     <div class="mb-8">
-      <span class="title text-2xl">General</span>
+      <div class="flex justify-between items-center">
+        <span class="title text-2xl">General</span>
+        <Button severity="info" @click="reloadDetails"><Refresh />Reload</Button>
+      </div>
       <Divider />
     </div>
 
     <div class="details mt-4">
       <div class="main-stats flex justify-between flex-wrap gap-4 mt-4 mb-12">
-        <Card class="flex-1" style="background-color: var(--p-stone-100)">
+        <Card class="flex-1 border-1 border-gray-300" style="background-color: var(--p-stone-100)">
           <template #title>
             <span class="title flex justify-start items-center gap-2"><Table size="20" />Tables</span>
             <Divider style="color: var(--p-zinc-500)" />
@@ -30,7 +41,7 @@ const locks = computed(() => datasourceDetails.value?.locks);
             <span class="text-xl font-light">{{datasourceDetails.stats.tablesCount}}</span>
           </template>
         </Card>
-        <Card class="flex-1" style="background-color: var(--p-stone-100)">
+        <Card class="flex-1 border-1 border-gray-300" style="background-color: var(--p-stone-100)">
           <template #title>
             <span class="title flex justify-start items-center gap-2"><ListTree size="20" />Indexes</span>
             <Divider />
@@ -39,16 +50,16 @@ const locks = computed(() => datasourceDetails.value?.locks);
             <span class="text-xl font-light">{{datasourceDetails.stats.indexesCount}}</span>
           </template>
         </Card>
-        <Card class="flex-1" style="background-color: var(--p-stone-100)">
+        <Card class="flex-1 border-1 border-gray-300" style="background-color: var(--p-stone-100)">
           <template #title>
-            <span class="title flex justify-start items-center gap-2"><ListOl size="20" />Sequences</span>
+            <span class="title flex justify-start items-center gap-2"><ListOl size="20" />Shared buffers</span>
             <Divider />
           </template>
           <template #content>
-            <span class="text-xl font-light">{{datasourceDetails.stats.sequencesCount}}</span>
+            <span class="text-xl font-light">{{datasourceDetails.stats.sharedBuffersSize}}</span>
           </template>
         </Card>
-        <Card class="flex-1" style="background-color: var(--p-stone-100)">
+        <Card class="flex-1 border-1 border-gray-300" style="background-color: var(--p-stone-100)">
           <template #title>
             <span class="title flex justify-start items-center gap-2"><Box size="20" />Size</span>
             <Divider />
@@ -79,9 +90,19 @@ const locks = computed(() => datasourceDetails.value?.locks);
                   </template>
                 </Column>
                 <Column field="applicationName" header="Application name" />
-                <Column field="cacheIndexBlocksRead" header="Cache read" />
                 <Column field="ipAdress" header="IP Address" />
-                <Column field="startDate" header="Start date" />
+                <Column field="startDate" header="Start date">
+                  <template #body="{data}">
+                    <span>{{formatDate(data.startDate)}}</span>
+                  </template>
+                </Column>
+                <Column header="Actions">
+                  <template #body="{data}">
+                    <Button iconOnly rounded severity="danger" outlined size="small" style="background-color: var(--p-red-100)">
+                      <SignOut />
+                    </Button>
+                  </template>
+                </Column>
               </DataTable>
             </div>
           </div>

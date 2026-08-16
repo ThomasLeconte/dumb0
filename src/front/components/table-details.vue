@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import Help from "./help.vue";
   import {useTablesStore} from "../stores/tables-store";
   import {Card, Divider, Chip, DataTable, Column, Button} from "primevue";
   import {CheckCircle, TimesCircle, ExclamationCircle, Refresh, Table} from '@primeicons/vue'
@@ -29,6 +30,14 @@
   function reloadDetails() {
     tablesStore.getTableStats(datasourceStore.datasourceChoosen.id, props.tableName)
   }
+
+  const diskCacheHitRatio = computed(() => {
+    if(ioStats == null) return null;
+    if(ioStats.value.cacheIndexBlocksRead === 0 && ioStats.value.cachediskBlocksRead === 0) return 0;
+    const result = ioStats.value.cacheIndexBlocksRead / (ioStats.value.cacheIndexBlocksRead + ioStats.value.cachediskBlocksRead) * 100;
+    console.log(result, ioStats.value)
+    return Math.round(ioStats.value.cacheIndexBlocksRead / (ioStats.value.cacheIndexBlocksRead + ioStats.value.cachediskBlocksRead) * 100);
+  })
 
 </script>
 
@@ -122,6 +131,16 @@
           <div class="flex">
             <div class="flex justify-evenly w-full mt-4">
               <div class="data flex-1 flex flex-col justify-center">
+                <span class="text-lg w-full text-center">Shared buffers <Help key="TEST" /></span>
+                <div class="flex justify-center">
+                  <div class="flex flex-col justify-center items-center">
+                    <span class="text-3xl text-orange-800">{{diskCacheHitRatio}}</span>
+                    <span>Cache hit ratio (%)</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="data flex-1 flex flex-col justify-center">
                 <span class="text-lg w-full text-center">Data blocks</span>
                 <div class="flex justify-center">
                   <div class="flex flex-col justify-center items-center">
@@ -135,6 +154,7 @@
                   </div>
                 </div>
               </div>
+
               <div class="indexes-io flex-1 flex flex-col justify-center">
                 <span class="text-lg w-full text-center">Indexes blocks</span>
                 <div class="flex justify-center">

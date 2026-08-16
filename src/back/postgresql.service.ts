@@ -152,7 +152,7 @@ export default class PostgresqlService {
 
     private static async getTableIOStats(client: any, tableName: string) {
         const query = `select stat.seq_scan, stat.seq_tup_read, stat.n_live_tup, stat.n_dead_tup, stat_io.heap_blks_read, stat_io.heap_blks_hit, stat_io.idx_blks_read, stat_io.idx_blks_hit
-            from pg_stat_all_tables stat
+            from pg_stat_user_tables stat
             join pg_statio_all_tables stat_io on stat_io.relname = stat.relname
             where stat.relname = '${tableName}'
             limit 1;`;
@@ -161,14 +161,14 @@ export default class PostgresqlService {
             if (res.rowCount === null || res.rowCount === 0) return null;
             const row = res.rows[0];
             return new TableIOStatsDto(
-                row['seq_scan'],
-                row['seq_tup_read'],
-                row['n_live_tup'],
-                row['n_dead_tup'],
-                row['heap_blks_read'],
-                row['heap_blks_hit'],
-                row['idx_blks_read'],
-                row['idx_blks_hit']
+                Number.parseFloat(row['seq_scan']),
+                Number.parseFloat(row['seq_tup_read']),
+                Number.parseFloat(row['n_live_tup']),
+                Number.parseFloat(row['n_dead_tup']),
+                Number.parseFloat(row['heap_blks_read']),
+                Number.parseFloat(row['heap_blks_hit']),
+                Number.parseFloat(row['idx_blks_read']),
+                Number.parseFloat(row['idx_blks_hit'])
             );
         });
     }
@@ -254,10 +254,13 @@ export default class PostgresqlService {
 
         const sizeQuery = 'SELECT pg_size_pretty(pg_database_size(current_database())) AS total_size;';
 
-        return Promise.all([client.query(statsQuery), client.query(sizeQuery)])
+        const sharedBuffersQuery = `SHOW shared_buffers;`;
+
+        return Promise.all([client.query(statsQuery), client.query(sizeQuery), client.query(sharedBuffersQuery)])
             .then((res) => {
                 const statsRes = res[0];
                 const sizeRes = res[1];
+                const sharedBuffersRes = res[2];
 
                 if(statsRes == null || sizeRes == null) return null;
 
@@ -267,8 +270,9 @@ export default class PostgresqlService {
                 indexesCount = statsRes.rows.find(r => 'i' === r['object_type'])['count'];
                 sequencesCount = statsRes.rows.find(r => 'S' === r['object_type'])['count'];
                 const size = sizeRes.rows[0]['total_size'];
+                const sharedBuffersSize = sharedBuffersRes.rows[0]['shared_buffers'];
 
-                return new DatasourceMainStatsDto(tablesCount, indexesCount, sequencesCount, size);
+                return new DatasourceMainStatsDto(tablesCount, indexesCount, sequencesCount, size, sharedBuffersSize);
             })
     }
 

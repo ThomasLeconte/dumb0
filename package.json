@@ -33,6 +33,7 @@
     "@vitejs/plugin-vue": "^6.0.8",
     "autoprefixer": "^10.5.4",
     "electron": "43.2.0",
+    "electron-builder": "^26.15.3",
     "postcss": "^8.5.25",
     "tailwindcss": "^4.3.3",
     "vite": "^5.4.21"
@@ -51,5 +52,32 @@
     "tailwindcss-primeui": "^0.6.1",
     "vue": "^3.5.40",
     "vue-router": "^4.6.4"
+  },
+  "build": {
+    "appId": "com.thomasleconte.dbapp",
+    "productName": "dba-app",
+    "asar": false,
+    "mac": {
+      "target": [
+        "pkg"
+      ],
+      "entitlements": "entitlements.mac.plist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "msi",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
   }
 }

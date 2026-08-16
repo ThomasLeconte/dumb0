@@ -1,10 +1,10 @@
 import { createApp } from 'vue';
-import App from './app/App.vue';
-import {pinia, PrimeVue, router} from './app/plugins';
+import App from './front/App.vue';
+import {pinia, PrimeVue, router} from './front/plugins';
 import Aura from '@primeuix/themes/aura';
 import { usePreset, definePreset } from '@primeuix/themes';
 
-import './app/index.css'
+import './front/index.css'
 
 // Use a preset as-is
 usePreset(Aura);
