@@ -17,6 +17,7 @@ import {computed, onMounted, ref} from "vue";
 import TableDetails from "../../components/table-details.vue";
 import {useDatasourcesStore} from "../../stores/datasource-store";
 import {useRouter} from "vue-router";
+import {AngleLeft} from "@primeicons/vue";
 
 const tablesStore = useTablesStore();
 const datasourceStore = useDatasourcesStore();
@@ -65,8 +66,12 @@ function logout() {
         </SidebarPanel>
       </SidebarAside>
     </Sidebar>
-    <SidebarMain class="dba-sidebar-aside-content mt-2 mr-2">
-      <TableDetails v-if="tablesStore.tableStats != null" :table-name="active" />
+    <SidebarMain class="dba-sidebar-aside-content mt-2 mr-2 bg-transparent!">
+      <div v-if="tablesStore.tableStats == null" class="flex flex-col justify-center items-center w-full h-full">
+        <AngleLeft size="46" class="mb-10" />
+        <span class="text-4xl text-gray-400 font-light">Choose one table on left sidebar!</span>
+      </div>
+      <TableDetails v-else :table-name="active" />
     </SidebarMain>
   </SidebarLayout>
 </template>
@@ -74,6 +79,7 @@ function logout() {
 <style scoped>
 .dba-sidebar-layout {
   min-height: 0 !important;
+  background: transparent !important;
 }
 .dba-sidebar {
   height: 100dvh;

@@ -63,12 +63,25 @@ function logout() {
     </template>
   </Menubar>
 
-  <router-view />
+  <div class="content">
+    <div class="background" />
+    <router-view />
+  </div>
 </template>
 
 <style scoped>
 .title {
   font-family: 'consolas';
   font-family: 'menlo';
+}
+
+.background {
+  z-index: -9999;
+  position: absolute;
+  height: 100dvh;
+  width: 100dvw;
+  background-color: #f9fafb;
+  opacity: 0.1;
+  background-image:  repeating-radial-gradient( circle at 0 0, transparent 0, #f9fafb 9px ), repeating-linear-gradient( #444CF755, #444CF7 );
 }
 </style>
