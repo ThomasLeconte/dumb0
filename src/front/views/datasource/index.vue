@@ -42,7 +42,7 @@ const menuItems = ref([
 const datasource = computed(() => datasourceStore.datasourceChoosen);
 
 function logout() {
-  datasourceStore.selectDatasource(null);
+  datasourceStore.clearDatasource();
   tablesStore.clear();
   router.push("/");
 }
@@ -64,7 +64,7 @@ function logout() {
   </Menubar>
 
   <div class="content">
-    <div class="background" />
+    <div class="background m-h-dvh" />
     <router-view />
   </div>
 </template>
@@ -75,13 +75,9 @@ function logout() {
   font-family: 'menlo';
 }
 
-.background {
-  z-index: -9999;
-  position: absolute;
+.content {
   height: 100dvh;
-  width: 100dvw;
   background-color: #f9fafb;
-  opacity: 0.1;
-  background-image:  repeating-radial-gradient( circle at 0 0, transparent 0, #f9fafb 9px ), repeating-linear-gradient( #444CF755, #444CF7 );
+  background-image:  repeating-radial-gradient( circle at 0 0, transparent 0, #f9fafb 9px ), repeating-linear-gradient( rgb(68 76 247 / 0.07), rgb(68 76 247 / 0.08));
 }
 </style>

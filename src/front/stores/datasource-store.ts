@@ -19,6 +19,9 @@ export const useDatasourcesStore = defineStore('datasources', {
             this.datasourceChoosen = datasource;
             return this.loadDatasourceDetails();
         },
+        clearDatasource() {
+            this.datasourceChoosen = null;
+        },
         createDatasource(form: CreateDatasourceFormDto) {
             return window.ipc.send('create-datasource', {form})
                 .then((res) => this.loadDatasources())

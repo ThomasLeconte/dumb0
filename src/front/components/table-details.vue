@@ -28,15 +28,21 @@
   })
 
   function reloadDetails() {
-    tablesStore.getTableStats(datasourceStore.datasourceChoosen.id, props.tableName)
+    tablesStore.getTableStats(datasourceStore.datasourceChoosen!.id, props.tableName)
+  }
+
+  function formatQuantity(n: number) {
+    return n.toLocaleString('en-US', {
+      notation: "compact",
+      compactDisplay: "short"
+    })
   }
 
   const diskCacheHitRatio = computed(() => {
     if(ioStats == null) return null;
     if(ioStats.value.cacheIndexBlocksRead === 0 && ioStats.value.cachediskBlocksRead === 0) return 0;
     const result = ioStats.value.cacheIndexBlocksRead / (ioStats.value.cacheIndexBlocksRead + ioStats.value.cachediskBlocksRead) * 100;
-    console.log(result, ioStats.value)
-    return Math.round(ioStats.value.cacheIndexBlocksRead / (ioStats.value.cacheIndexBlocksRead + ioStats.value.cachediskBlocksRead) * 100);
+    return Math.round(result);
   })
 
 </script>
@@ -144,12 +150,12 @@
                 <span class="text-lg w-full text-center">Data blocks</span>
                 <div class="flex justify-center">
                   <div class="flex flex-col justify-center items-center">
-                    <span class="text-3xl text-orange-800">{{ioStats.diskBlocksRead}}</span>
+                    <span class="text-3xl text-orange-800">{{formatQuantity(ioStats.diskBlocksRead)}}</span>
                     <span>Disk read</span>
                   </div>
                   <Divider layout="vertical" />
                   <div class="flex flex-col justify-center items-center">
-                    <span class="text-3xl text-lime-700">{{ioStats.cachediskBlocksRead}}</span>
+                    <span class="text-3xl text-lime-700">{{formatQuantity(ioStats.cachediskBlocksRead)}}</span>
                     <span>Cache read</span>
                   </div>
                 </div>
@@ -159,12 +165,12 @@
                 <span class="text-lg w-full text-center">Indexes blocks</span>
                 <div class="flex justify-center">
                   <div class="flex flex-col justify-center items-center">
-                    <span class="text-3xl text-orange-800">{{ioStats.indexBlocksRead}}</span>
+                    <span class="text-3xl text-orange-800">{{formatQuantity(ioStats.indexBlocksRead)}}</span>
                     <span>Disk read</span>
                   </div>
                   <Divider layout="vertical" />
                   <div class="flex flex-col justify-center items-center">
-                    <span class="text-3xl text-lime-700">{{ioStats.cacheIndexBlocksRead}}</span>
+                    <span class="text-3xl text-lime-700">{{formatQuantity(ioStats.cacheIndexBlocksRead)}}</span>
                     <span>Cache read</span>
                   </div>
                 </div>

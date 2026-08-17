@@ -21,7 +21,7 @@ function reloadDetails() {
 </script>
 
 <template>
-  <div class="general p-4 min-h-dvh">
+  <div class="general p-3">
     <div class="mb-8">
       <div class="flex justify-between items-center">
         <span class="title text-2xl">General</span>

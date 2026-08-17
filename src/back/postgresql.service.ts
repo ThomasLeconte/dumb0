@@ -106,7 +106,11 @@ export default class PostgresqlService {
             if(res.rowCount === null || res.rowCount === 0) return null;
             const row = res.rows[0];
 
-            return new TableRowsStatsDto(row['live_rows'], row['dead_rows'], row['last_analyze'], row['last_autovacuum']);
+            return new TableRowsStatsDto(
+                Number.parseFloat(row['live_rows']),
+                Number.parseFloat(row['dead_rows']),
+                row['last_analyze'],
+                row['last_autovacuum']);
         })
     }
 
@@ -185,9 +189,9 @@ export default class PostgresqlService {
             return res.rows.map((row) => {
                 return new TableIndexesDto(
                     row['indexrelname'],
-                    row['idx_blks_read'],
-                    row['idx_blks_hit'],
-                    row['idx_scan']
+                    Number.parseFloat(row['idx_blks_read']),
+                    Number.parseFloat(row['idx_blks_hit']),
+                    Number.parseFloat(row['idx_scan'])
                 );
             })
         })
@@ -272,7 +276,12 @@ export default class PostgresqlService {
                 const size = sizeRes.rows[0]['total_size'];
                 const sharedBuffersSize = sharedBuffersRes.rows[0]['shared_buffers'];
 
-                return new DatasourceMainStatsDto(tablesCount, indexesCount, sequencesCount, size, sharedBuffersSize);
+                return new DatasourceMainStatsDto(
+                    Number.parseFloat(tablesCount),
+                    Number.parseFloat(indexesCount),
+                    Number.parseFloat(String(sequencesCount)),
+                    size,
+                    sharedBuffersSize);
             })
     }
 
