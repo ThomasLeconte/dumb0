@@ -76,7 +76,7 @@ function logout() {
 }
 
 .content {
-  height: 100dvh;
+  min-height: 100dvh;
   background-color: #f9fafb;
   background-image:  repeating-radial-gradient( circle at 0 0, transparent 0, #f9fafb 9px ), repeating-linear-gradient( rgb(68 76 247 / 0.07), rgb(68 76 247 / 0.08));
 }

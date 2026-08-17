@@ -38,6 +38,11 @@
     })
   }
 
+  function formatDate(date: Date) {
+    if(date == null) return "-";
+    return date.toLocaleString();
+  }
+
   const diskCacheHitRatio = computed(() => {
     if(ioStats == null) return null;
     if(ioStats.value.cacheIndexBlocksRead === 0 && ioStats.value.cachediskBlocksRead === 0) return 0;
@@ -57,8 +62,36 @@
       <Divider />
     </div>
 
+    <Card class="mt-2 mb-10 border-2 border-gray-200">
+      <template #title>
+        <div class="flex justify-between items-start">
+          <span class="section-title">General</span>
+          <Chip class="bg-green-50! dark:bg-green-950! text-green-700! dark:text-green-300!">
+            <template #icon><CheckCircle /></template>
+          </Chip>
+        </div>
+      </template>
+      <template #content>
+        <Divider />
+        <div class="main-infos py-2 px-4 flex flex-col justify-items-start gap-5">
+          <div class="flex justify-items-start items-center gap-5 w-full">
+            <span class="title flex-1 flex items-center">Last analyze<Help model="ANALYZE" /></span>
+            <span v-if="rowsStats && rowsStats.lastAnalyze">{{formatDate((rowsStats.lastAnalyze))}}</span>
+          </div>
+          <div class="flex justify-items-start items-center gap-5 w-full">
+            <span class="title flex-1 flex items-center">Last Vacuum<Help model="VACUUM" /></span>
+            <span v-if="rowsStats">{{formatDate((rowsStats.lastVacuum))}}</span>
+          </div>
+          <div class="flex justify-items-start items-center gap-5 w-full">
+            <span class="title flex-1 flex items-center">Sequential scans<Help model="SEQ_SCAN" /></span>
+            <span v-if="ioStats">{{ioStats.sequentialScan}}</span>
+          </div>
+        </div>
+      </template>
+    </Card>
+
     <div class="flex items-start gap-4">
-      <Card class="w-2/4 my-2" v-if="sizeStats">
+      <Card class="w-2/4 my-2" style="height: stretch" v-if="sizeStats">
         <template #title>
           <div class="flex justify-between items-start">
             <span class="section-title">Size</span>
@@ -137,7 +170,7 @@
           <div class="flex">
             <div class="flex justify-evenly w-full mt-4">
               <div class="data flex-1 flex flex-col justify-center">
-                <span class="text-lg w-full text-center">Shared buffers <Help key="TEST" /></span>
+                <span class="text-lg w-full text-center">Shared buffers <Help model="TEST" /></span>
                 <div class="flex justify-center">
                   <div class="flex flex-col justify-center items-center">
                     <span class="text-3xl text-orange-800">{{diskCacheHitRatio}}</span>

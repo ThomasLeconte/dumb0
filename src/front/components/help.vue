@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import {Button, Dialog, Divider} from 'primevue';
 import {Info, Times} from "@primeicons/vue";
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
 
 const props = defineProps({
-  key: {
+  model: {
     type: String,
     required: true
   }
@@ -12,7 +12,7 @@ const props = defineProps({
 
 const show = ref(false);
 
-const emit = defineEmits(['update:modelValue'])
+onMounted(() => console.log(props.model))
 
 function closeDialog() {
   show.value = false;
@@ -38,8 +38,17 @@ function showDialog() {
       </div>
     </template>
 
-    <div class="content my-5">
-
+    <div class="content my-2">
+      <template v-if="'SEQ_SCAN' === model">
+        <strong>Sequential scan</strong> is when PostgreSQL reads every row in a table one by one, like flipping through every page of a book to find a word, instead of using an index to jump directly to the right page.
+      </template>
+      <template v-else-if="'ANALYZE' === model">
+        <strong>ANALYZE</strong> is a PostgreSQL command that updates statistics about table data distribution and size, helping the query planner make smarter decisions for optimizing queries.
+        More informations <a href="https://www.crunchydata.com/blog/get-started-with-explain-analyze">here.</a>
+      </template>
+      <template v-else-if="'VACUUM' === model">
+        <strong>VACUUM</strong> in PostgreSQL is a maintenance operation that reclaims storage occupied by dead tuples and makes it available for reuse, while also updating visibility information to improve query performance.
+      </template>
     </div>
 
     <template #footer>

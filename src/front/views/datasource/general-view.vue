@@ -32,7 +32,7 @@ function reloadDetails() {
 
     <div class="details mt-4">
       <div class="main-stats flex justify-between flex-wrap gap-4 mt-4 mb-12">
-        <Card class="flex-1 border-1 border-gray-300" style="background-color: var(--p-stone-100)">
+        <Card class="flex-1 border-2 border-gray-300" style="background-color: var(--p-stone-100)">
           <template #title>
             <span class="title flex justify-start items-center gap-2"><Table size="20" />Tables</span>
             <Divider style="color: var(--p-zinc-500)" />
