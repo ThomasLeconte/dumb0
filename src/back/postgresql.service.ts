@@ -61,11 +61,12 @@ export default class PostgresqlService {
         const datasource = await SqliteService.getDatasourceById(datasourceId);
         const client = await PostgresqlService.initConnection(datasource);
         if(client !== null) {
+            const pgStateStatementActivated = await this.checkPgStatStatementExtensionActivated(client);
             const mainStats = await this.getDatasourceMainStats(client);
             const locks = await this.getDatasourceLocks(client);
             const connections = await this.getDatasourceConnections(client);
 
-            return new DatasourceStatsDto(mainStats, locks, connections);
+            return new DatasourceStatsDto(pgStateStatementActivated, mainStats, locks, connections);
         }
         return null;
     }
@@ -283,6 +284,15 @@ export default class PostgresqlService {
                     size,
                     sharedBuffersSize);
             })
+    }
+
+    private static async checkPgStatStatementExtensionActivated(client: Client) {
+        const query = `SELECT count(*) FROM pg_stat_statements;`;
+
+        return client.query(query).then((res) => {
+            console.log("pg-stat-statement activated")
+            return true;
+        }).catch((err) => {return false});
     }
 
 

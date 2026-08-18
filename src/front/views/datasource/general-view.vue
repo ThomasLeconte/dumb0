@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {useDatasourcesStore} from "../../stores/datasource-store";
 import {computed, onBeforeMount, onMounted} from "vue";
-import {Box, ExclamationCircle, Indent, ListOl, ListTree, Table, SignOut, Refresh} from "@primeicons/vue";
+import {Box, ExclamationCircle, Indent, ListOl, ListTree, Table, SignOut, Refresh, CheckCircle} from "@primeicons/vue";
 import {Card, Chip, Column, DataTable, Divider, Button} from "primevue";
 
 const datasourceStore = useDatasourcesStore();
@@ -24,7 +24,19 @@ function reloadDetails() {
   <div class="general p-3">
     <div class="mb-8">
       <div class="flex justify-between items-center">
-        <span class="title text-2xl">General</span>
+        <span class="flex items-center gap-2">
+          <span class="title text-2xl">General</span>
+          <template v-if="datasourceDetails.pgStatStatementExtensionActivated">
+            <Chip v-tooltip.bottom="'pg_state_statement extension is activated!'" class="bg-green-50! dark:bg-green-950! text-green-700! dark:text-green-300!">
+              <template #icon><CheckCircle /></template>
+            </Chip>
+          </template>
+          <template v-else>
+            <Chip v-tooltip.bottom="'pg_state_statement extension is not activated!'" class="bg-orange-100! dark:bg-orange-950! text-orange-700! dark:text-orange-300!">
+              <template #icon><ExclamationCircle /></template>
+            </Chip>
+          </template>
+        </span>
         <Button severity="info" @click="reloadDetails"><Refresh />Reload</Button>
       </div>
       <Divider />

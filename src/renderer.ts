@@ -5,11 +5,13 @@ import Aura from '@primeuix/themes/aura';
 import { usePreset, definePreset } from '@primeuix/themes';
 
 import './front/index.css'
+import {Tooltip} from "primevue";
 
 // Use a preset as-is
 usePreset(Aura);
 
 createApp(App)
+    .directive('tooltip', Tooltip)
     .use(PrimeVue, {
         theme: {
             preset: Aura,
