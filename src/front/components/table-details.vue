@@ -80,7 +80,16 @@
           </div>
           <div class="flex justify-items-start items-center gap-5 w-full">
             <span class="title flex-1 flex items-center">Last Vacuum<Help model="VACUUM" /></span>
-            <span v-if="rowsStats">{{formatDate((rowsStats.lastVacuum))}}</span>
+            <span class="flex items-center gap-2">
+              <Help model="BLOAT" v-if="!rowsStats.lastVacuum && rowsStats.deadRows >= 0">
+                <template #activator="{showHelp}">
+                  <Chip @click="showHelp" v-tooltip.bottom="'Potential BLOAT'" class="bg-orange-100! text-orange-700!">
+                    <template #icon><ExclamationCircle /></template>
+                  </Chip>
+                </template>
+              </Help>
+              <span v-if="rowsStats">{{formatDate((rowsStats.lastVacuum))}}</span>
+            </span>
           </div>
           <div class="flex justify-items-start items-center gap-5 w-full">
             <span class="title flex-1 flex items-center">Sequential scans<Help model="SEQ_SCAN" /></span>
@@ -235,7 +244,16 @@
               </Column>
               <Column field="indexBlocksRead" header="Disk read" />
               <Column field="cacheIndexBlocksRead" header="Cache read" />
-              <Column field="scansTime" header="Scans" />
+              <Column field="scansTime" header="Scans">
+                <template #body="{data}">
+                  <div class="flex gap-2">
+                    <span>{{data.scansTime}}</span>
+                    <Chip v-if="data.scansTime === 0" v-tooltip.bottom="'Unused index'" class="bg-orange-100! text-orange-700!">
+                      <template #icon><ExclamationCircle /></template>
+                    </Chip>
+                  </div>
+                </template>
+              </Column>
             </DataTable>
           </div>
         </div>

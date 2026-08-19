@@ -25,7 +25,9 @@ function showDialog() {
 </script>
 
 <template>
-  <Button class="mx-2" iconOnly rounded outlined severity="info" size="small"><Info @click="showDialog" /></Button>
+  <slot name="activator" :showHelp="showDialog">
+    <Button @click="showDialog" class="mx-2" iconOnly rounded outlined severity="info" size="small"><Info /></Button>
+  </slot>
 
   <Dialog v-if="show" :visible="show" :closable="false" modal class="w-6/12">
     <template #header>
@@ -48,6 +50,9 @@ function showDialog() {
       </template>
       <template v-else-if="'VACUUM' === model">
         <strong>VACUUM</strong> in PostgreSQL is a maintenance operation that reclaims storage occupied by dead tuples and makes it available for reuse, while also updating visibility information to improve query performance.
+      </template>
+      <template v-else-if="'BLOAT' === model">
+        <strong>BLOAT</strong> in PostgreSQL is the wasted space and inefficiency caused by dead rows (from updates/deletes) and fragmentation that make tables and indexes larger than necessary. This slows down queries and increases storage usage until cleaned up by operations like <code>VACUUM</code>.
       </template>
     </div>
 
