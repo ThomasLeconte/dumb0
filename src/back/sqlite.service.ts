@@ -3,6 +3,7 @@ import {DatasourceDto} from "../commons/data/dto/datasource-dto";
 
 import * as sqlite from "node:sqlite";
 import {CreateDatasourceFormDto} from "../commons/data/dto/forms/create-datasource-form-dto";
+import PostgresqlService from "./postgresql.service";
 
 export class SqliteService {
 
@@ -78,11 +79,17 @@ export class SqliteService {
         const db = this.getDatabase();
 
         return new Promise((resolve, reject) => {
-            db.exec(`INSERT INTO datasource (name, username, password, hostname, port, dbname)
+            PostgresqlService.testConnection(form)
+                .then(() => {
+                    db.exec(`INSERT INTO datasource (name, username, password, hostname, port, dbname)
                           VALUES ('${form.name}', '${form.username}', '${form.password}', '${form.hostname}', ${form.port}, '${form.dbname}');`, (err) => {
-                if(err) reject(err);
+                        if(err) reject(err);
 
-                resolve(null);
+                        resolve(null);
+                    });
+                })
+                .catch((err) => {
+                reject(err);
             });
         })
     }

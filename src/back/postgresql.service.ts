@@ -11,6 +11,7 @@ import {DatasourceLockDto} from "../commons/data/dto/datasource-lock-dto";
 import {DatasourceConnectionDto} from "../commons/data/dto/datasource-connection-dto";
 import {DatasourceStatsDto} from "../commons/data/dto/datasource-stats-dto";
 import {DatasourceMainStatsDto} from "../commons/data/dto/datasource-main-stats-dto";
+import {CreateDatasourceFormDto} from "../commons/data/dto/forms/create-datasource-form-dto";
 
 export default class PostgresqlService {
 
@@ -313,5 +314,9 @@ export default class PostgresqlService {
         client = await client.connect();
 
         return client;
+    }
+
+    public static testConnection(form: CreateDatasourceFormDto) {
+        return PostgresqlService.initConnection(new DatasourceDto(null, form.name, form.username, form.password, form.hostname, form.port, form.dbname));
     }
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {Button, Dialog, Divider, InputNumber, InputText, Message, Password} from 'primevue';
+import {Button, Dialog, Divider, InputNumber, InputText, Message, Password, Toast, useToast} from 'primevue';
 import {FormField, FormResolverOptions} from '@primevue/forms';
 import {Times} from "@primeicons/vue";
 import {ref} from "vue";
@@ -14,6 +14,8 @@ const props = defineProps({
 });
 
 const datasourceStore = useDatasourcesStore();
+
+const toast = useToast();
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -42,6 +44,9 @@ function onFormSubmit() {
       form.value.name, form.value.hostname, form.value.port, form.value.dbname, form.value.username, form.value.password
   )).then(() => {
     closeDialog();
+  }).catch((err) => {
+    console.error(err);
+    toast.add({ severity: 'error', group: 'bottom-center', summary: 'Datasource not created', detail: 'An error occured when tried to connect on datasource using these informations.', life: 3000 });
   });
 }
 
@@ -96,6 +101,7 @@ function onFormSubmit() {
           <Button severity="success" @click="onFormSubmit()">Create</Button>
         </div>
       </div>
+      <Toast position="bottom-center" group="bottom-center" />
     </template>
   </Dialog>
 </template>
