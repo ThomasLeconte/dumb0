@@ -7,7 +7,7 @@
 
 <style>
 .title {
-  font-family: 'consolas';
   font-family: 'menlo';
+  font-family: 'consolas';
 }
 </style>

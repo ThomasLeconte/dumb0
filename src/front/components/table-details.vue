@@ -268,8 +268,8 @@
 
 <style scoped>
   .table-title, .section-title {
-    font-family: 'consolas';
     font-family: 'menlo';
+    font-family: 'consolas';
   }
 
   .section-title {
