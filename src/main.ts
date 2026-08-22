@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, safeStorage, dialog } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import PostgresqlService from "./back/postgresql.service";
@@ -35,6 +35,23 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
+  // Vérifier si le chiffrement est disponible (nécessaire pour sécuriser les mots de passe)
+  if (!safeStorage.isEncryptionAvailable()) {
+    console.error(
+      '❌ ERREUR CRITIQUE: Le chiffrement des données sensibles n\'est pas disponible sur cette machine. '
+    );
+    
+    // Afficher une boîte de dialogue d'erreur avant de quitter
+    await dialog.showErrorBox(
+      'Erreur de sécurité',
+      'Le chiffrement des données sensibles n\'est pas disponible sur cette machine. '\ +
+      'L\'application ne peut pas démarrer sans cette protection. '\ +
+      'Veuillez vérifier que votre système d\'exploitation est à jour.'
+    );
+    app.quit();
+    return;
+  }
+
   SqliteService.init();
   ipcMain.handle('send', async (event, args) => {
     return handleMessageIncoming(event, args);
@@ -79,7 +96,7 @@ async function handleMessageIncoming(event, data) {
       result = await SqliteService.deleteDatasource(args);
       break;
     case 'update-datasource':
-      result = await SqliteService.updateDatasource(argss);
+      result = await SqliteService.updateDatasource(args);
       break;
     case 'get-tables':
       result = await PostgresqlService.getTables(args);
