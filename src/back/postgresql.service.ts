@@ -298,8 +298,7 @@ export default class PostgresqlService {
     }
 
     private static async getDatasourceLocks(client: Client) {
-        // Note: client.database est une propriété interne de pg.Client
-        // On utilise current_database() pour éviter l'injection
+        // Utilisation de current_database() pour éviter l'injection
         const query = `
             SELECT 
                 l.locktype,
@@ -444,15 +443,16 @@ export default class PostgresqlService {
     private static async initConnection(datasource: DatasourceDto): Promise<Client> {
         const { Client } = require('pg');
 
+        // Le mot de passe est déjà déchiffré par SqliteService (via safeStorage.decryptString)
         const client = new Client({
             host: datasource.hostname,
             port: datasource.port,
             database: datasource.dbname,
             user: datasource.username,
-            password: datasource.password,
+            password: datasource.password, // ✅ Déjà déchiffré
             application_name: 'dba-app',
-            connectionTimeoutMillis: 5000,       // 5 secondes
-            idle_in_transaction_session_timeout: 10000  // 10 secondes
+            connectionTimeoutMillis: 5000,
+            idle_in_transaction_session_timeout: 10000
         });
 
         try {
@@ -465,12 +465,14 @@ export default class PostgresqlService {
     }
 
     public static testConnection(form: CreateDatasourceFormDto) {
+        // Le mot de passe du formulaire est en clair (non chiffré)
+        // car il vient directement de l'input utilisateur
         return PostgresqlService.initConnection(
             new DatasourceDto(
                 null,
                 form.name,
                 form.username,
-                form.password,
+                form.password, // ✅ En clair (non chiffré, car test de connexion)
                 form.hostname,
                 form.port,
                 form.dbname

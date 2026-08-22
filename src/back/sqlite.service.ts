@@ -1,26 +1,18 @@
-import {Database} from "sqlite3";
-import {DatasourceDto} from "../commons/data/dto/datasource-dto";
-
-import * as sqlite from "node:sqlite";
-import {CreateDatasourceFormDto} from "../commons/data/dto/forms/create-datasource-form-dto";
+import { Database } from "sqlite3";
+import { DatasourceDto } from "../commons/data/dto/datasource-dto";
+import { CreateDatasourceFormDto } from "../commons/data/dto/forms/create-datasource-form-dto";
 import PostgresqlService from "./postgresql.service";
+import { safeStorage } from 'electron';
 
 export class SqliteService {
 
     private static getDatabase(): Database {
-        const {Database} = require('sqlite3');
+        const { Database } = require('sqlite3');
         return new Database('app.db');
     }
 
     public static init() {
         const db = this.getDatabase();
-
-        // Enable Write-Ahead Logging for better concurrent read performance
-        // This is recommended for most applications
-        // db.pragma('journal_mode = WAL');
-
-        // Enable foreign key constraints (disabled by default in SQLite)
-        // db.pragma('foreign_keys = ON');
 
         db.exec(`
             CREATE TABLE IF NOT EXISTS datasource (
@@ -42,35 +34,76 @@ export class SqliteService {
 
     public static getDatasources() {
         const db = this.getDatabase();
-        let result: DatasourceDto[] = [];
 
-        return new Promise((resolve, reject) => {
+        return new Promise<DatasourceDto[]>((resolve, reject) => {
             db.all("SELECT * FROM datasource", (err, rows) => {
-                if(err) reject(err);
-                if(rows == null || rows.length === 0) resolve(result);
+                if (err) {
+                    console.error('Error fetching datasources:', err);
+                    reject(new Error('Failed to fetch datasources'));
+                    return;
+                }
+                
+                if (!rows || rows.length === 0) {
+                    resolve([]);
+                    return;
+                }
 
-                rows.map((row: any) => {
-                    new DatasourceDto(row['id'], row['name'], row['username'], row['password'], row['hostname'], row['port'], row['dbname']);
+                const datasources = rows.map((row: any) => {
+                    // Déchiffrer le mot de passe avant de créer le DTO
+                    const decryptedPassword = safeStorage.decryptString(row.password);
+                    return new DatasourceDto(
+                        row.id,
+                        row.name,
+                        row.username,
+                        decryptedPassword,
+                        row.hostname,
+                        row.port,
+                        row.dbname
+                    );
                 });
 
-                resolve(rows);
-            })
-        })
+                resolve(datasources);
+            });
+        });
     }
 
-    static getDatasourceById(datasourceId: string): Promise<DatasourceDto> {
+    static getDatasourceById(datasourceId: string): Promise<DatasourceDto | null> {
         const id = Number.parseInt(datasourceId);
+        
+        // Validation de l'ID
+        if (isNaN(id) || id <= 0) {
+            return Promise.resolve(null);
+        }
+
         const db = this.getDatabase();
-        let result = null;
 
-        return new Promise((resolve, reject) => {
-            db.get(`SELECT * FROM datasource where id = ${id}`, (err, row) => {
-                if(err) reject(err);
-                if(row == null) resolve(result);
+        return new Promise<DatasourceDto | null>((resolve, reject) => {
+            // Requête paramétrée pour éviter l'injection SQL
+            db.get("SELECT * FROM datasource WHERE id = ?", [id], (err, row) => {
+                if (err) {
+                    console.error('Error fetching datasource by ID:', err);
+                    reject(new Error('Failed to fetch datasource'));
+                    return;
+                }
+                
+                if (!row) {
+                    resolve(null);
+                    return;
+                }
 
-                resolve(new DatasourceDto(row['id'], row['name'], row['username'], row['password'], row['hostname'], row['port'], row['dbname']));
-            })
-        })
+                // Déchiffrer le mot de passe
+                const decryptedPassword = safeStorage.decryptString(row.password);
+                resolve(new DatasourceDto(
+                    row.id,
+                    row.name,
+                    row.username,
+                    decryptedPassword,
+                    row.hostname,
+                    row.port,
+                    row.dbname
+                ));
+            });
+        });
     }
 
     static async createDatasource(args: any) {
@@ -78,19 +111,103 @@ export class SqliteService {
 
         const db = this.getDatabase();
 
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             PostgresqlService.testConnection(form)
                 .then(() => {
-                    db.exec(`INSERT INTO datasource (name, username, password, hostname, port, dbname)
-                          VALUES ('${form.name}', '${form.username}', '${form.password}', '${form.hostname}', ${form.port}, '${form.dbname}');`, (err) => {
-                        if(err) reject(err);
-
-                        resolve(null);
-                    });
+                    // Chiffrer le mot de passe avant stockage
+                    const encryptedPassword = safeStorage.encryptString(form.password);
+                    
+                    // Requête paramétrée pour éviter l'injection SQL
+                    db.exec(
+                        `INSERT INTO datasource (name, username, password, hostname, port, dbname)
+                         VALUES (?, ?, ?, ?, ?, ?)`,
+                        [
+                            form.name,
+                            form.username,
+                            encryptedPassword,
+                            form.hostname,
+                            form.port,
+                            form.dbname
+                        ],
+                        (err) => {
+                            if (err) {
+                                console.error('Error creating datasource:', err);
+                                reject(new Error('Failed to create datasource'));
+                                return;
+                            }
+                            resolve();
+                        }
+                    );
                 })
                 .catch((err) => {
-                reject(err);
+                    console.error('Connection test failed:', err);
+                    reject(new Error('Connection test failed'));
+                });
+        });
+    }
+
+    static async deleteDatasource(args: any) {
+        const datasourceId = args.datasourceId;
+        const id = Number.parseInt(datasourceId);
+        
+        // Validation de l'ID
+        if (isNaN(id) || id <= 0) {
+            throw new Error('Invalid datasource ID');
+        }
+
+        const db = this.getDatabase();
+
+        return new Promise<void>((resolve, reject) => {
+            // Requête paramétrée pour éviter l'injection SQL
+            db.exec("DELETE FROM datasource WHERE id = ?", [id], (err) => {
+                if (err) {
+                    console.error('Error deleting datasource:', err);
+                    reject(new Error('Failed to delete datasource'));
+                    return;
+                }
+                resolve();
             });
-        })
+        });
+    }
+
+    static async updateDatasource(args: any) {
+        const { id, form } = args;
+        const datasourceId = Number.parseInt(id);
+        
+        // Validation de l'ID
+        if (isNaN(datasourceId) || datasourceId <= 0) {
+            throw new Error('Invalid datasource ID');
+        }
+
+        const db = this.getDatabase();
+
+        return new Promise<void>((resolve, reject) => {
+            // Chiffrer le nouveau mot de passe
+            const encryptedPassword = safeStorage.encryptString(form.password);
+            
+            // Requête paramétrée pour éviter l'injection SQL
+            db.exec(
+                `UPDATE datasource 
+                 SET name = ?, username = ?, password = ?, hostname = ?, port = ?, dbname = ?
+                 WHERE id = ?`,
+                [
+                    form.name,
+                    form.username,
+                    encryptedPassword,
+                    form.hostname,
+                    form.port,
+                    form.dbname,
+                    datasourceId
+                ],
+                (err) => {
+                    if (err) {
+                        console.error('Error updating datasource:', err);
+                        reject(new Error('Failed to update datasource'));
+                        return;
+                    }
+                    resolve();
+                }
+            );
+        });
     }
 }
