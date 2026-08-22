@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, safeStorage, dialog } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import PostgresqlService from "./back/postgresql.service";
-import {SqliteService} from "./back/sqlite.service";
+import { SqliteService } from "./back/sqlite.service";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -38,7 +38,7 @@ app.whenReady().then(async () => {
   // Vérifier si le chiffrement est disponible (nécessaire pour sécuriser les mots de passe)
   if (!safeStorage.isEncryptionAvailable()) {
     console.error(
-      '❌ ERREUR CRITIQUE: Le chiffrement des données sensibles n\'est pas disponible sur cette machine. '
+      '❌ ERREUR CRITIQUE: Le chiffrement des données sensibles n\'est pas disponible sur cette machine.'
     );
     
     // Afficher une boîte de dialogue d'erreur avant de quitter
@@ -52,7 +52,22 @@ app.whenReady().then(async () => {
     return;
   }
 
-  SqliteService.init();
+  // Initialiser SQLiteService (va vérifier/creer le dossier de données)
+  try {
+    SqliteService.init();
+  } catch (err) {
+    console.error('❌ ERREUR CRITIQUE:', err);
+    
+    // Afficher une boîte de dialogue d'erreur pour le dossier de données
+    await dialog.showErrorBox(
+      'Erreur de stockage',
+      'Impossible de créer le dossier de stockage des données. ' +
+      'Vérifiez les permissions d\'écriture dans votre profil utilisateur.'
+    );
+    app.quit();
+    return;
+  }
+
   ipcMain.handle('send', async (event, args) => {
     return handleMessageIncoming(event, args);
   })

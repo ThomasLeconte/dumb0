@@ -56,7 +56,11 @@
   "build": {
     "appId": "com.thomasleconte.dbapp",
     "productName": "dba-app",
-    "asar": false,
+    "asar": true,
+    "asarIntegrityValidation": true,
+    "asarUnpack": [
+      "**/*.{node,dll,so,dylib}"
+    ],
     "mac": {
       "target": [
         "pkg"

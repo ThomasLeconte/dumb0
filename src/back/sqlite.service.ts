@@ -2,16 +2,49 @@ import { Database } from "sqlite3";
 import { DatasourceDto } from "../commons/data/dto/datasource-dto";
 import { CreateDatasourceFormDto } from "../commons/data/dto/forms/create-datasource-form-dto";
 import PostgresqlService from "./postgresql.service";
-import { safeStorage } from 'electron';
+import { safeStorage, app } from 'electron';
+import path from 'node:path';
+import fs from 'node:fs';
+
+// Nom du dossier pour stocker les données de l'application
+const APP_DATA_DIR = 'dba-app';
 
 export class SqliteService {
 
-    private static getDatabase(): Database {
-        const { Database } = require('sqlite3');
-        return new Database('app.db');
+    private static getDatabasePath(): string {
+        // Chemin vers le dossier des données utilisateur + notre sous-dossier
+        const userDataPath = app.getPath('userData');
+        const appDataDir = path.join(userDataPath, APP_DATA_DIR);
+        return path.join(appDataDir, 'app.db');
     }
 
-    public static init() {
+    private static getDatabase(): Database {
+        const { Database } = require('sqlite3');
+        return new Database(SqliteService.getDatabasePath());
+    }
+
+    /**
+     * Initialise le dossier de données et la base SQLite
+     * @throws {Error} Si le dossier ne peut pas être créé
+     */
+    public static init(): void {
+        const userDataPath = app.getPath('userData');
+        const appDataDir = path.join(userDataPath, APP_DATA_DIR);
+
+        // Vérifier si le dossier existe, sinon le créer
+        if (!fs.existsSync(appDataDir)) {
+            try {
+                fs.mkdirSync(appDataDir, { recursive: true });
+                console.log(`Dossier de données créé: ${appDataDir}`);
+            } catch (err) {
+                console.error(`❌ ERREUR CRITIQUE: Impossible de créer le dossier de données: ${err}`);
+                throw new Error(
+                    'Impossible de créer le dossier de stockage des données. ' +
+                    'Vérifiez les permissions d\'écriture dans le dossier utilisateur.'
+                );
+            }
+        }
+
         const db = this.getDatabase();
 
         db.exec(`
