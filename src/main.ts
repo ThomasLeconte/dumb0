@@ -15,8 +15,8 @@ const createWindow = () => {
     width: 1000,
     height: 800,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: true,
+      nodeIntegration: false,  // ✅ Désactivé pour la sécurité
+      contextIsolation: true,  // ✅ Isoler le contexte de rendu
       preload: path.join(__dirname, 'preload.js'),
     },
   });
