@@ -6,13 +6,11 @@ import { safeStorage, app } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 
-// Nom du dossier pour stocker les données de l'application
 const APP_DATA_DIR = 'dba-app';
 
 export class SqliteService {
 
     private static getDatabasePath(): string {
-        // Chemin vers le dossier des données utilisateur + notre sous-dossier
         const userDataPath = app.getPath('userData');
         const appDataDir = path.join(userDataPath, APP_DATA_DIR);
         return path.join(appDataDir, 'app.db');
@@ -31,7 +29,6 @@ export class SqliteService {
         const userDataPath = app.getPath('userData');
         const appDataDir = path.join(userDataPath, APP_DATA_DIR);
 
-        // Vérifier si le dossier existe, sinon le créer
         if (!fs.existsSync(appDataDir)) {
             try {
                 fs.mkdirSync(appDataDir, { recursive: true });
@@ -112,7 +109,7 @@ export class SqliteService {
 
         return new Promise<DatasourceDto | null>((resolve, reject) => {
             // Requête paramétrée pour éviter l'injection SQL
-            db.get("SELECT * FROM datasource WHERE id = ?", [id], (err, row) => {
+            db.prepare("SELECT * FROM datasource WHERE id = ?", [id], (err, row) => {
                 if (err) {
                     console.error('Error fetching datasource by ID:', err);
                     reject(new Error('Failed to fetch datasource'));
@@ -146,12 +143,11 @@ export class SqliteService {
 
         return new Promise<void>((resolve, reject) => {
             PostgresqlService.testConnection(form)
-                .then(() => {
+                .then(async () => {
                     // Chiffrer le mot de passe avant stockage
                     const encryptedPassword = safeStorage.encryptString(form.password);
-                    
-                    // Requête paramétrée pour éviter l'injection SQL
-                    db.exec(
+
+                    const request = db.prepare(
                         `INSERT INTO datasource (name, username, password, hostname, port, dbname)
                          VALUES (?, ?, ?, ?, ?, ?)`,
                         [
@@ -168,9 +164,20 @@ export class SqliteService {
                                 reject(new Error('Failed to create datasource'));
                                 return;
                             }
-                            resolve();
+                            console.log("success")
                         }
                     );
+
+                    request.finalize((err) => {
+                        if(err) {
+                            console.error('Error creating datasource:', err);
+                            reject(new Error('Failed to create datasource'));
+                            return;
+                        }
+                        console.log("success")
+                    })
+
+                    resolve(null);
                 })
                 .catch((err) => {
                     console.error('Connection test failed:', err);
@@ -192,7 +199,7 @@ export class SqliteService {
 
         return new Promise<void>((resolve, reject) => {
             // Requête paramétrée pour éviter l'injection SQL
-            db.exec("DELETE FROM datasource WHERE id = ?", [id], (err) => {
+            db.prepare("DELETE FROM datasource WHERE id = ?", [id], (err) => {
                 if (err) {
                     console.error('Error deleting datasource:', err);
                     reject(new Error('Failed to delete datasource'));
@@ -219,7 +226,7 @@ export class SqliteService {
             const encryptedPassword = safeStorage.encryptString(form.password);
             
             // Requête paramétrée pour éviter l'injection SQL
-            db.exec(
+            db.prepare(
                 `UPDATE datasource 
                  SET name = ?, username = ?, password = ?, hostname = ?, port = ?, dbname = ?
                  WHERE id = ?`,

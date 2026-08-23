@@ -15,8 +15,8 @@ const createWindow = () => {
     width: 1000,
     height: 800,
     webPreferences: {
-      nodeIntegration: false,  // ✅ Désactivé pour la sécurité
-      contextIsolation: true,  // ✅ Isoler le contexte de rendu
+      nodeIntegration: false,
+      contextIsolation: true,
       preload: path.join(__dirname, 'preload.js'),
     },
   });
@@ -44,8 +44,8 @@ app.whenReady().then(async () => {
     // Afficher une boîte de dialogue d'erreur avant de quitter
     await dialog.showErrorBox(
       'Erreur de sécurité',
-      'Le chiffrement des données sensibles n\'est pas disponible sur cette machine. '\ +
-      'L\'application ne peut pas démarrer sans cette protection. '\ +
+      'Le chiffrement des données sensibles n\'est pas disponible sur cette machine. ' +
+      'L\'application ne peut pas démarrer sans cette protection. ' +
       'Veuillez vérifier que votre système d\'exploitation est à jour.'
     );
     app.quit();

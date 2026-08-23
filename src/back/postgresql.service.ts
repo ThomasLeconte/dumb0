@@ -441,38 +441,31 @@ export default class PostgresqlService {
     }
 
     private static async initConnection(datasource: DatasourceDto): Promise<Client> {
-        const { Client } = require('pg');
+        const {Client} = require('pg');
 
-        // Le mot de passe est déjà déchiffré par SqliteService (via safeStorage.decryptString)
-        const client = new Client({
+        let client = new Client({
             host: datasource.hostname,
             port: datasource.port,
             database: datasource.dbname,
             user: datasource.username,
-            password: datasource.password, // ✅ Déjà déchiffré
+            password: datasource.password,
             application_name: 'dba-app',
-            connectionTimeoutMillis: 5000,
-            idle_in_transaction_session_timeout: 10000
+            connectionTimeoutMillis: 0,
+            idle_in_transaction_session_timeout: 0
         });
 
-        try {
-            await client.connect();
-            return client;
-        } catch (err) {
-            console.error('Connection error:', err);
-            throw err;
-        }
+        client = await client.connect();
+
+        return client;
     }
 
     public static testConnection(form: CreateDatasourceFormDto) {
-        // Le mot de passe du formulaire est en clair (non chiffré)
-        // car il vient directement de l'input utilisateur
         return PostgresqlService.initConnection(
             new DatasourceDto(
                 null,
                 form.name,
                 form.username,
-                form.password, // ✅ En clair (non chiffré, car test de connexion)
+                form.password,
                 form.hostname,
                 form.port,
                 form.dbname
