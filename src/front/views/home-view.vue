@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {Card, Button, Divider, Carousel, CarouselPrev, CarouselNext, CarouselContent, CarouselItem, CarouselIndicators} from "primevue";
+import {Card, Button, Divider, Carousel, CarouselPrev, Menu, CarouselNext, CarouselContent, CarouselItem, CarouselIndicators} from "primevue";
 import {Plus, Database, SignIn, Times, ChevronLeft, ChevronRight} from '@primeicons/vue'
 import {useDatasourcesStore} from "../stores/datasource-store";
 import {computed, onMounted, ref} from "vue";
@@ -13,6 +13,20 @@ const datasourceStore = useDatasourcesStore();
 const router = useRouter();
 
 const createDialog = ref(false);
+
+const menu = ref();
+const toggle = (event) => {
+  menu.value.toggle(event);
+};
+const items = ref([
+  {
+    label: 'Update',
+  },
+  {
+    label: 'Duplicate',
+  },
+  { label: 'Delete' },
+]);
 
 onMounted(() => {
   datasourceStore.loadDatasources();
@@ -68,8 +82,10 @@ function showCreateDialog() {
             <Card>
               <template #title>
                 <div class="flex justify-between items-center p-2 pb-0">
+                  <Menu ref="menu" :model="items" popup />
+                  <Button variant="outlined" severity="secondary" @click="toggle()">Account</Button>
                   <div class="flex items-center gap-2 title"><Database />{{item.name}}</div>
-                  <Button iconOnly outlined rounded severity="danger"><Times /></Button>
+                  <!--<Button iconOnly outlined rounded severity="danger"><Times /></Button>-->
                 </div>
               </template>
               <template #content>

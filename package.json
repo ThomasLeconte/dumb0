@@ -44,6 +44,7 @@
     "@primevue/forms": "^5.0.0",
     "@tailwindcss/vite": "^4.3.3",
     "@vueuse/electron": "^14.4.0",
+    "better-sqlite3": "^13.0.3",
     "electron-squirrel-startup": "^1.0.1",
     "pg": "^8.22.0",
     "pinia": "^4.0.2",
