@@ -26,12 +26,18 @@ export const useDatasourcesStore = defineStore('datasources', {
                     return this.loadDatasources();
                 });
         },
-        clearDatasource() {
-            this.datasourceChoosen = null;
+        updateDatasource(datasourceId: number, form: CreateDatasourceFormDto) {
+            return window.ipc.send('update-datasource', {id: datasourceId, form})
+                .then(() => {
+                    return this.loadDatasources();
+                });
         },
         createDatasource(form: CreateDatasourceFormDto) {
             return window.ipc.send('create-datasource', {form})
                 .then((res) => this.loadDatasources())
+        },
+        clearDatasource() {
+            this.datasourceChoosen = null;
         },
         loadDatasourceDetails() {
             return window.ipc.send('get-datasource-stats', {datasourceId: this.datasourceChoosen.id})

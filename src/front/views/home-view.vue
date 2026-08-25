@@ -8,7 +8,7 @@ import {DatasourceDto} from "../../commons/data/dto/datasource-dto";
 import {useRouter} from "vue-router";
 import {useTablesStore} from "../stores/tables-store";
 
-import CreateDatasourceDialog from "../components/create-datasource-dialog.vue";
+import UpsertDatasourceDialog from "../components/upsert-datasource-dialog.vue";
 import {MenuItemCommandEvent} from "primevue/menuitem";
 import DeleteDatasourceDialog from "../components/delete-datasource-dialog.vue";
 const tableStore = useTablesStore();
@@ -16,6 +16,8 @@ const datasourceStore = useDatasourcesStore();
 const router = useRouter();
 
 const createDialog = ref(false);
+const updateDialog = ref(false);
+const duplicateDialog = ref(false);
 const deleteDialog = ref(false);
 const datasourceToUpdateOrDelete = ref<DatasourceDto | null>(null);
 const menuRef = useTemplateRef('menu');
@@ -24,14 +26,23 @@ const items = ref([
     label: 'Update',
     icon: Pencil,
     command: () => {
-      console.log("update clicked")
+      updateDialog.value = true;
     }
   },
   {
     label: 'Duplicate',
     icon: Clone,
     command: () => {
-      console.log("duplicate clicked")
+      datasourceToUpdateOrDelete.value = new DatasourceDto(
+          null,
+          datasourceToUpdateOrDelete.value.name,
+          datasourceToUpdateOrDelete.value.username,
+          datasourceToUpdateOrDelete.value.password,
+          datasourceToUpdateOrDelete.value.hostname,
+          datasourceToUpdateOrDelete.value.port,
+          datasourceToUpdateOrDelete.value.dbname
+      );
+      duplicateDialog.value = true;
     }
   },
   {
@@ -144,7 +155,9 @@ function showCreateDialog() {
     </div>
   </div>
 
-  <CreateDatasourceDialog v-model="createDialog" />
+  <UpsertDatasourceDialog v-model="createDialog" />
+  <UpsertDatasourceDialog v-if="datasourceToUpdateOrDelete && updateDialog" v-model="updateDialog" :datasource="datasourceToUpdateOrDelete" />
+  <UpsertDatasourceDialog v-if="datasourceToUpdateOrDelete && duplicateDialog" v-model="duplicateDialog" :datasource="datasourceToUpdateOrDelete" />
   <DeleteDatasourceDialog v-if="datasourceToUpdateOrDelete && deleteDialog" :datasource="datasourceToUpdateOrDelete" />
 </template>
 
