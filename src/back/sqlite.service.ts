@@ -27,8 +27,6 @@ export class SqliteService {
         const userDataPath = app.getPath('userData');
         const appDataDir = path.join(userDataPath, APP_DATA_DIR);
 
-        console.log("init folder")
-
         if (!fs.existsSync(appDataDir)) {
             try {
                 fs.mkdirSync(appDataDir, { recursive: true });
@@ -67,7 +65,7 @@ export class SqliteService {
 
         try {
             const rows = db.prepare("SELECT * FROM datasource").all() as any[];
-            
+
             if (!rows || rows.length === 0) {
                 return Promise.resolve([]);
             }
@@ -95,7 +93,7 @@ export class SqliteService {
 
     static getDatasourceById(datasourceId: string): Promise<DatasourceDto | null> {
         const id = Number.parseInt(datasourceId);
-        
+
         // Validation de l'ID
         if (isNaN(id) || id <= 0) {
             return Promise.resolve(null);
@@ -106,7 +104,7 @@ export class SqliteService {
         try {
             // Requête paramétrée pour éviter l'injection SQL
             const row = db.prepare("SELECT * FROM datasource WHERE id = ?").get(id) as any;
-            
+
             if (!row) {
                 return Promise.resolve(null);
             }
@@ -135,7 +133,7 @@ export class SqliteService {
 
         try {
             await PostgresqlService.testConnection(form);
-            
+
             // Chiffrer le mot de passe avant stockage
             const encryptedPassword = safeStorage.encryptString(form.password);
 
@@ -143,7 +141,7 @@ export class SqliteService {
                 `INSERT INTO datasource (name, username, password, hostname, port, dbname)
                  VALUES (?, ?, ?, ?, ?, ?)`
             );
-            
+
             stmt.run(
                 form.name,
                 form.username,
@@ -163,7 +161,7 @@ export class SqliteService {
     static async deleteDatasource(args: any): Promise<void> {
         const datasourceId = args.datasourceId;
         const id = Number.parseInt(datasourceId);
-        
+
         // Validation de l'ID
         if (isNaN(id) || id <= 0) {
             throw new Error('Invalid datasource ID');
@@ -183,7 +181,7 @@ export class SqliteService {
     static async updateDatasource(args: any): Promise<void> {
         const { id, form } = args;
         const datasourceId = Number.parseInt(id);
-        
+
         // Validation de l'ID
         if (isNaN(datasourceId) || datasourceId <= 0) {
             throw new Error('Invalid datasource ID');
@@ -194,7 +192,7 @@ export class SqliteService {
         try {
             // Chiffrer le nouveau mot de passe
             const encryptedPassword = safeStorage.encryptString(form.password);
-            
+
             // Requête paramétrée pour éviter l'injection SQL
             db.prepare(
                 `UPDATE datasource 

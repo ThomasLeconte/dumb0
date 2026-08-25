@@ -28,6 +28,7 @@
     "@electron-forge/plugin-fuses": "^7.11.2",
     "@electron-forge/plugin-vite": "^7.11.2",
     "@electron/fuses": "^1.8.0",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/electron": "^1.4.38",
     "@types/pg": "^8.20.3",
     "@vitejs/plugin-vue": "^6.0.8",
@@ -49,7 +50,6 @@
     "pg": "^8.22.0",
     "pinia": "^4.0.2",
     "primevue": "^5.0.0",
-    "sqlite3": "^6.0.1",
     "tailwindcss-primeui": "^0.6.1",
     "vue": "^3.5.40",
     "vue-router": "^4.6.4"
@@ -84,5 +84,10 @@
         }
       ]
     }
+  },
+  "allowScripts": {
+    "better-sqlite3@13.0.3": true,
+    "electron-winstaller@5.4.4": true,
+    "esbuild@0.21.5": true
   }
 }

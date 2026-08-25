@@ -1,31 +1,47 @@
 <script setup lang="ts">
-import {Card, Button, Divider, Carousel, CarouselPrev, Menu, CarouselNext, CarouselContent, CarouselItem, CarouselIndicators} from "primevue";
-import {Plus, Database, SignIn, Times, ChevronLeft, ChevronRight} from '@primeicons/vue'
+import {
+  Card, Button, Divider, Carousel, CarouselPrev, Menu, CarouselNext, CarouselContent, CarouselItem } from "primevue";
+import {Plus, Database, SignIn, Times, ChevronLeft, ChevronRight, Clone, Pencil, Bars} from '@primeicons/vue'
 import {useDatasourcesStore} from "../stores/datasource-store";
-import {computed, onMounted, ref} from "vue";
+import {computed, onMounted, ref, useTemplateRef} from "vue";
 import {DatasourceDto} from "../../commons/data/dto/datasource-dto";
 import {useRouter} from "vue-router";
 import {useTablesStore} from "../stores/tables-store";
-import CreateDatasourceDialog from "../components/create-datasource-dialog.vue";
 
+import CreateDatasourceDialog from "../components/create-datasource-dialog.vue";
+import {MenuItemCommandEvent} from "primevue/menuitem";
+import DeleteDatasourceDialog from "../components/delete-datasource-dialog.vue";
 const tableStore = useTablesStore();
 const datasourceStore = useDatasourcesStore();
 const router = useRouter();
 
 const createDialog = ref(false);
-
-const menu = ref();
-const toggle = (event) => {
-  menu.value.toggle(event);
-};
+const deleteDialog = ref(false);
+const datasourceToUpdateOrDelete = ref<DatasourceDto | null>(null);
+const menuRef = useTemplateRef('menu');
 const items = ref([
   {
     label: 'Update',
+    icon: Pencil,
+    command: () => {
+      console.log("update clicked")
+    }
   },
   {
     label: 'Duplicate',
+    icon: Clone,
+    command: () => {
+      console.log("duplicate clicked")
+    }
   },
-  { label: 'Delete' },
+  {
+    label: 'Delete',
+    icon: Times,
+    command: (evt: MenuItemCommandEvent) => {
+      console.log(evt);
+      deleteDialog.value = true;
+    }
+  },
 ]);
 
 onMounted(() => {
@@ -41,6 +57,11 @@ function connect(datasource: DatasourceDto) {
     router.push({name: 'general'});
   });
 }
+
+function toggle(event: any, datasource: DatasourceDto) {
+  datasourceToUpdateOrDelete.value = datasource;
+  console.log(menuRef.value[0]?.toggle(event));
+};
 
 function showCreateDialog() {
   createDialog.value = true;
@@ -64,8 +85,8 @@ function showCreateDialog() {
       <Divider />
     </div>
 
-    <div class="flex justify-center items-start p-10 gap-4">
-      <Carousel align="center" loop autoSize :slidesPerPage="1.2">
+    <div class="flex justify-center items-start p-10 gap-4 min-w-8/12">
+      <Carousel  class="w-full" align="center" loop autoSize :slidesPerPage="1.2">
         <div class="flex items-center justify-between mb-4">
           <div class="font-bold">Last Used</div>
           <div class="flex items-center gap-2">
@@ -78,14 +99,19 @@ function showCreateDialog() {
           </div>
         </div>
         <CarouselContent>
-          <CarouselItem v-for="(item, index) in datasources" :key="index" class="basis-16">
+          <div v-if="datasources && datasources.length === 0" class="flex flex-col justify-center items-center w-full h-full">
+            <div class="text-xl font-light">No datasources yet</div>
+            <div class="text-sm font-light">Create a new datasource to start</div>
+            <Button severity="contrast" @click="showCreateDialog()" class="mt-4"><Plus />Create</Button>
+          </div>
+
+          <CarouselItem v-else v-for="(item, index) in datasources" :key="index" class="basis-16">
             <Card>
               <template #title>
                 <div class="flex justify-between items-center p-2 pb-0">
                   <Menu ref="menu" :model="items" popup />
-                  <Button variant="outlined" severity="secondary" @click="toggle()">Account</Button>
                   <div class="flex items-center gap-2 title"><Database />{{item.name}}</div>
-                  <!--<Button iconOnly outlined rounded severity="danger"><Times /></Button>-->
+                  <Button severity="contrast" icon-only text @click="e => toggle(e, item)"><Bars /></Button>
                 </div>
               </template>
               <template #content>
@@ -119,6 +145,7 @@ function showCreateDialog() {
   </div>
 
   <CreateDatasourceDialog v-model="createDialog" />
+  <DeleteDatasourceDialog v-if="datasourceToUpdateOrDelete && deleteDialog" :datasource="datasourceToUpdateOrDelete" />
 </template>
 
 <style scoped>

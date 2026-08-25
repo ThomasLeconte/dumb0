@@ -19,6 +19,13 @@ export const useDatasourcesStore = defineStore('datasources', {
             this.datasourceChoosen = datasource;
             return this.loadDatasourceDetails();
         },
+        deleteDatasource(datasource: DatasourceDto) {
+            return window.ipc.send('delete-datasource', {datasourceId: datasource.id})
+                .then(() => {
+                    this.clearDatasource();
+                    return this.loadDatasources();
+                });
+        },
         clearDatasource() {
             this.datasourceChoosen = null;
         },
