@@ -3,6 +3,7 @@ import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import PostgresqlService from "./back/postgresql.service";
 import { SqliteService } from "./back/sqlite.service";
+import { QueryService } from "./back/query.service";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -35,34 +36,34 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
-  // Vérifier si le chiffrement est disponible (nécessaire pour sécuriser les mots de passe)
+  // Vrifier si le chiffrement est disponible (ncessaire pour scuriser les mots de passe)
   if (!safeStorage.isEncryptionAvailable()) {
     console.error(
-      '❌ ERREUR CRITIQUE: Le chiffrement des données sensibles n\'est pas disponible sur cette machine.'
+      '\u274c ERREUR CRITIQUE: Le chiffrement des donnes sensibles n\'est pas disponible sur cette machine.'
     );
     
-    // Afficher une boîte de dialogue d'erreur avant de quitter
+    // Afficher une bote de dialogue d'erreur avant de quitter
     await dialog.showErrorBox(
-      'Erreur de sécurité',
-      'Le chiffrement des données sensibles n\'est pas disponible sur cette machine. ' +
-      'L\'application ne peut pas démarrer sans cette protection. ' +
-      'Veuillez vérifier que votre système d\'exploitation est à jour.'
+      'Erreur de scurit',
+      'Le chiffrement des donnes sensibles n\'est pas disponible sur cette machine. ' +
+      'L\'application ne peut pas dmarrer sans cette protection. ' +
+      'Veuillez vrifier que votre systme d\'exploitation est  jour.'
     );
     app.quit();
     return;
   }
 
-  // Initialiser SQLiteService (va vérifier/creer le dossier de données)
+  // Initialiser SQLiteService (va vrifier/creer le dossier de donnes)
   try {
     SqliteService.init();
   } catch (err) {
-    console.error('❌ ERREUR CRITIQUE:', err);
+    console.error('\u274c ERREUR CRITIQUE:', err);
     
-    // Afficher une boîte de dialogue d'erreur pour le dossier de données
+    // Afficher une bote de dialogue d'erreur pour le dossier de donnes
     await dialog.showErrorBox(
       'Erreur de stockage',
-      'Impossible de créer le dossier de stockage des données. ' +
-      'Vérifiez les permissions d\'écriture dans votre profil utilisateur.'
+      'Impossible de crer le dossier de stockage des donnes. ' +
+      'Vrifiez les permissions d\'\u001e9criture dans votre profil utilisateur.'
     );
     app.quit();
     return;
@@ -121,6 +122,18 @@ async function handleMessageIncoming(event, data) {
       break;
     case 'get-datasource-stats':
       result = await PostgresqlService.getDatasourceStats(args);
+      break;
+    case 'execute-query':
+      result = await QueryService.executeQuery(args);
+      break;
+    case 'save-query-history':
+      result = await QueryService.saveQueryHistory(args);
+      break;
+    case 'get-query-history':
+      result = await QueryService.getQueryHistory(args);
+      break;
+    case 'delete-query-history':
+      result = await QueryService.deleteQueryHistory(args);
       break;
     default: throw new Error(`Unknown event ${eventName}!`)
   }

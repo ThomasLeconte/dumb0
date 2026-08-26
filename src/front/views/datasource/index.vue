@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {Database, Plus, Print, Search, SignOut, PenLine, Cog, Table} from '@primeicons/vue';
+import {Database, Plus, Print, Search, SignOut, PenLine, Cog, Table, Play} from '@primeicons/vue';
 import {Toolbar, Button, IconField, InputIcon, Menubar, Toast} from "primevue";
 import {useDatasourcesStore} from "../../stores/datasource-store";
 import {computed, ref} from "vue";
@@ -35,6 +35,14 @@ const menuItems = ref([
     disabled: true,
     command: () => {
       router.push({name: 'ia'})
+    }
+  },
+  {
+    key: 4,
+    label: 'Query',
+    icon: Play,
+    command: () => {
+      router.push({name: 'query'})
     }
   }
 ] as any[])

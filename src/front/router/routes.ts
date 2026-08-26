@@ -3,6 +3,7 @@ import HomeView from "../views/home-view.vue";
 import TablesView from "../views/datasource/tables-view.vue";
 import Index from "../views/datasource/index.vue";
 import GeneralView from "../views/datasource/general-view.vue";
+import QueryView from "../views/datasource/query-view.vue";
 
 export default [
     {
@@ -24,6 +25,11 @@ export default [
                 name: 'general',
                 path: '/general',
                 component: GeneralView
+            },
+            {
+                name: 'query',
+                path: '/query',
+                component: QueryView
             }
         ]
     }

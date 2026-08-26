@@ -20,8 +20,8 @@ export class SqliteService {
     }
 
     /**
-     * Initialise le dossier de données et la base SQLite
-     * @throws {Error} Si le dossier ne peut pas être créé
+     * Initialise le dossier de donnes et la base SQLite
+     * @throws {Error} Si le dossier ne peut pas atre cr
      */
     public static init(): void {
         const userDataPath = app.getPath('userData');
@@ -30,12 +30,12 @@ export class SqliteService {
         if (!fs.existsSync(appDataDir)) {
             try {
                 fs.mkdirSync(appDataDir, { recursive: true });
-                console.log(`Dossier de données créé: ${appDataDir}`);
+                console.log(`Dossier de donnes cr: ${appDataDir}`);
             } catch (err) {
-                console.error(`❌ ERREUR CRITIQUE: Impossible de créer le dossier de données: ${err}`);
+                console.error(`\u274c ERREUR CRITIQUE: Impossible de crer le dossier de donnes: ${err}`);
                 throw new Error(
-                    'Impossible de créer le dossier de stockage des données. ' +
-                    'Vérifiez les permissions d\'écriture dans le dossier utilisateur.'
+                    'Impossible de crer le dossier de stockage des donnes. ' +
+                    'Vrifiez les permissions d\'9criture dans le dossier utilisateur.'
                 );
             }
         }
@@ -57,6 +57,16 @@ export class SqliteService {
             )
         `);
 
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS query_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                datasource_id INTEGER NOT NULL,
+                query TEXT NOT NULL,
+                executed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (datasource_id) REFERENCES datasource(id) ON DELETE CASCADE
+            )
+        `);
+
         console.log('Database connected successfully');
     }
 
@@ -71,7 +81,7 @@ export class SqliteService {
             }
 
             const datasources = rows.map((row: any) => {
-                // Déchiffrer le mot de passe avant de créer le DTO
+                // Dchiffrer le mot de passe avant de crer le DTO
                 const decryptedPassword = safeStorage.decryptString(row.password);
                 return new DatasourceDto(
                     row.id,
@@ -102,14 +112,14 @@ export class SqliteService {
         const db = this.getDatabase();
 
         try {
-            // Requête paramétrée pour éviter l'injection SQL
+            // Requte param9tre pour 9viter l'injection SQL
             const row = db.prepare("SELECT * FROM datasource WHERE id = ?").get(id) as any;
 
             if (!row) {
                 return Promise.resolve(null);
             }
 
-            // Déchiffrer le mot de passe
+            // Dchiffrer le mot de passe
             const decryptedPassword = safeStorage.decryptString(row.password);
             return Promise.resolve(new DatasourceDto(
                 row.id,
@@ -170,7 +180,7 @@ export class SqliteService {
         const db = this.getDatabase();
 
         try {
-            // Requête paramétrée pour éviter l'injection SQL
+            // Requte param9tre pour 9viter l'injection SQL
             db.prepare("DELETE FROM datasource WHERE id = ?").run(id);
         } catch (err) {
             console.error('Error deleting datasource:', err);
@@ -193,7 +203,7 @@ export class SqliteService {
             // Chiffrer le nouveau mot de passe
             const encryptedPassword = safeStorage.encryptString(form.password);
 
-            // Requête paramétrée pour éviter l'injection SQL
+            // Requte param9tre pour 9viter l'injection SQL
             db.prepare(
                 `UPDATE datasource 
                  SET name = ?, username = ?, password = ?, hostname = ?, port = ?, dbname = ?
