@@ -1,11 +1,11 @@
-import {Client} from "pg";
+import {Client, QueryResult} from "pg";
 import {SqliteService} from "./sqlite.service";
 import {DatasourceDto} from "../commons/data/dto/datasource-dto";
 
 export class QueryService {
 
     static async executeQuery(args: { datasourceId: string; query: string }) {
-        const { datasourceId, query } = args;
+        const {datasourceId, query} = args;
 
         // Validation de la datasource
         const datasource = await SqliteService.getDatasourceById(datasourceId);
@@ -24,28 +24,34 @@ export class QueryService {
         }
 
         const client = await this.initConnection(datasource);
-        try {
-            const startTime = Date.now();
-            const result = await client.query(query);
-            const executionTime = Date.now() - startTime;
 
-            return {
-                success: true,
-                fields: result.fields.map(f => f.name),
-                rows: result.rows,
-                rowCount: result.rowCount,
-                executionTime,
-            };
-        } catch (err) {
-            console.error('Query execution error:', err);
-            return {
-                success: false,
-                error: err.message,
-                code: err.code,
-            };
-        } finally {
-            client.end();
-        }
+        const startTime = Date.now();
+        let queryResult: QueryResult<any>;
+        let result;
+        return client.query(query)
+            .then((res) => {
+                queryResult = res;
+                result = {
+                    success: true,
+                    fields: queryResult.fields.map(f => f.name),
+                    rows: queryResult.rows,
+                    rowCount: queryResult.rowCount,
+                    executionTime: Date.now() - startTime,
+                };
+                return QueryService.saveQueryHistory({datasourceId, query, executedAt: new Date().toISOString()})
+            })
+            .then(() => {
+                return result;
+            })
+            .catch((err) => {
+                console.error('Query execution error:', err);
+                return {
+                    success: false,
+                    error: err.message,
+                    code: err.code,
+                };
+            })
+            .finally(() => client.end());
     }
 
     static async saveQueryHistory(args: {
@@ -61,7 +67,7 @@ export class QueryService {
                 `INSERT INTO query_history (datasource_id, query, executed_at)
                  VALUES (?, ?, ?)`
             );
-            stmt.run(datasourceId, query, executedAt.toISOString());
+            stmt.run(datasourceId, query, executedAt);
             return { success: true };
         } catch (err) {
             console.error('Error saving query history:', err);

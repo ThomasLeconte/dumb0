@@ -70,7 +70,7 @@
   <div class="flex-col justify-center align-top mx-2">
     <div class="my-5">
       <div class="flex justify-between items-center">
-        <span class="table-title text-2xl font-light flex items-center gap-2"><Table :size="20" />{{ tableName }}</span>
+        <span class="title text-2xl font-light flex items-center gap-2"><Table :size="20" />{{ tableName }}</span>
         <Button severity="info" @click="reloadDetails"><Refresh />Reload</Button>
       </div>
       <Divider />
@@ -79,7 +79,7 @@
     <Card class="mt-2 mb-10 border-2 border-gray-200">
       <template #title>
         <div class="flex justify-between items-start">
-          <span class="section-title">General</span>
+          <span class="title">General</span>
           <Chip class="bg-green-50! dark:bg-green-950! text-green-700! dark:text-green-300!">
             <template #icon><CheckCircle /></template>
           </Chip>
@@ -117,7 +117,7 @@
       <Card class="w-2/4 my-2" style="height: stretch" v-if="sizeStats">
         <template #title>
           <div class="flex justify-between items-start">
-            <span class="section-title">Size</span>
+            <span class="title">Size</span>
             <Chip class="bg-green-50! dark:bg-green-950! text-green-700! dark:text-green-300!">
               <template #icon><CheckCircle /></template>
             </Chip>
@@ -151,7 +151,7 @@
       <Card class="w-2/4 my-2" style="height: stretch" v-if="rowsStats">
         <template #title>
           <div  class="flex justify-between items-start">
-            <span class="section-title">Rows</span>
+            <span class="title">Rows</span>
             <Chip v-if="rowStatsSeverity === 'danger'" v-tooltip.bottom="'More than 25% dead rows'" class="bg-red-50! dark:bg-red-950! text-red-700! dark:text-red-300!">
               <template #icon><TimesCircle /></template>
             </Chip>
@@ -188,7 +188,7 @@
       <Card class="w-full my-2" v-if="ioStats">
         <template #title>
           <div class="flex justify-between items-start">
-            <span class="section-title">I/O</span>
+            <span class="title">I/O</span>
             <Chip class="bg-orange-100! dark:bg-orange-950! text-orange-700! dark:text-orange-300!">
               <template #icon><ExclamationCircle /></template>
             </Chip>
@@ -197,13 +197,12 @@
         <template #content>
           <Divider />
           <div class="flex">
-            <div class="flex justify-evenly w-full mt-4">
+            <div class="flex justify-evenly items-start w-full mt-4">
               <div class="data flex-1 flex flex-col justify-center">
-                <span class="text-lg w-full text-center">Shared buffers <Help model="TEST" /></span>
+                <span class="text-lg w-full text-center">Cache hit ratio (%)</span>
                 <div class="flex justify-center">
                   <div class="flex flex-col justify-center items-center">
                     <span class="text-3xl text-orange-800">{{diskCacheHitRatio}}</span>
-                    <span>Cache hit ratio (%)</span>
                   </div>
                 </div>
               </div>
@@ -246,7 +245,7 @@
     <Card class="w-full my-2" v-if="indexesStats">
       <template #title>
         <div class="flex justify-between items-start">
-          <span class="section-title">Indexes ({{indexesStats.length}})</span>
+          <span class="title">Indexes ({{indexesStats.length}})</span>
           <Chip v-if="indexesStatsSeverity === 'warning'" v-tooltip.bottom="'One or more indexes unused'" class="bg-orange-100! dark:bg-orange-950! text-orange-700! dark:text-orange-300!">
             <template #icon><ExclamationCircle /></template>
           </Chip>
@@ -265,8 +264,8 @@
                   <span class="font-medium">{{ data.name }}</span>
                 </template>
               </Column>
-              <Column field="indexBlocksRead" header="Disk read" />
-              <Column field="cacheIndexBlocksRead" header="Cache read" />
+              <Column field="indexBlocksRead" header="Disk read" sortable />
+              <Column field="cacheIndexBlocksRead" header="Cache read" sortable />
               <Column field="scansTime" header="Scans">
                 <template #body="{data}">
                   <div class="flex gap-2">
@@ -290,15 +289,6 @@
 </template>
 
 <style scoped>
-  .table-title, .section-title {
-    font-family: 'menlo';
-    font-family: 'consolas';
-  }
-
-  .section-title {
-    font-weight: bold;
-  }
-
   .content {
     padding: 1rem;
   }
