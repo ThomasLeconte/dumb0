@@ -33,6 +33,7 @@ const items = ref([
     label: 'Duplicate',
     icon: Clone,
     command: () => {
+      if(!datasourceToUpdateOrDelete.value) return;
       datasourceToUpdateOrDelete.value = new DatasourceDto(
           null,
           datasourceToUpdateOrDelete.value.name,

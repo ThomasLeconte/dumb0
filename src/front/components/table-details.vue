@@ -43,6 +43,20 @@
     return date.toLocaleString();
   }
 
+  const rowStatsSeverity = computed(() => {
+    if(rowsStats.value == null) return null;
+    const percentage = Math.floor((rowsStats.value.deadRows / rowsStats.value.activeRows) * 100);
+    if(percentage > 25) return "danger";
+    if(percentage > 10) return "warning";
+    else return "success";
+  });
+
+  const indexesStatsSeverity = computed(() => {
+    if(indexesStats.value == null) return null;
+    if(!indexesStats.value.find(i => i.scansTime === 0)) return "success";
+    return "warning";
+  })
+
   const diskCacheHitRatio = computed(() => {
     if(ioStats == null) return null;
     if(ioStats.value.cacheIndexBlocksRead === 0 && ioStats.value.cachediskBlocksRead === 0) return 0;
@@ -136,10 +150,16 @@
 
       <Card class="w-2/4 my-2" style="height: stretch" v-if="rowsStats">
         <template #title>
-          <div class="flex justify-between items-start">
+          <div  class="flex justify-between items-start">
             <span class="section-title">Rows</span>
-            <Chip class="bg-red-50! dark:bg-red-950! text-red-700! dark:text-red-300!">
+            <Chip v-if="rowStatsSeverity === 'danger'" v-tooltip.bottom="'More than 25% dead rows'" class="bg-red-50! dark:bg-red-950! text-red-700! dark:text-red-300!">
               <template #icon><TimesCircle /></template>
+            </Chip>
+            <Chip v-else-if="rowStatsSeverity === 'warning'" v-tooltip.bottom="'More than 10% dead rows'" class="bg-orange-100! dark:bg-orange-950! text-orange-700! dark:text-orange-300!">
+              <template #icon><ExclamationCircle /></template>
+            </Chip>
+            <Chip v-else v-tooltip.bottom="'Less than 10% dead rows'" class="bg-green-50! dark:bg-green-950! text-green-700! dark:text-green-300!">
+              <template #icon><CheckCircle /></template>
             </Chip>
           </div>
         </template>
@@ -227,8 +247,11 @@
       <template #title>
         <div class="flex justify-between items-start">
           <span class="section-title">Indexes ({{indexesStats.length}})</span>
-          <Chip class="bg-orange-100! dark:bg-orange-950! text-orange-700! dark:text-orange-300!">
+          <Chip v-if="indexesStatsSeverity === 'warning'" v-tooltip.bottom="'One or more indexes unused'" class="bg-orange-100! dark:bg-orange-950! text-orange-700! dark:text-orange-300!">
             <template #icon><ExclamationCircle /></template>
+          </Chip>
+          <Chip v-else v-tooltip.bottom="'All indexes are used'" class="bg-green-50! dark:bg-green-950! text-green-700! dark:text-green-300!">
+            <template #icon><CheckCircle /></template>
           </Chip>
         </div>
       </template>
