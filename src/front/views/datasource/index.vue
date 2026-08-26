@@ -2,10 +2,12 @@
 import {Database, Plus, Print, Search, SignOut, PenLine, Cog, Table, Play} from '@primeicons/vue';
 import {Toolbar, Button, IconField, InputIcon, Menubar, Toast} from "primevue";
 import {useDatasourcesStore} from "../../stores/datasource-store";
-import {computed, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {useTablesStore} from "../../stores/tables-store";
 import {useRouter} from "vue-router";
+import {useAppStore} from "../../stores/app-store";
 
+const appStore = useAppStore();
 const datasourceStore = useDatasourcesStore();
 const tablesStore = useTablesStore();
 const router = useRouter();
@@ -46,6 +48,10 @@ const menuItems = ref([
     }
   }
 ] as any[])
+
+onMounted(() => {
+  appStore.setTitle(datasourceStore.datasourceChoosen.name);
+})
 
 const datasource = computed(() => datasourceStore.datasourceChoosen);
 

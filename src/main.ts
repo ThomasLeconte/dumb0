@@ -10,9 +10,12 @@ if (started) {
   app.quit();
 }
 
+let mainWindow: BrowserWindow;
+
 const createWindow = () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
+    title: 'DBA-APP',
     width: 1000,
     height: 800,
     webPreferences: {
@@ -135,8 +138,16 @@ async function handleMessageIncoming(event, data) {
     case 'delete-query-history':
       result = await QueryService.deleteQueryHistory(args);
       break;
+    case 'set-window-title':
+      updateTitle(args);
+      break;
     default: throw new Error(`Unknown event ${eventName}!`)
   }
 
   return result;
+}
+
+function updateTitle(args: any) {
+  const {title} = args;
+  mainWindow.setTitle(title);
 }

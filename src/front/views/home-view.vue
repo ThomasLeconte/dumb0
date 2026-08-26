@@ -11,6 +11,9 @@ import {useTablesStore} from "../stores/tables-store";
 import UpsertDatasourceDialog from "../components/upsert-datasource-dialog.vue";
 import {MenuItemCommandEvent} from "primevue/menuitem";
 import DeleteDatasourceDialog from "../components/delete-datasource-dialog.vue";
+import {useAppStore} from "../stores/app-store";
+
+const appStore = useAppStore();
 const tableStore = useTablesStore();
 const datasourceStore = useDatasourcesStore();
 const router = useRouter();
@@ -57,6 +60,7 @@ const items = ref([
 ]);
 
 onMounted(() => {
+  appStore.setTitle('Connections')
   datasourceStore.loadDatasources();
 });
 

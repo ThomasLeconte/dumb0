@@ -51,7 +51,9 @@ export const useDatasourcesStore = defineStore('datasources', {
         },
         getQueryHistory(limit?: number) {
             return window.ipc.send('get-query-history', {datasourceId: this.datasourceChoosen.id, limit: limit || 20})
-                .then((res) => this.queryHistory = res);
+                .then(async (res) => {
+                    this.queryHistory = res
+                });
         },
         deleteQueryHistoryItem(id: number) {
             return window.ipc.send('delete-query-history', {id})
