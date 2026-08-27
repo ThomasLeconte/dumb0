@@ -15,7 +15,7 @@ export class SqliteService {
         return path.join(userDataPath, 'app.db');
     }
 
-    private static getDatabase(): Database {
+    static getDatabase(): Database {
         return new Database(SqliteService.getDatabasePath());
     }
 
@@ -63,6 +63,18 @@ export class SqliteService {
                 datasource_id INTEGER NOT NULL,
                 query TEXT NOT NULL,
                 executed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (datasource_id) REFERENCES datasource(id) ON DELETE CASCADE
+            )
+        `);
+
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS saved_query (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                datasource_id INTEGER NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                query TEXT NOT NULL,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (datasource_id) REFERENCES datasource(id) ON DELETE CASCADE
             )
         `);

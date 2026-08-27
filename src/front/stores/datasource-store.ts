@@ -1,18 +1,20 @@
 import {defineStore} from "pinia";
-import {TableStatsDto} from "../../commons/data/dto/table-stats-dto";
 import {DatasourceDto} from "../../commons/data/dto/datasource-dto";
 import {CreateDatasourceFormDto} from "../../commons/data/dto/forms/create-datasource-form-dto";
 import {DatasourceStatsDto} from "../../commons/data/dto/datasource-stats-dto";
 import {DatasourceQueryDto} from "../../commons/data/dto/datasource-query-dto";
 import {IpcRoutes} from "../../commons/ipc-routes";
 import {IpcUtils} from "./ipc-utils";
+import {CreateQueryFormDto} from "../../commons/data/dto/forms/create-query-form-dto";
+import {DatasourceSavedQueryDto} from "../../commons/data/dto/datasource-saved-query-dto";
 
 export const useDatasourcesStore = defineStore('datasources', {
     state: () => ({
         datasources: [] as DatasourceDto[],
         datasourceChoosen: null as DatasourceDto | null,
         datasourceDetails: null as DatasourceStatsDto | null,
-        queryHistory: [] as DatasourceQueryDto[]
+        queryHistory: [] as DatasourceQueryDto[],
+        savedQueries: [] as DatasourceSavedQueryDto[]
     }),
     actions: {
         loadDatasources() {
@@ -47,10 +49,10 @@ export const useDatasourcesStore = defineStore('datasources', {
             return IpcUtils.send(IpcRoutes.DATASOURCE_GET_STATS, {datasourceId: this.datasourceChoosen?.id})
                 .then((res) => this.datasourceDetails = res)
         },
-        // ----- queries -------
         executeQuery(query: string) {
             return IpcUtils.send(IpcRoutes.DATASOURCE_EXECUTE_QUERY, {datasourceId: this.datasourceChoosen?.id, query})
         },
+        // ----- queries history -------
         getQueryHistory(limit?: number) {
             return IpcUtils.send(IpcRoutes.DATASOURCE_GET_QUERY_HISTORY, {datasourceId: this.datasourceChoosen?.id, limit: limit || 20})
                 .then(async (res) => {
@@ -60,6 +62,26 @@ export const useDatasourcesStore = defineStore('datasources', {
         deleteQueryHistoryItem(id: number) {
             return IpcUtils.send(IpcRoutes.DATASOURCE_DELETE_QUERY_HISTORY, {id})
                 .then(() => this.getQueryHistory());
+        },
+        // ----- saved queries -------
+        getSavedQueries() {
+            return IpcUtils.send(IpcRoutes.DATASOURCE_GET_SAVED_QUERIES, {datasourceId: this.datasourceChoosen?.id})
+                .then((res) => {
+                    console.log("saved queries", res);
+                    this.savedQueries = res
+                })
+        },
+        createSavedQuery(form: CreateQueryFormDto) {
+            return IpcUtils.send(IpcRoutes.DATASOURCE_CREATE_SAVED_QUERY, {form})
+                .then(() => this.getSavedQueries())
+        },
+        updateSavedQuery(queryId: number, form: CreateQueryFormDto) {
+            return IpcUtils.send(IpcRoutes.DATASOURCE_UPDATE_SAVED_QUERY, {id: queryId, form})
+                .then(() => this.getSavedQueries())
+        },
+        deleteSavedQuery(queryId: number) {
+            return IpcUtils.send(IpcRoutes.DATASOURCE_DELETE_SAVED_QUERY, {id: queryId})
+                .then(() => this.getSavedQueries())
         }
     }
 })

@@ -32,6 +32,14 @@ const menuItems = ref([
   },
   {
     key: 3,
+    label: 'Query',
+    icon: Play,
+    command: () => {
+      router.push({name: 'query'})
+    }
+  },
+  {
+    key: 4,
     label: 'IA',
     icon: PenLine,
     disabled: true,
@@ -39,14 +47,6 @@ const menuItems = ref([
       router.push({name: 'ia'})
     }
   },
-  {
-    key: 4,
-    label: 'Query',
-    icon: Play,
-    command: () => {
-      router.push({name: 'query'})
-    }
-  }
 ] as any[])
 
 onMounted(() => {

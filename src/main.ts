@@ -136,6 +136,18 @@ async function handleMessageIncoming(event, data) {
     case IpcRoutes.DATASOURCE_DELETE_QUERY_HISTORY:
       result = await QueryService.deleteQueryHistory(args);
       break;
+    case IpcRoutes.DATASOURCE_GET_SAVED_QUERIES:
+      result = await QueryService.getSavedQueries(args);
+      break;
+    case IpcRoutes.DATASOURCE_CREATE_SAVED_QUERY:
+      result = await QueryService.saveQuery(args);
+      break;
+    case IpcRoutes.DATASOURCE_UPDATE_SAVED_QUERY:
+      result = await QueryService.saveQuery(args);
+      break;
+    case IpcRoutes.DATASOURCE_DELETE_SAVED_QUERY:
+      result = await QueryService.saveQuery(args);
+      break;
     case IpcRoutes.APP_SET_TITLE:
       updateTitle(args);
       break;

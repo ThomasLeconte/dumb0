@@ -1,8 +1,22 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import { useDatasourcesStore } from "../../stores/datasource-store";
-import {Card, Button, DataTable, Column, Textarea, Divider, Toast, useToast, Chip} from "primevue";
-import {Play, History, Clipboard, Refresh, Trash, Times, Plus} from "@primeicons/vue";
+import {computed, onMounted, ref} from "vue";
+import {useDatasourcesStore} from "../../stores/datasource-store";
+import {Button, Card, Column, DataTable, Divider, Textarea, useToast} from "primevue";
+import {Clipboard, List, Play, Save, History, Trash} from "@primeicons/vue";
+import SidebarAside from "primevue/sidebaraside";
+import SidebarGroupContent from "primevue/sidebargroupcontent";
+import SidebarMenu from "primevue/sidebargroupcontent";
+import SidebarMain from "primevue/sidebarmain";
+import SidebarMenuItem from "primevue/sidebarmenuitem";
+import Sidebar from "primevue/sidebar";
+import SidebarPanel from "primevue/sidebarpanel";
+import SidebarGroup from "primevue/sidebargroup";
+import SidebarSpacer from "primevue/sidebarspacer";
+import SidebarLayout from "primevue/sidebarlayout";
+import SidebarGroupLabel from "primevue/sidebargrouplabel";
+import SidebarContent from "primevue/sidebarcontent";
+import {DatasourceQueryDto} from "../../../commons/data/dto/datasource-query-dto";
+import UpsertQueryDialog from "../../components/upsert-query-dialog.vue";
 
 const datasourceStore = useDatasourcesStore();
 const toast = useToast();
@@ -10,13 +24,22 @@ const toast = useToast();
 const query = ref("");
 const results = ref<{ fields: string[]; rows: any[]; executionTime: number; rowCount: number } | null>(null);
 const error = ref<string | null>(null);
+const selectedHistoryQuery = ref<string | null>(null);
 const isLoading = ref(false);
 const showHistory = ref(false);
-const selectedHistoryQuery = ref<string | null>(null);
+const createQueryDialog = ref(false);
 
 const datasource = computed(() => datasourceStore.datasourceChoosen);
+const history = computed(() => {
+  if(!datasourceStore.queryHistory) return [];
+  return datasourceStore.queryHistory;
+})
+const savedQueries = computed(() => {
+  if(!datasourceStore.savedQueries) return [];
+  return datasourceStore.savedQueries;
+})
 
-async function executeQuery() {
+function executeQuery() {
   if (!query.value.trim() || !datasource.value) return;
 
   isLoading.value = true;
@@ -32,13 +55,6 @@ async function executeQuery() {
             executionTime: res.executionTime,
             rowCount: res.rowCount,
           };
-
-          // Sauvegarder dans l'historique
-          await window.ipc.send("save-query-history", {
-            datasourceId: datasource.value.id,
-            query: query.value,
-            executedAt: new Date(),
-          });
 
           // Recharger l'historique
           await loadHistory();
@@ -74,7 +90,7 @@ async function executeQuery() {
       .finally(() => isLoading.value = false);
 }
 
-async function loadHistory() {
+function loadHistory() {
   if (!datasource.value) return;
 
   datasourceStore.getQueryHistory(20)
@@ -89,13 +105,13 @@ async function loadHistory() {
       });
 }
 
-async function loadQueryFromHistory(queryText: string) {
+function loadQueryFromHistory(queryText: string) {
   query.value = queryText;
   showHistory.value = false;
   selectedHistoryQuery.value = queryText;
 }
 
-async function deleteHistoryItem(id: number) {
+function deleteHistoryItem(id: number) {
   datasourceStore.deleteQueryHistoryItem(id)
       .catch((err) => {
         toast.add({
@@ -143,206 +159,203 @@ function clearQuery() {
   query.value = "";
 }
 
+function formatQuery(item: DatasourceQueryDto) {
+  const max = 30;
+  return item.query.substring(0, max) + (item.query.length > max ? '...' : '')
+}
+
+function formatDate(date: string) {
+  let _date = new Date(date);
+  console.log(_date);
+  return _date.toLocaleDateString() + ' - ' + _date.toLocaleTimeString();
+}
+
 onMounted(() => {
   if (datasource.value) {
     loadHistory();
+    datasourceStore.getSavedQueries();
   }
-});
+}
+);
 </script>
 
 <template>
-  <div class="query-view p-3 h-full overflow-auto">
-    <Toast />
-    <div class="mb-8">
-      <div class="flex justify-between items-center">
-        <span class="flex items-center gap-2">
-          <span class="title text-2xl">SQL Query</span>
-        </span>
-        <div class="flex gap-2">
-          <Button
-              @click="showHistory = !showHistory"
-              v-tooltip.bottom="'Show query history'"
-              :severity="showHistory ? 'success' : 'contrast'"
-              size="small"
-          >
-            <History />
-            {{showHistory ? 'Hide' : 'Show'}} history
-          </Button>
-        </div>
-      </div>
-      <Divider />
-    </div>
-
-    <Card v-if="showHistory" class="my-4">
-      <template #title>
-      <div class="flex justify-between items-center">
-        <span class="text-lg title font-medium">Query History</span>
-        <Button
-            @click="loadHistory"
-            v-tooltip.bottom="'Reload history'"
-            severity="secondary"
-            size="small"
-        >
-          <Refresh />
-          Refresh
-        </Button>
-      </div>
-      </template>
-      <template #content>
-        <Divider />
-        <div class="history-list max-h-64 overflow-y-auto">
-          <div
-              v-if="datasourceStore.queryHistory && datasourceStore.queryHistory.length > 0"
-              v-for="item in datasourceStore.queryHistory"
-              :key="item.id"
-              class="history-item p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded cursor-pointer flex justify-between items-center"
-              @click="loadQueryFromHistory(item.query)"
-          >
-            <div class="flex-1">
-              <div class="query-preview text-sm truncate">
-                {{ item.query.substring(0, 100) }}{{ item.query.length > 100 ? '...' : '' }}
-              </div>
-              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {{ new Date(item.executed_at).toLocaleString() }}
-              </div>
-            </div>
-            <Button
-                @click.stop="deleteHistoryItem(item.id)"
-                severity="danger"
-                size="small"
-                iconOnly
-                outlined
-            >
-              <Times />
-            </Button>
-          </div>
-
-          <div v-else class="flex flex-col justify-center items-center w-full h-full">
-            <div class="text-lg font-light text-gray-400">No history yet...</div>
-          </div>
-        </div>
-      </template>
-    </Card>
-    
-    <Card class="h-full flex flex-col">
-      <template #title>
+  <SidebarLayout v-if="datasource" class="dba-sidebar-layout">
+    <Sidebar variant="floating" class="dba-sidebar">
+      <SidebarSpacer />
+      <SidebarAside>
+        <SidebarPanel>
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel><List class="mr-2" />Saved queries</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <template v-if="!savedQueries || savedQueries.length === 0">
+                    <span class="text-gray-400 text-xs text-center ml-4">Any query retrieved...</span>
+                  </template>
+                  <Button
+                      class="w-full"
+                      v-else
+                      v-for="(item, index) in savedQueries" :key="index"
+                      severity="secondary"
+                      text
+                      @click="loadQueryFromHistory(item.query)">
+                    <span class="text-start w-full">{{item.name}}</span>
+                  </Button>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+            <SidebarGroup>
+              <SidebarGroupLabel><History class="mr-2" />Query history</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem v-for="(item, index) in history" :key="index">
+                    <Button severity="secondary" text class="flex justify-start items-start flex-col h-16 w-full" @click="loadQueryFromHistory(item.query)">
+                      <div class="truncate w-full text-start">
+                        {{ formatQuery(item) }}
+                      </div>
+                      <span class="w-full text-start text-xs text-gray-400">{{formatDate(item.executed_at)}}</span>
+                    </Button>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+        </SidebarPanel>
+      </SidebarAside>
+    </Sidebar>
+    <SidebarMain class="dba-sidebar-aside-content mt-2 mr-2 bg-transparent!">
+      <!-- Éditeur de requêtes -->
+      <div class="flex-1 flex flex-col gap-4 mt-4 min-h-0">
         <div class="flex justify-between items-center">
           <span class="text-lg title font-medium flex items-center gap-2">
-            <Play /> SQL Executor
+            SQL Executor
           </span>
-
         </div>
-      </template>
-      
-      <template #content>
-        <Divider />
-        
-        <!-- Éditeur de requêtes -->
-        <div class="flex-1 flex flex-col gap-4 mt-4 min-h-0">
-          <div class="flex gap-2">
+
+        <div class="flex gap-2">
             <Textarea
-              v-model="query"
-              placeholder="SELECT * FROM your_table LIMIT 10;"
-              class="flex-1 query-input"
-              :rows="8"
-              autoResize
-              @keyup.ctrl.enter="executeQuery"
-              @keyup.meta.enter="executeQuery"
+                v-model="query"
+                placeholder="SELECT * FROM your_table LIMIT 10;"
+                class="flex-1 query-input"
+                :rows="8"
+                autoResize
+                @keyup.ctrl.enter="executeQuery"
+                @keyup.meta.enter="executeQuery"
             />
-          </div>
-          
-          <!-- Boutons d'action -->
-          <div class="flex gap-2">
-            <Button
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="flex gap-2">
+          <Button
               @click="executeQuery"
               :loading="isLoading"
               :disabled="!query.trim() || !datasource"
-              icon="pi pi-play"
-              label="Execute"
               severity="success"
               class="flex-1 sm:flex-none"
-            />
-            <Button
+          >
+            <Play />
+            Execute
+          </Button>
+          <Button
+              @click="createQueryDialog = true"
+              :loading="isLoading"
+              :disabled="!query.trim() || !datasource"
+              severity="info"
+              class="flex-1 sm:flex-none"
+          >
+            <Save />
+            Save
+          </Button>
+          <Button
               @click="clearQuery"
               icon="pi pi-times"
               label="Clear"
               severity="secondary"
               :disabled="!query.trim()"
-            />
-          </div>
+          />
+        </div>
 
-          <!-- Message d'erreur -->
-          <div v-if="error" class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded border border-red-200 dark:border-red-800">
-            <div class="flex items-center gap-2">
-              <i class="pi pi-exclamation-triangle"></i>
-              <span class="error-message">{{ error }}</span>
-            </div>
+        <!-- Message d'erreur -->
+        <div v-if="error" class="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded border border-red-200 dark:border-red-800">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-exclamation-triangle"></i>
+            <span class="error-message">{{ error }}</span>
           </div>
+        </div>
 
-          <!-- Résultats -->
-          <div v-if="results" class="flex-1 min-h-0 overflow-auto">
-            <Card class="h-full">
-              <template #title>
-                <div class="flex justify-between items-center">
-                  <div class="flex gap-2 items-baseline">
-                    <span>Results</span>
-                    <span class="text-sm text-gray-500">
+        <!-- Résultats -->
+        <div v-if="results" class="flex-1 min-h-0">
+          <Card class="h-full">
+            <template #title>
+              <div class="flex justify-between items-center">
+                <div class="flex gap-2 items-baseline">
+                  <span>Results</span>
+                  <span class="text-sm text-gray-500">
                     {{ results.rowCount }} rows in {{ results.executionTime }}ms
                     </span>
-                  </div>
-                  <div class="flex gap-2">
-                    <Button
-                        @click="copyToClipboard"
-                        severity="info"
-                        :disabled="!results"
-                    >
-                      <Clipboard />
-                      Copy results
-                    </Button>
-                    <Button
-                        @click="clearResults"
-                        severity="secondary"
-                        :disabled="!results && !error"
-                    >
-                      <Trash />
-                      Clear results
-                    </Button>
-                  </div>
                 </div>
-              </template>
-              <template #content>
-                <Divider />
-                <DataTable
+                <div class="flex gap-2">
+                  <Button
+                      @click="copyToClipboard"
+                      severity="info"
+                      :disabled="!results"
+                  >
+                    <Clipboard />
+                    Copy results
+                  </Button>
+                  <Button
+                      @click="clearResults"
+                      severity="secondary"
+                      :disabled="!results && !error"
+                  >
+                    <Trash />
+                    Clear results
+                  </Button>
+                </div>
+              </div>
+            </template>
+            <template #content>
+              <Divider />
+              <DataTable
                   :value="results.rows"
                   stripedRows
                   class="mt-4"
                   scrollable
                   scrollHeight="flex"
                   resizableColumns
-                >
-                  <Column v-for="field in results.fields" :key="field" :field="field" :header="field" :sortable="true">
-                    <template #body="{ data }">
-                      <span class="result-cell">{{ data[field] }}</span>
-                    </template>
-                  </Column>
-                </DataTable>
-              </template>
-            </Card>
-          </div>
-
-          <!-- Message vide -->
-          <div v-if="!results && !error && !isLoading" class="flex-1 flex flex-col justify-center items-center text-gray-400 py-8">
-            <i class="pi pi-database text-4xl mb-4"></i>
-            <span class="text-lg">Enter a SQL query and click Execute</span>
-            <span class="text-sm">Press Ctrl+Enter or Cmd+Enter to execute</span>
-          </div>
+              >
+                <Column v-for="field in results.fields" :key="field" :field="field" :header="field" :sortable="true">
+                  <template #body="{ data }">
+                    <span class="result-cell">{{ data[field] }}</span>
+                  </template>
+                </Column>
+              </DataTable>
+            </template>
+          </Card>
         </div>
-      </template>
-    </Card>
-  </div>
+
+        <!-- Message vide -->
+        <div v-if="!results && !error && !isLoading" class="flex-1 flex flex-col justify-center items-center text-gray-400 py-2">
+          <i class="pi pi-database text-4xl"></i>
+          <span class="text-lg">Enter a SQL query and click Execute</span>
+          <span class="text-sm">Press Ctrl+Enter or Cmd+Enter to execute</span>
+        </div>
+      </div>
+    </SidebarMain>
+  </SidebarLayout>
+
+  <UpsertQueryDialog v-if="createQueryDialog" v-model="createQueryDialog" :initial-query="query" />
 </template>
 
 <style scoped>
+.dba-sidebar-layout {
+  min-height: 0 !important;
+  background: transparent !important;
+}
+.dba-sidebar {
+  height: 100dvh;
+}
 
 .query-input {
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
@@ -372,14 +385,6 @@ onMounted(() => {
 
 .history-item:hover {
   background-color: rgba(0, 0, 0, 0.05);
-}
-
-.query-preview {
-  font-family: 'Consolas', 'Monaco', monospace;
-  font-size: 0.875rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .result-cell {

@@ -12,6 +12,10 @@ export enum IpcRoutes {
     DATASOURCE_EXECUTE_QUERY = 'datasource-execute-query',
     DATASOURCE_GET_QUERY_HISTORY = 'datasource-get-query-history',
     DATASOURCE_DELETE_QUERY_HISTORY = 'datasource-delete-query-history',
+    DATASOURCE_GET_SAVED_QUERIES = 'datasource-get-saved-queries',
+    DATASOURCE_CREATE_SAVED_QUERY = 'datasource-create-saved-query',
+    DATASOURCE_UPDATE_SAVED_QUERY = 'datasource-update-saved-query',
+    DATASOURCE_DELETE_SAVED_QUERY = 'datasource-delete-saved-query',
     TABLES_GET_ALL = 'tables-get-all',
     TABLES_GET_STATS = 'tables-get-stats',
 

@@ -1,6 +1,8 @@
 import {Client, QueryResult} from "pg";
 import {SqliteService} from "./sqlite.service";
 import {DatasourceDto} from "../commons/data/dto/datasource-dto";
+import {CreateQueryFormDto} from "../commons/data/dto/forms/create-query-form-dto";
+import {DatasourceSavedQueryDto} from "../commons/data/dto/datasource-saved-query-dto";
 
 export class QueryService {
 
@@ -57,7 +59,7 @@ export class QueryService {
     static async saveQueryHistory(args: {
         datasourceId: string;
         query: string;
-        executedAt: Date;
+        executedAt: string;
     }) {
         const db = SqliteService.getDatabase();
         const { datasourceId, query, executedAt } = args;
@@ -112,6 +114,69 @@ export class QueryService {
             return { success: true };
         } catch (err) {
             console.error('Error deleting query history:', err);
+            return { success: false };
+        }
+    }
+
+    static async getSavedQueries(args: { datasourceId: string; limit?: number }): Promise<DatasourceSavedQueryDto[]> {
+        const db = SqliteService.getDatabase();
+        const { datasourceId, limit = 50 } = args;
+
+        try {
+            const rows = db.prepare(
+                `SELECT *
+                 FROM saved_query 
+                 WHERE datasource_id = ?
+                 ORDER BY created_at DESC 
+                 LIMIT ?`
+            ).all(datasourceId, limit) as any[];
+
+            return rows.map(row => new DatasourceSavedQueryDto(row.id, row.name, row.query));
+        } catch (err) {
+            console.error('Error fetching saved queries:', err);
+            return [];
+        }
+    }
+
+    static async saveQuery(args: {form: CreateQueryFormDto}) {
+        const db = SqliteService.getDatabase();
+
+        try {
+            const stmt = db.prepare(
+                `INSERT INTO saved_query (datasource_id, query, name)
+                 VALUES (?, ?, ?)`
+            );
+            stmt.run(args.form.datasourceId, args.form.query, args.form.name);
+            return { success: true };
+        } catch (err) {
+            console.error('Error saving query:', err);
+            return { success: false, error: err.message };
+        }
+    }
+
+    static async updateQuery(args: {id: number, query: string, name: string}) {
+        const db = SqliteService.getDatabase();
+
+        try {
+            const stmt = db.prepare(
+                `UPDATE saved_query SET query = ?, name = ? WHERE id = ?`
+            );
+            stmt.run(args.query, args.name, args.id);
+            return { success: true };
+        } catch (err) {
+            console.error('Error updating query:', err);
+            return { success: false, error: err.message };
+        }
+    }
+
+    static async deleteQuery(args: {queryId: number}) {
+        const db = SqliteService.getDatabase();
+
+        try {
+            db.prepare('DELETE FROM saved_query WHERE id = ?').run(args.queryId);
+            return { success: true };
+        } catch (err) {
+            console.error('Error deleting query:', err);
             return { success: false };
         }
     }
