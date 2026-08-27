@@ -30,12 +30,12 @@ export class SqliteService {
         if (!fs.existsSync(appDataDir)) {
             try {
                 fs.mkdirSync(appDataDir, { recursive: true });
-                console.log(`Dossier de donnes cr: ${appDataDir}`);
+                console.log(`Dossier de données créé: ${appDataDir}`);
             } catch (err) {
-                console.error(`\u274c ERREUR CRITIQUE: Impossible de crer le dossier de donnes: ${err}`);
+                console.error(`\u274c ERREUR CRITIQUE: Impossible de créer le dossier de données: ${err}`);
                 throw new Error(
-                    'Impossible de crer le dossier de stockage des donnes. ' +
-                    'Vrifiez les permissions d\'9criture dans le dossier utilisateur.'
+                    'Impossible de créer le dossier de stockage des données. ' +
+                    'Vérifiez les permissions d\'écriture dans le dossier utilisateur.'
                 );
             }
         }
@@ -144,7 +144,12 @@ export class SqliteService {
         try {
             await PostgresqlService.testConnection(form);
 
-            // Chiffrer le mot de passe avant stockage
+            const existingDatasources = await this.getDatasources();
+            if(existingDatasources.find(d => d.name == form.name
+                || (d.hostname === form.hostname && d.dbname === form.dbname && d.username === form.username && d.port === form.port))) {
+                throw new Error("A datasource already exists with these informations!");
+            }
+
             const encryptedPassword = safeStorage.encryptString(form.password);
 
             const stmt = db.prepare(
@@ -163,8 +168,9 @@ export class SqliteService {
 
             console.log("success");
         } catch (err) {
+            const message = (err as any)?.message;
             console.error('Error creating datasource:', err);
-            throw new Error('Failed to create datasource');
+            throw new Error(`Failed to create datasource${message ? ' : ' + message : ''}`);
         }
     }
 
@@ -205,7 +211,7 @@ export class SqliteService {
 
             // Requte param9tre pour 9viter l'injection SQL
             db.prepare(
-                `UPDATE datasource 
+                `UPDATE datasource
                  SET name = ?, username = ?, password = ?, hostname = ?, port = ?, dbname = ?
                  WHERE id = ?`
             ).run(
