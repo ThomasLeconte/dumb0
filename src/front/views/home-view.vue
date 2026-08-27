@@ -76,7 +76,9 @@ function connect(datasource: DatasourceDto) {
 
 function toggle(event: any, datasource: DatasourceDto) {
   datasourceToUpdateOrDelete.value = datasource;
-  console.log(menuRef.value[0]?.toggle(event));
+  if(menuRef.value) {
+    menuRef.value[0]?.toggle(event)
+  }
 };
 
 function showCreateDialog() {

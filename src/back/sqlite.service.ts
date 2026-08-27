@@ -20,8 +20,8 @@ export class SqliteService {
     }
 
     /**
-     * Initialise le dossier de donnes et la base SQLite
-     * @throws {Error} Si le dossier ne peut pas atre cr
+     * Initialise le dossier de données et la base SQLite
+     * @throws {Error} Si le dossier ne peut pas être créé
      */
     public static init(): void {
         const userDataPath = app.getPath('userData');
@@ -81,7 +81,6 @@ export class SqliteService {
             }
 
             const datasources = rows.map((row: any) => {
-                // Dchiffrer le mot de passe avant de crer le DTO
                 const decryptedPassword = safeStorage.decryptString(row.password);
                 return new DatasourceDto(
                     row.id,
@@ -104,7 +103,6 @@ export class SqliteService {
     static getDatasourceById(datasourceId: string): Promise<DatasourceDto | null> {
         const id = Number.parseInt(datasourceId);
 
-        // Validation de l'ID
         if (isNaN(id) || id <= 0) {
             return Promise.resolve(null);
         }
@@ -112,14 +110,12 @@ export class SqliteService {
         const db = this.getDatabase();
 
         try {
-            // Requte param9tre pour 9viter l'injection SQL
             const row = db.prepare("SELECT * FROM datasource WHERE id = ?").get(id) as any;
 
             if (!row) {
                 return Promise.resolve(null);
             }
 
-            // Dchiffrer le mot de passe
             const decryptedPassword = safeStorage.decryptString(row.password);
             return Promise.resolve(new DatasourceDto(
                 row.id,
@@ -178,7 +174,6 @@ export class SqliteService {
         const datasourceId = args.datasourceId;
         const id = Number.parseInt(datasourceId);
 
-        // Validation de l'ID
         if (isNaN(id) || id <= 0) {
             throw new Error('Invalid datasource ID');
         }
@@ -186,7 +181,6 @@ export class SqliteService {
         const db = this.getDatabase();
 
         try {
-            // Requte param9tre pour 9viter l'injection SQL
             db.prepare("DELETE FROM datasource WHERE id = ?").run(id);
         } catch (err) {
             console.error('Error deleting datasource:', err);
@@ -198,7 +192,6 @@ export class SqliteService {
         const { id, form } = args;
         const datasourceId = Number.parseInt(id);
 
-        // Validation de l'ID
         if (isNaN(datasourceId) || datasourceId <= 0) {
             throw new Error('Invalid datasource ID');
         }

@@ -1,9 +1,10 @@
-import { app, BrowserWindow, ipcMain, safeStorage, dialog } from 'electron';
+import {app, BrowserWindow, dialog, ipcMain, safeStorage} from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import PostgresqlService from "./back/postgresql.service";
-import { SqliteService } from "./back/sqlite.service";
-import { QueryService } from "./back/query.service";
+import {SqliteService} from "./back/sqlite.service";
+import {QueryService} from "./back/query.service";
+import {IpcRoutes} from "./commons/ipc-routes";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -44,7 +45,7 @@ app.whenReady().then(async () => {
     console.error(
       '\u274c ERREUR CRITIQUE: Le chiffrement des donnes sensibles n\'est pas disponible sur cette machine.'
     );
-    
+
     // Afficher une bote de dialogue d'erreur avant de quitter
     await dialog.showErrorBox(
       'Erreur de scurit',
@@ -61,7 +62,7 @@ app.whenReady().then(async () => {
     SqliteService.init();
   } catch (err) {
     console.error('\u274c ERREUR CRITIQUE:', err);
-    
+
     // Afficher une bote de dialogue d'erreur pour le dossier de donnes
     await dialog.showErrorBox(
       'Erreur de stockage',
@@ -100,45 +101,42 @@ app.on('window-all-closed', () => {
 // code. You can also put them in separate files and import them here.
 
 async function handleMessageIncoming(event, data) {
-  const {eventName, args} = JSON.parse(data)
+  const {eventName, args} = JSON.parse(data) as { eventName: IpcRoutes, args: any };
   let result;
   console.log(args)
 
   switch (eventName) {
-    case 'get-datasources':
+    case IpcRoutes.DATASOURCE_GET_ALL:
       result = await SqliteService.getDatasources();
       break;
-    case 'create-datasource':
+    case IpcRoutes.DATASOURCE_CREATE:
       result = await SqliteService.createDatasource(args);
       break;
-    case 'delete-datasource':
+    case IpcRoutes.DATASOURCE_DELETE:
       result = await SqliteService.deleteDatasource(args);
       break;
-    case 'update-datasource':
+    case IpcRoutes.DATASOURCE_UPDATE:
       result = await SqliteService.updateDatasource(args);
       break;
-    case 'get-tables':
+    case IpcRoutes.TABLES_GET_ALL:
       result = await PostgresqlService.getTables(args);
       break;
-    case 'get-table-stats':
+    case IpcRoutes.TABLES_GET_STATS:
       result = await PostgresqlService.getTableStats(args);
       break;
-    case 'get-datasource-stats':
+    case IpcRoutes.DATASOURCE_GET_STATS:
       result = await PostgresqlService.getDatasourceStats(args);
       break;
-    case 'execute-query':
+    case IpcRoutes.DATASOURCE_EXECUTE_QUERY:
       result = await QueryService.executeQuery(args);
       break;
-    case 'save-query-history':
-      result = await QueryService.saveQueryHistory(args);
-      break;
-    case 'get-query-history':
+    case IpcRoutes.DATASOURCE_GET_QUERY_HISTORY:
       result = await QueryService.getQueryHistory(args);
       break;
-    case 'delete-query-history':
+    case IpcRoutes.DATASOURCE_DELETE_QUERY_HISTORY:
       result = await QueryService.deleteQueryHistory(args);
       break;
-    case 'set-window-title':
+    case IpcRoutes.APP_SET_TITLE:
       updateTitle(args);
       break;
     default: throw new Error(`Unknown event ${eventName}!`)

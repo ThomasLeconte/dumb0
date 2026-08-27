@@ -1,18 +1,20 @@
 import {defineStore} from "pinia";
 import {TableStatsDto} from "../../commons/data/dto/table-stats-dto";
+import {IpcRoutes} from "../../commons/ipc-routes";
+import {IpcUtils} from "./ipc-utils";
 
 export const useTablesStore = defineStore('tables', {
     state: () => ({
         tables: [] as string[],
-        tableStats: null as unknown as TableStatsDto
+        tableStats: null as TableStatsDto | null
     }),
     actions: {
         loadTables(datasourceId: number) {
-            return window.ipc.send('get-tables', {datasourceId})
+            return IpcUtils.send(IpcRoutes.TABLES_GET_ALL, {datasourceId})
                 .then((res) => this.tables = res)
         },
         getTableStats(datasourceId: number, tableName: string) {
-            return window.ipc.send('get-table-stats', {tableName, datasourceId})
+            return IpcUtils.send(IpcRoutes.TABLES_GET_STATS, {tableName, datasourceId})
                 .then((res) => this.tableStats = res)
         },
         clear() {

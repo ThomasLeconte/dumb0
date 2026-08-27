@@ -50,7 +50,9 @@ const menuItems = ref([
 ] as any[])
 
 onMounted(() => {
-  appStore.setTitle(datasourceStore.datasourceChoosen.name);
+  if(datasourceStore.datasourceChoosen) {
+    appStore.setTitle(datasourceStore.datasourceChoosen.name);
+  }
 })
 
 const datasource = computed(() => datasourceStore.datasourceChoosen);

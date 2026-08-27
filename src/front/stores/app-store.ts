@@ -1,9 +1,11 @@
 import {defineStore} from "pinia";
+import {IpcRoutes} from "../../commons/ipc-routes";
+import {IpcUtils} from "./ipc-utils";
 
 export const useAppStore = defineStore('appStore', {
     actions: {
         setTitle(title: string) {
-            return window.ipc.send('set-window-title', {title: `DBAPP - ${title}`});
+            return IpcUtils.send(IpcRoutes.APP_SET_TITLE, {title: `DBAPP - ${title}`});
         }
     }
 })

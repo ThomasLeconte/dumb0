@@ -4,6 +4,8 @@ import {DatasourceDto} from "../../commons/data/dto/datasource-dto";
 import {CreateDatasourceFormDto} from "../../commons/data/dto/forms/create-datasource-form-dto";
 import {DatasourceStatsDto} from "../../commons/data/dto/datasource-stats-dto";
 import {DatasourceQueryDto} from "../../commons/data/dto/datasource-query-dto";
+import {IpcRoutes} from "../../commons/ipc-routes";
+import {IpcUtils} from "./ipc-utils";
 
 export const useDatasourcesStore = defineStore('datasources', {
     state: () => ({
@@ -14,7 +16,7 @@ export const useDatasourcesStore = defineStore('datasources', {
     }),
     actions: {
         loadDatasources() {
-            return window.ipc.send('get-datasources')
+            return IpcUtils.send(IpcRoutes.DATASOURCE_GET_ALL)
                 .then((res) => this.datasources = res)
         },
         selectDatasource(datasource: DatasourceDto | null) {
@@ -22,41 +24,41 @@ export const useDatasourcesStore = defineStore('datasources', {
             return this.loadDatasourceDetails();
         },
         deleteDatasource(datasource: DatasourceDto) {
-            return window.ipc.send('delete-datasource', {datasourceId: datasource.id})
+            return IpcUtils.send(IpcRoutes.DATASOURCE_DELETE, {datasourceId: datasource.id})
                 .then(() => {
                     this.clearDatasource();
                     return this.loadDatasources();
                 });
         },
         updateDatasource(datasourceId: number, form: CreateDatasourceFormDto) {
-            return window.ipc.send('update-datasource', {id: datasourceId, form})
+            return IpcUtils.send(IpcRoutes.DATASOURCE_UPDATE, {id: datasourceId, form})
                 .then(() => {
                     return this.loadDatasources();
                 });
         },
         createDatasource(form: CreateDatasourceFormDto) {
-            return window.ipc.send('create-datasource', {form})
+            return IpcUtils.send(IpcRoutes.DATASOURCE_CREATE, {form})
                 .then((res) => this.loadDatasources())
         },
         clearDatasource() {
             this.datasourceChoosen = null;
         },
         loadDatasourceDetails() {
-            return window.ipc.send('get-datasource-stats', {datasourceId: this.datasourceChoosen.id})
+            return IpcUtils.send(IpcRoutes.DATASOURCE_GET_STATS, {datasourceId: this.datasourceChoosen?.id})
                 .then((res) => this.datasourceDetails = res)
         },
         // ----- queries -------
         executeQuery(query: string) {
-            return window.ipc.send('execute-query', {datasourceId: this.datasourceChoosen.id, query})
+            return IpcUtils.send(IpcRoutes.DATASOURCE_EXECUTE_QUERY, {datasourceId: this.datasourceChoosen?.id, query})
         },
         getQueryHistory(limit?: number) {
-            return window.ipc.send('get-query-history', {datasourceId: this.datasourceChoosen.id, limit: limit || 20})
+            return IpcUtils.send(IpcRoutes.DATASOURCE_GET_QUERY_HISTORY, {datasourceId: this.datasourceChoosen?.id, limit: limit || 20})
                 .then(async (res) => {
                     this.queryHistory = res
                 });
         },
         deleteQueryHistoryItem(id: number) {
-            return window.ipc.send('delete-query-history', {id})
+            return IpcUtils.send(IpcRoutes.DATASOURCE_DELETE_QUERY_HISTORY, {id})
                 .then(() => this.getQueryHistory());
         }
     }
