@@ -5,6 +5,7 @@ import PostgresqlService from "./back/postgresql.service";
 import {SqliteService} from "./back/sqlite.service";
 import {QueryService} from "./back/query.service";
 import {IpcRoutes} from "./commons/ipc-routes";
+import {AiService} from "./back/ai.service";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -147,6 +148,9 @@ async function handleMessageIncoming(event, data) {
       break;
     case IpcRoutes.DATASOURCE_DELETE_SAVED_QUERY:
       result = await QueryService.saveQuery(args);
+      break;
+    case IpcRoutes.DATASOURCE_ASK_AI_QUERY:
+      result = await AiService.analyzeQuery(args);
       break;
     case IpcRoutes.APP_SET_TITLE:
       updateTitle(args);

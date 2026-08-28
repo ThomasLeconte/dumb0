@@ -2,7 +2,7 @@
 import {computed, onMounted, ref} from "vue";
 import {useDatasourcesStore} from "../../stores/datasource-store";
 import {Button, Card, Column, DataTable, Divider, Textarea, useToast} from "primevue";
-import {Clipboard, List, Play, Save, History, Trash} from "@primeicons/vue";
+import {Clipboard, List, Play, Save, History, Trash, Spinner, Sparkles} from "@primeicons/vue";
 import SidebarAside from "primevue/sidebaraside";
 import SidebarGroupContent from "primevue/sidebargroupcontent";
 import SidebarMenu from "primevue/sidebargroupcontent";
@@ -15,6 +15,7 @@ import SidebarSpacer from "primevue/sidebarspacer";
 import SidebarLayout from "primevue/sidebarlayout";
 import SidebarGroupLabel from "primevue/sidebargrouplabel";
 import SidebarContent from "primevue/sidebarcontent";
+import MarkdownIt from 'markdown-it'
 import {DatasourceQueryDto} from "../../../commons/data/dto/datasource-query-dto";
 import UpsertQueryDialog from "../../components/upsert-query-dialog.vue";
 
@@ -25,7 +26,9 @@ const query = ref("");
 const results = ref<{ fields: string[]; rows: any[]; executionTime: number; rowCount: number } | null>(null);
 const error = ref<string | null>(null);
 const selectedHistoryQuery = ref<string | null>(null);
+const aiResponse = ref('');
 const isLoading = ref(false);
+const isAnalyzing = ref(false);
 const showHistory = ref(false);
 const createQueryDialog = ref(false);
 
@@ -166,8 +169,19 @@ function formatQuery(item: DatasourceQueryDto) {
 
 function formatDate(date: string) {
   let _date = new Date(date);
-  console.log(_date);
   return _date.toLocaleDateString() + ' - ' + _date.toLocaleTimeString();
+}
+
+function analyzeQuery() {
+  isAnalyzing.value = true;
+  datasourceStore.analyzeQuery(query.value)
+      .then((res) => {
+        const md = new MarkdownIt();
+        const message = res.choices[0].message;
+        aiResponse.value = md.render(message.content);
+      })
+      .catch((err) => console.error(err))
+      .finally(() => isAnalyzing.value = false)
 }
 
 onMounted(() => {
@@ -250,7 +264,7 @@ onMounted(() => {
           <Button
               @click="executeQuery"
               :loading="isLoading"
-              :disabled="!query.trim() || !datasource"
+              :disabled="!query.trim() || !datasource || isAnalyzing"
               severity="success"
               class="flex-1 sm:flex-none"
           >
@@ -260,7 +274,7 @@ onMounted(() => {
           <Button
               @click="createQueryDialog = true"
               :loading="isLoading"
-              :disabled="!query.trim() || !datasource"
+              :disabled="!query.trim() || !datasource || isAnalyzing"
               severity="info"
               class="flex-1 sm:flex-none"
           >
@@ -268,11 +282,18 @@ onMounted(() => {
             Save
           </Button>
           <Button
+              @click="analyzeQuery"
+              severity="contrast"
+              :disabled="!query.trim() || !datasource || isAnalyzing"
+          >
+            <Sparkles :spin="isAnalyzing" />Analyze
+          </Button>
+          <Button
               @click="clearQuery"
               icon="pi pi-times"
               label="Clear"
               severity="secondary"
-              :disabled="!query.trim()"
+              :disabled="!query.trim() || isAnalyzing"
           />
         </div>
 
@@ -282,6 +303,19 @@ onMounted(() => {
             <i class="pi pi-exclamation-triangle"></i>
             <span class="error-message">{{ error }}</span>
           </div>
+        </div>
+
+        <div v-if="aiResponse || isAnalyzing" class="mt-4">
+          <Card>
+            <template #title>
+              <span class="text-lg title">AI analyze</span>
+            </template>
+            <template #content>
+              <Divider />
+              <Spinner v-if="isAnalyzing" spin :size="64" />
+              <span v-if="aiResponse" v-html="aiResponse"></span>
+            </template>
+          </Card>
         </div>
 
         <!-- Résultats -->

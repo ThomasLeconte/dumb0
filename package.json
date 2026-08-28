@@ -40,6 +40,7 @@
     "vite": "^5.4.21"
   },
   "dependencies": {
+    "@mistralai/mistralai": "^2.6.4",
     "@primeicons/vue": "^8.0.0",
     "@primeuix/themes": "^3.0.0",
     "@primevue/forms": "^5.0.0",
@@ -47,6 +48,7 @@
     "@vueuse/electron": "^14.4.0",
     "better-sqlite3": "^13.0.3",
     "electron-squirrel-startup": "^1.0.1",
+    "markdown-it": "^15.0.1",
     "pg": "^8.22.0",
     "pinia": "^4.0.2",
     "primevue": "^5.0.0",

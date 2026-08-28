@@ -82,6 +82,10 @@ export const useDatasourcesStore = defineStore('datasources', {
         deleteSavedQuery(queryId: number) {
             return IpcUtils.send(IpcRoutes.DATASOURCE_DELETE_SAVED_QUERY, {id: queryId})
                 .then(() => this.getSavedQueries())
+        },
+        // --------- ask AI ------------
+        analyzeQuery(query: string) {
+            return IpcUtils.send(IpcRoutes.DATASOURCE_ASK_AI_QUERY, {query});
         }
     }
 })
