@@ -405,7 +405,7 @@ onMounted(() => {
 }
 
 .sql-editor {
-  border: 1px solid #a5a5a5;
+  border: 2px solid #e2e8ef;
   border-radius: 10px;
   box-sizing: border-box;
   overflow: hidden;
