@@ -15,9 +15,10 @@ import SidebarSpacer from "primevue/sidebarspacer";
 import SidebarLayout from "primevue/sidebarlayout";
 import SidebarGroupLabel from "primevue/sidebargrouplabel";
 import SidebarContent from "primevue/sidebarcontent";
-import MarkdownIt from 'markdown-it'
+import {CodeEditor, EditorOptions} from 'monaco-editor-vue3';
 import {DatasourceQueryDto} from "../../../commons/data/dto/datasource-query-dto";
 import UpsertQueryDialog from "../../components/upsert-query-dialog.vue";
+import MarkdownIt from "markdown-it";
 
 const datasourceStore = useDatasourcesStore();
 const toast = useToast();
@@ -31,6 +32,14 @@ const isLoading = ref(false);
 const isAnalyzing = ref(false);
 const showHistory = ref(false);
 const createQueryDialog = ref(false);
+const editorOptions = ref({
+  fontSize: 14,
+  minimap: { enabled: false },
+  automaticLayout: true,
+  dimension: {
+    height: 200
+  }
+} as EditorOptions)
 
 const datasource = computed(() => datasourceStore.datasourceChoosen);
 const history = computed(() => {
@@ -247,16 +256,13 @@ onMounted(() => {
           </span>
         </div>
 
-        <div class="flex gap-2">
-            <Textarea
-                v-model="query"
-                placeholder="SELECT * FROM your_table LIMIT 10;"
-                class="flex-1 query-input"
-                :rows="8"
-                autoResize
-                @keyup.ctrl.enter="executeQuery"
-                @keyup.meta.enter="executeQuery"
-            />
+        <div class="flex gap-2 sql-editor">
+          <CodeEditor
+              v-model:value="query"
+              language="sql"
+              theme="vs-light"
+              :options="editorOptions"
+          />
         </div>
 
         <!-- Boutons d'action -->
@@ -398,27 +404,17 @@ onMounted(() => {
   line-height: 1.5;
 }
 
+.sql-editor {
+  border: 1px solid #a5a5a5;
+  border-radius: 10px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
 .error-message {
   font-family: 'Consolas', 'Monaco', monospace;
   white-space: pre-wrap;
   word-break: break-all;
-}
-
-.history-panel {
-  margin-top: auto;
-}
-
-.history-list {
-  max-height: 300px;
-}
-
-.history-item {
-  transition: background-color 0.2s;
-  border-radius: 0.375rem;
-}
-
-.history-item:hover {
-  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .result-cell {
