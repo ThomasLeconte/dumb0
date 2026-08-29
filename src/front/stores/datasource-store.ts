@@ -85,7 +85,7 @@ export const useDatasourcesStore = defineStore('datasources', {
         },
         // --------- ask AI ------------
         analyzeQuery(query: string) {
-            return IpcUtils.send(IpcRoutes.DATASOURCE_ASK_AI_QUERY, {query});
+            return IpcUtils.send(IpcRoutes.DATASOURCE_ASK_AI_QUERY, {query, datasourceId: this.datasourceChoosen?.id.toString()});
         }
     }
 })

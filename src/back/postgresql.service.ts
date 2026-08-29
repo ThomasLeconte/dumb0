@@ -263,18 +263,19 @@ export default class PostgresqlService {
         }
     }
 
-    private static async getTableIndexes(client: Client, tableName: string) {
+    public static async getTableIndexes(client: Client, tableName: string) {
         const query = `
-            SELECT 
-                stat_io.indexrelname,
-                stat_io.idx_blks_read,
-                stat_io.idx_blks_hit,
-                stat.idx_scan
+            SELECT stat_io.indexrelname,
+                   stat_io.idx_blks_read,
+                   stat_io.idx_blks_hit,
+                   stat.idx_scan,
+                   def.indexdef
             FROM pg_statio_all_indexes stat_io
-            JOIN pg_stat_all_indexes stat 
-                ON stat.indexrelname = stat_io.indexrelname 
-                AND stat.schemaname = stat_io.schemaname
-            WHERE stat_io.relname = $1;
+                     JOIN pg_stat_all_indexes stat
+                          ON LOWER(stat.indexrelname) = LOWER(stat_io.indexrelname)
+                              AND LOWER(stat.schemaname) = LOWER(stat_io.schemaname)
+                     JOIN pg_indexes def ON LOWER(def.indexname) = LOWER(stat_io.indexrelname) AND LOWER(def.tablename) = LOWER(stat_io.relname)
+            WHERE LOWER(stat_io.relname) = LOWER($1);
         `;
 
         try {
@@ -288,7 +289,8 @@ export default class PostgresqlService {
                     row.indexrelname,
                     Number.parseFloat(row.idx_blks_read),
                     Number.parseFloat(row.idx_blks_hit),
-                    Number.parseFloat(row.idx_scan)
+                    Number.parseFloat(row.idx_scan),
+                    row.indexdef
                 );
             });
         } catch (err) {
@@ -440,7 +442,7 @@ export default class PostgresqlService {
         }
     }
 
-    private static async initConnection(datasource: DatasourceDto): Promise<Client> {
+    public static async initConnection(datasource: DatasourceDto): Promise<Client> {
         const {Client} = require('pg');
 
         let client = new Client({
