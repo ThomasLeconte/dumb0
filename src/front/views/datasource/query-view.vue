@@ -29,6 +29,7 @@ const results = ref<{ fields: string[]; rows: any[]; executionTime: number; rowC
 const error = ref<string | null>(null);
 const selectedHistoryQuery = ref<string | null>(null);
 const showHistory = ref(false);
+const isLoading = ref(false);
 const createQueryDialog = ref(false);
 const editorOptions = ref({
   fontSize: 14,
