@@ -9,7 +9,8 @@ import {IpcUtils} from "./ipc-utils";
 import {CreateQueryFormDto} from "../../commons/data/dto/forms/create-query-form-dto";
 import {DatasourceSavedQueryDto} from "../../commons/data/dto/datasource-saved-query-dto";
 import {v4 as uuidv4} from 'uuid';
-import MarkdownIt from "markdown-it";
+import DOMPurify from 'dompurify';
+import { Converter } from "showdown";
 
 export const useDatasourcesStore = defineStore('datasources', {
     state: () => ({
@@ -171,8 +172,10 @@ export const useDatasourcesStore = defineStore('datasources', {
 
             if (!wasCancelled && !this.aiStreamError) {
                 // Option 2 : Parser le Markdown à la fin pour un rendu propre
-                const md = new MarkdownIt();
-                this.aiResponse = md.render(this.rawAiResponse);
+                const converter = new Converter();
+                converter.setOption('tables', true);
+                const parsedHtml = converter.makeHtml(this.rawAiResponse);
+                this.aiResponse = DOMPurify.sanitize(parsedHtml);
             }
 
             // Nettoyer l'ID de requête

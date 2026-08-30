@@ -18,7 +18,8 @@ import SidebarContent from "primevue/sidebarcontent";
 import {CodeEditor, EditorOptions} from 'monaco-editor-vue3';
 import {DatasourceQueryDto} from "../../../commons/data/dto/datasource-query-dto";
 import UpsertQueryDialog from "../../components/upsert-query-dialog.vue";
-import MarkdownIt from "markdown-it";
+import DOMPurify from 'dompurify';
+import { Converter } from "showdown";
 
 const datasourceStore = useDatasourcesStore();
 const toast = useToast();
