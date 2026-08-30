@@ -65,24 +65,28 @@ function logout() {
 </script>
 
 <template>
-  <Menubar :model="menuItems" class="w-full">
-    <template #start>
-      <div class="flex items-center gap-8 w-full">
-        <span class="flex items-center gap-2 title"><Database />{{datasource!.name}}</span>
-        <div>
-        </div>
+  <transition name="fade" mode="out-in">
+    <div>
+      <Menubar :model="menuItems" class="w-full">
+        <template #start>
+          <div class="flex items-center gap-8 w-full">
+            <span class="flex items-center gap-2 title"><Database />{{datasource!.name}}</span>
+            <div>
+            </div>
+          </div>
+        </template>
+
+        <template #end>
+          <Button outlined severity="danger" @click="logout()"><SignOut />Log out</Button>
+        </template>
+      </Menubar>
+
+      <div class="content">
+        <div class="background m-h-dvh" />
+        <router-view />
       </div>
-    </template>
-
-    <template #end>
-      <Button outlined severity="danger" @click="logout()"><SignOut />Log out</Button>
-    </template>
-  </Menubar>
-
-  <div class="content">
-    <div class="background m-h-dvh" />
-    <router-view />
-  </div>
+    </div>
+  </transition>
 </template>
 
 <style scoped>
@@ -95,5 +99,16 @@ function logout() {
   min-height: 100dvh;
   background-color: #f9fafb;
   background-image:  repeating-radial-gradient( circle at 0 0, transparent 0, #f9fafb 9px ), repeating-linear-gradient( rgb(68 76 247 / 0.07), rgb(68 76 247 / 0.08));
+}
+
+/* Transition pour les sous-routes (general, tables, query) */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
