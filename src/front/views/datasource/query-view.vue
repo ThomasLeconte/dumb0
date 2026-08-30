@@ -1,24 +1,32 @@
 <script setup lang="ts">
 import {computed, onMounted, ref} from "vue";
 import {useDatasourcesStore} from "../../stores/datasource-store";
-import {Button, Card, Column, DataTable, Divider, Textarea, useToast} from "primevue";
+import {
+  Button,
+  Card,
+  Column,
+  DataTable,
+  Divider,
+  Sidebar,
+  SidebarAside,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarLayout,
+  SidebarMain,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarPanel,
+  SidebarSpacer,
+  useToast
+} from "primevue";
 import {Clipboard, List, Play, Save, History, Trash, Spinner, Sparkles} from "@primeicons/vue";
-import SidebarAside from "primevue/sidebaraside";
-import SidebarGroupContent from "primevue/sidebargroupcontent";
-import SidebarMenu from "primevue/sidebargroupcontent";
-import SidebarMain from "primevue/sidebarmain";
-import SidebarMenuItem from "primevue/sidebarmenuitem";
-import Sidebar from "primevue/sidebar";
-import SidebarPanel from "primevue/sidebarpanel";
-import SidebarGroup from "primevue/sidebargroup";
-import SidebarSpacer from "primevue/sidebarspacer";
-import SidebarLayout from "primevue/sidebarlayout";
-import SidebarGroupLabel from "primevue/sidebargrouplabel";
-import SidebarContent from "primevue/sidebarcontent";
 import {CodeEditor, EditorOptions} from 'monaco-editor-vue3';
 import {DatasourceQueryDto} from "../../../commons/data/dto/datasource-query-dto";
 import UpsertQueryDialog from "../../components/upsert-query-dialog.vue";
-import MarkdownIt from "markdown-it";
+import DOMPurify from 'dompurify';
+import {Converter} from "showdown";
 
 const datasourceStore = useDatasourcesStore();
 const toast = useToast();
@@ -185,9 +193,14 @@ function analyzeQuery() {
   isAnalyzing.value = true;
   datasourceStore.analyzeQuery(query.value)
       .then((res) => {
-        const md = new MarkdownIt();
+        // Optional: add custom attrs for specific elements
+        // https://github.com/showdownjs/showdown/wiki/Add-default-classes-for-each-HTML-element
+        const converter = new Converter();
+        converter.setOption('tables', true);
+
         const message = res.choices[0].message;
-        aiResponse.value = md.render(message.content);
+        const parsedHtml = converter.makeHtml(message.content)
+        aiResponse.value = DOMPurify.sanitize(parsedHtml);
       })
       .catch((err) => console.error(err))
       .finally(() => isAnalyzing.value = false)
