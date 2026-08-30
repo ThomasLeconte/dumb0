@@ -27,9 +27,6 @@ const query = ref("");
 const results = ref<{ fields: string[]; rows: any[]; executionTime: number; rowCount: number } | null>(null);
 const error = ref<string | null>(null);
 const selectedHistoryQuery = ref<string | null>(null);
-const aiResponse = ref('');
-const isLoading = ref(false);
-const isAnalyzing = ref(false);
 const showHistory = ref(false);
 const createQueryDialog = ref(false);
 const editorOptions = ref({
@@ -50,6 +47,10 @@ const savedQueries = computed(() => {
   if(!datasourceStore.savedQueries) return [];
   return datasourceStore.savedQueries;
 })
+// Propriétés réactives pour l'AI (via le store)
+const aiResponse = computed(() => datasourceStore.aiResponse);
+const isAnalyzing = computed(() => datasourceStore.isAnalyzing);
+const aiStreamError = computed(() => datasourceStore.aiStreamError);
 
 function executeQuery() {
   if (!query.value.trim() || !datasource.value) return;
@@ -182,15 +183,11 @@ function formatDate(date: string) {
 }
 
 function analyzeQuery() {
-  isAnalyzing.value = true;
-  datasourceStore.analyzeQuery(query.value)
-      .then((res) => {
-        const md = new MarkdownIt();
-        const message = res.choices[0].message;
-        aiResponse.value = md.render(message.content);
-      })
-      .catch((err) => console.error(err))
-      .finally(() => isAnalyzing.value = false)
+  datasourceStore.startAiAnalysisStream(query.value);
+}
+
+function cancelAnalysis() {
+  datasourceStore.cancelAiAnalysisStream();
 }
 
 onMounted(() => {
@@ -295,6 +292,13 @@ onMounted(() => {
             <Sparkles :spin="isAnalyzing" />Analyze
           </Button>
           <Button
+              @click="cancelAnalysis"
+              severity="danger"
+              :disabled="!isAnalyzing"
+              icon="pi pi-times"
+              label="Cancel"
+          />
+          <Button
               @click="clearQuery"
               icon="pi pi-times"
               label="Clear"
@@ -324,6 +328,10 @@ onMounted(() => {
               <div class="ai-content">
                 <Spinner v-if="isAnalyzing" spin :size="48" class="ai-spinner" />
                 <div v-if="aiResponse" class="ai-response" v-html="aiResponse"></div>
+                <div v-if="aiStreamError" class="p-2 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded border border-red-200 dark:border-red-800">
+                  <i class="pi pi-exclamation-triangle mr-2"></i>
+                  {{ aiStreamError }}
+                </div>
               </div>
             </template>
           </Card>

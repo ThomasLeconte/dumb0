@@ -17,6 +17,9 @@ export enum IpcRoutes {
     DATASOURCE_UPDATE_SAVED_QUERY = 'datasource-update-saved-query',
     DATASOURCE_DELETE_SAVED_QUERY = 'datasource-delete-saved-query',
     DATASOURCE_ASK_AI_QUERY = 'datasource-ask-ai-query',
+    // AI Streaming
+    DATASOURCE_ASK_AI_QUERY_STREAM_START = 'datasource-ask-ai-query-stream-start',
+    DATASOURCE_ASK_AI_QUERY_STREAM_CANCEL = 'datasource-ask-ai-query-stream-cancel',
     TABLES_GET_ALL = 'tables-get-all',
     TABLES_GET_STATS = 'tables-get-stats',
 

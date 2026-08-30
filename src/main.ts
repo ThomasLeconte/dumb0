@@ -14,6 +14,9 @@ if (started) {
 
 let mainWindow: BrowserWindow;
 
+// Map pour stocker les WebContents des fenêtres (pour envoyer des événements personnalisés)
+const windowMap = new Map<number, Electron.WebContents>();
+
 const createWindow = () => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -41,42 +44,47 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
-  // Vrifier si le chiffrement est disponible (ncessaire pour scuriser les mots de passe)
+  // Vérifier si le chiffrement est disponible (nécessaire pour sécuriser les mots de passe)
   if (!safeStorage.isEncryptionAvailable()) {
     console.error(
-      '\u274c ERREUR CRITIQUE: Le chiffrement des donnes sensibles n\'est pas disponible sur cette machine.'
+      '\u274c ERREUR CRITIQUE: Le chiffrement des données sensibles n\'est pas disponible sur cette machine.'
     );
 
-    // Afficher une bote de dialogue d'erreur avant de quitter
+    // Afficher une boîte de dialogue d'erreur avant de quitter
     await dialog.showErrorBox(
-      'Erreur de scurit',
-      'Le chiffrement des donnes sensibles n\'est pas disponible sur cette machine. ' +
-      'L\'application ne peut pas dmarrer sans cette protection. ' +
-      'Veuillez vrifier que votre systme d\'exploitation est  jour.'
+      'Erreur de sécurité',
+      'Le chiffrement des données sensibles n\'est pas disponible sur cette machine. ' +
+      'L\'application ne peut pas démarrer sans cette protection. ' +
+      'Veuillez vérifier que votre système d\'exploitation est à jour.'
     );
     app.quit();
     return;
   }
 
-  // Initialiser SQLiteService (va vrifier/creer le dossier de donnes)
+  // Initialiser SQLiteService (va vérifier/créer le dossier de données)
   try {
     SqliteService.init();
   } catch (err) {
     console.error('\u274c ERREUR CRITIQUE:', err);
 
-    // Afficher une bote de dialogue d'erreur pour le dossier de donnes
+    // Afficher une boîte de dialogue d'erreur pour le dossier de données
     await dialog.showErrorBox(
       'Erreur de stockage',
-      'Impossible de crer le dossier de stockage des donnes. ' +
-      'Vrifiez les permissions d\'\u001e9criture dans votre profil utilisateur.'
+      'Impossible de créer le dossier de stockage des données. ' +
+      'Vérifiez les permissions d\'écriture dans votre profil utilisateur.'
     );
     app.quit();
     return;
   }
 
   ipcMain.handle('send', async (event, args) => {
+    // Stocker le WebContents pour pouvoir envoyer des événements personnalisés plus tard
+    const windowId = event.sender.id;
+    if (!windowMap.has(windowId)) {
+      windowMap.set(windowId, event.sender);
+    }
     return handleMessageIncoming(event, args);
-  })
+  });
 
   createWindow();
 
@@ -147,10 +155,17 @@ async function handleMessageIncoming(event, data) {
       result = await QueryService.saveQuery(args);
       break;
     case IpcRoutes.DATASOURCE_DELETE_SAVED_QUERY:
-      result = await QueryService.saveQuery(args);
+      result = await QueryService.deleteQuery(args);
       break;
     case IpcRoutes.DATASOURCE_ASK_AI_QUERY:
       result = await AiService.analyzeQuery(args);
+      break;
+    // Streaming AI
+    case IpcRoutes.DATASOURCE_ASK_AI_QUERY_STREAM_START:
+      result = await handleAiStreamStart(event, args);
+      break;
+    case IpcRoutes.DATASOURCE_ASK_AI_QUERY_STREAM_CANCEL:
+      result = await handleAiStreamCancel(args);
       break;
     case IpcRoutes.APP_SET_TITLE:
       updateTitle(args);
@@ -159,6 +174,47 @@ async function handleMessageIncoming(event, data) {
   }
 
   return result;
+}
+
+/**
+ * Gère le démarrage d'un stream AI
+ */
+async function handleAiStreamStart(event, args: { query: string; datasourceId?: string; requestId: string }): Promise<{ requestId: string }> {
+  const { query, datasourceId, requestId } = args;
+  
+  // Démarrer le stream via AiService
+  AiService.startStream(
+      requestId,
+      { query, datasourceId },
+      (chunk) => {
+          // Envoyer le chunk à toutes les fenêtres
+          for (const [windowId, webContents] of windowMap) {
+              webContents.send(`ai-stream-chunk-${requestId}`, { chunk });
+          }
+      }
+  ).then(() => {
+      // Envoyer un événement de fin à toutes les fenêtres
+      for (const [windowId, webContents] of windowMap) {
+          webContents.send(`ai-stream-end-${requestId}`);
+      }
+  }).catch((error) => {
+      // Envoyer un événement d'erreur à toutes les fenêtres
+      for (const [windowId, webContents] of windowMap) {
+          webContents.send(`ai-stream-error-${requestId}`, {
+              error: error instanceof Error ? error.message : String(error)
+          });
+      }
+  });
+
+  return { requestId };
+}
+
+/**
+ * Gère l'annulation d'un stream AI
+ */
+async function handleAiStreamCancel(args: { requestId: string }): Promise<void> {
+  const { requestId } = args;
+  AiService.cancelStream(requestId);
 }
 
 function updateTitle(args: any) {
