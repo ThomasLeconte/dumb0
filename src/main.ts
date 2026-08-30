@@ -188,18 +188,18 @@ async function handleAiStreamStart(event, args: { query: string; datasourceId?: 
       { query, datasourceId },
       (chunk) => {
           // Envoyer le chunk à toutes les fenêtres
-          for (const [windowId, webContents] of windowMap) {
+          for (const [windowId, webContents] of Array.from(windowMap.entries())) {
               webContents.send(`ai-stream-chunk-${requestId}`, { chunk });
           }
       }
   ).then(() => {
       // Envoyer un événement de fin à toutes les fenêtres
-      for (const [windowId, webContents] of windowMap) {
+      for (const [windowId, webContents] of Array.from(windowMap.entries())) {
           webContents.send(`ai-stream-end-${requestId}`);
       }
   }).catch((error) => {
       // Envoyer un événement d'erreur à toutes les fenêtres
-      for (const [windowId, webContents] of windowMap) {
+      for (const [windowId, webContents] of Array.from(windowMap.entries())) {
           webContents.send(`ai-stream-error-${requestId}`, {
               error: error instanceof Error ? error.message : String(error)
           });
