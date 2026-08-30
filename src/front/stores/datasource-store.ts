@@ -8,7 +8,6 @@ import {IpcRoutes} from "../../commons/ipc-routes";
 import {IpcUtils} from "./ipc-utils";
 import {CreateQueryFormDto} from "../../commons/data/dto/forms/create-query-form-dto";
 import {DatasourceSavedQueryDto} from "../../commons/data/dto/datasource-saved-query-dto";
-import {v4 as uuidv4} from 'uuid';
 import DOMPurify from 'dompurify';
 import { Converter } from "showdown";
 
@@ -111,7 +110,7 @@ export const useDatasourcesStore = defineStore('datasources', {
             this.rawAiResponse = '';
             this.isAnalyzing = true;
             this.aiStreamError = null;
-            this.currentRequestId = uuidv4();
+            this.currentRequestId = crypto.randomUUID();
 
             try {
                 // Démarrer le stream via IPC

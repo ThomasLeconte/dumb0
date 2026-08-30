@@ -132,7 +132,7 @@ export class AiService {
         const combinedSignal = signal || controller.signal;
         
         try {
-            const stream = await this.mistralClient.chat.completeStream({
+            const stream = await this.mistralClient.chat.stream({
                 model: 'ministral-14b-latest',
                 messages: [
                     {
