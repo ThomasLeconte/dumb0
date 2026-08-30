@@ -150,8 +150,8 @@ export class AiService {
 
             // Parcourir le stream et envoyer chaque chunk
             for await (const chunk of stream) {
-                if (chunk.choices?.[0]?.delta?.content) {
-                    onChunk(chunk.choices[0].delta.content);
+                if (chunk.data.choices?.[0]?.delta?.content) {
+                    onChunk(chunk.data.choices[0].delta.content);
                 }
             }
         } catch (error) {
