@@ -31,6 +31,7 @@
     "@types/better-sqlite3": "^9.6.0",
     "@types/electron": "^1.4.38",
     "@types/pg": "^8.20.3",
+    "@types/showdown": "^2.0.6",
     "@vitejs/plugin-vue": "^6.0.8",
     "autoprefixer": "^10.5.4",
     "electron": "43.2.0",

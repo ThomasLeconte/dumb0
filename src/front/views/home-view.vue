@@ -88,79 +88,81 @@ function showCreateDialog() {
 </script>
 
 <template>
-  <div class="home-content w-full h-full min-h-dvh flex flex-col justify-center items-center">
-    <div class="home-background"></div>
-    <div class="title flex flex-col justify-center items-center">
-      <div class="text-5xl title">DB-APP</div>
-      <div class="text-xl">Your personal DBA for PostgreSQL 🐘</div>
-    </div>
-
-    <div class="flex flex-col justify-center items-center w-6/12 mt-10">
-      <div class="list-header flex justify-between items-center w-full">
-        <span class="text-xl font-light">Datasources</span>
-        <Button severity="contrast" @click="showCreateDialog()"><Plus />Create</Button>
+  <transition name="fade" mode="out-in" appear>
+    <div class="home-content w-full h-full min-h-dvh flex flex-col justify-center items-center">
+      <div class="home-background"></div>
+      <div class="title flex flex-col justify-center items-center">
+        <div class="text-5xl title">DB-APP</div>
+        <div class="text-xl">Your personal DBA for PostgreSQL </div>
       </div>
-      <Divider />
-    </div>
 
-    <div class="flex justify-center items-start p-10 gap-4 min-w-8/12">
-      <Carousel  class="w-full" align="center" loop autoSize :slidesPerPage="1.2">
-        <div class="flex items-center justify-between mb-4">
-          <div class="font-bold">Last Used</div>
-          <div class="flex items-center gap-2">
-            <CarouselPrev :as="Button" size="small" severity="secondary" iconOnly>
-              <ChevronLeft />
-            </CarouselPrev>
-            <CarouselNext :as="Button" size="small" severity="secondary" iconOnly>
-              <ChevronRight />
-            </CarouselNext>
-          </div>
+      <div class="flex flex-col justify-center items-center w-6/12 mt-10">
+        <div class="list-header flex justify-between items-center w-full">
+          <span class="text-xl font-light">Datasources</span>
+          <Button severity="contrast" @click="showCreateDialog()"><Plus />Create</Button>
         </div>
-        <CarouselContent>
-          <div v-if="datasources && datasources.length === 0" class="flex flex-col justify-center items-center w-full h-full">
-            <div class="text-xl font-light">No datasources yet</div>
-            <div class="text-sm font-light">Create a new datasource to start</div>
-            <Button severity="contrast" @click="showCreateDialog()" class="mt-4"><Plus />Create</Button>
+        <Divider />
+      </div>
+
+      <div class="flex justify-center items-start p-10 gap-4 min-w-8/12">
+        <Carousel  class="w-full" align="center" loop autoSize :slidesPerPage="1.2">
+          <div class="flex items-center justify-between mb-4">
+            <div class="font-bold">Last Used</div>
+            <div class="flex items-center gap-2">
+              <CarouselPrev :as="Button" size="small" severity="secondary" iconOnly>
+                <ChevronLeft />
+              </CarouselPrev>
+              <CarouselNext :as="Button" size="small" severity="secondary" iconOnly>
+                <ChevronRight />
+              </CarouselNext>
+            </div>
           </div>
+          <CarouselContent>
+            <div v-if="datasources && datasources.length === 0" class="flex flex-col justify-center items-center w-full h-full">
+              <div class="text-xl font-light">No datasources yet</div>
+              <div class="text-sm font-light">Create a new datasource to start</div>
+              <Button severity="contrast" @click="showCreateDialog()" class="mt-4"><Plus />Create</Button>
+            </div>
 
-          <CarouselItem v-else v-for="(item, index) in datasources" :key="index" class="basis-16">
-            <Card>
-              <template #title>
-                <div class="flex justify-between items-center p-2 pb-0">
-                  <Menu ref="menu" :model="items" popup />
-                  <div class="flex items-center gap-2 title"><Database />{{item.name}}</div>
-                  <Button severity="contrast" icon-only text @click="e => toggle(e, item)"><Bars /></Button>
-                </div>
-              </template>
-              <template #content>
-                <Divider />
-                <div class="datasource-details">
-                  <span class="datasource-details-title title">Host</span>
-                  <span class="datasource-details-value">{{item.hostname}}</span>
-                </div>
-                <div class="datasource-details">
-                  <span class="datasource-details-title title">Port</span>
-                  <span class="datasource-details-value">{{item.port}}</span>
-                </div>
-                <div class="datasource-details">
-                  <span class="datasource-details-title title">Username</span>
-                  <span class="datasource-details-value">{{item.username}}</span>
-                </div>
-                <Divider />
-              </template>
-              <template #footer>
-                <div class="flex justify-center">
-                  <Button @click="connect(item)"><SignIn />Connect</Button>
-                </div>
-              </template>
-            </Card>
-          </CarouselItem>
-        </CarouselContent>
+            <CarouselItem v-else v-for="(item, index) in datasources" :key="index" class="basis-16">
+              <Card>
+                <template #title>
+                  <div class="flex justify-between items-center p-2 pb-0">
+                    <Menu ref="menu" :model="items" popup />
+                    <div class="flex items-center gap-2 title"><Database />{{item.name}}</div>
+                    <Button severity="contrast" icon-only text @click="e => toggle(e, item)"><Bars /></Button>
+                  </div>
+                </template>
+                <template #content>
+                  <Divider />
+                  <div class="datasource-details">
+                    <span class="datasource-details-title title">Host</span>
+                    <span class="datasource-details-value">{{item.hostname}}</span>
+                  </div>
+                  <div class="datasource-details">
+                    <span class="datasource-details-title title">Port</span>
+                    <span class="datasource-details-value">{{item.port}}</span>
+                  </div>
+                  <div class="datasource-details">
+                    <span class="datasource-details-title title">Username</span>
+                    <span class="datasource-details-value">{{item.username}}</span>
+                  </div>
+                  <Divider />
+                </template>
+                <template #footer>
+                  <div class="flex justify-center">
+                    <Button @click="connect(item)"><SignIn />Connect</Button>
+                  </div>
+                </template>
+              </Card>
+            </CarouselItem>
+          </CarouselContent>
 
-      </Carousel>
+        </Carousel>
 
+      </div>
     </div>
-  </div>
+  </transition>
 
   <UpsertDatasourceDialog v-model="createDialog" />
   <UpsertDatasourceDialog v-if="datasourceToUpdateOrDelete && updateDialog" v-model="updateDialog" :datasource="datasourceToUpdateOrDelete" />
@@ -192,5 +194,16 @@ function showCreateDialog() {
 
   .datasource-details-value {
     font-weight: lighter;
+  }
+
+  /* Transition pour la page home */
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: opacity 0.3s ease;
+  }
+
+  .fade-enter-from,
+  .fade-leave-to {
+    opacity: 0;
   }
 </style>
