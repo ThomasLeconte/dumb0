@@ -1,5 +1,7 @@
+<script setup>
+</script>
 <template>
-  <transition name="slide" mode="out-in">
+  <transition name="fade" mode="out-in">
     <router-view />
   </transition>
 </template>
@@ -10,19 +12,14 @@
   font-family: 'menlo';
 }
 
-/* Transition simple pour toutes les routes */
-.slide-enter-active,
-.slide-leave-active {
-  transition: all 0.3s ease;
+/* Transition pour les sous-routes (general, tables, query) */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
 }
 
-.slide-enter-from {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
-  transform: translateX(20px);
-}
-
-.slide-leave-to {
-  opacity: 0;
-  transform: translateX(-20px);
 }
 </style>

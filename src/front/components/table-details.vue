@@ -43,6 +43,19 @@
     return date.toLocaleString();
   }
 
+  const lastAnalyzeTooOld = computed(() => {
+    if(!rowsStats || !rowsStats.value.lastAnalyze) return true;
+    const diff = new Date().getTime() - rowsStats.value.lastAnalyze.getTime();
+    // if last analyze is 1 month old
+    if(diff > 2629746000) return true;
+  })
+
+  const generalSeverity = computed(() => {
+    if (lastAnalyzeTooOld.value && (rowStatsSeverity.value !== 'success' || indexesStatsSeverity.value !== 'success')) return "warning";
+    else if (lastAnalyzeTooOld.value && rowStatsSeverity.value !== 'success' && indexesStatsSeverity.value !== 'success') return "danger";
+    else return "success"
+  })
+
   const rowStatsSeverity = computed(() => {
     if(rowsStats.value == null) return null;
     const percentage = Math.floor((rowsStats.value.deadRows / rowsStats.value.activeRows) * 100);
@@ -53,8 +66,14 @@
 
   const indexesStatsSeverity = computed(() => {
     if(indexesStats.value == null) return null;
-    if(!indexesStats.value.find(i => i.scansTime === 0)) return "success";
-    return "warning";
+    const indexesUnused = indexesStats.value.filter(i => i.scansTime === 0 && i.indexBlocksRead === 0 && i.cacheIndexBlocksRead === 0);
+    if(indexesUnused.length > 0 && indexesUnused.length < indexesStats.value.length) {
+      return "warning"
+    } else if (indexesUnused.length === indexesStats.value.length) {
+      return "danger";
+    } else {
+      return "success";
+    }
   })
 
   const diskCacheHitRatio = computed(() => {
@@ -80,7 +99,13 @@
       <template #title>
         <div class="flex justify-between items-start">
           <span class="title">General</span>
-          <Chip class="bg-green-50! dark:bg-green-950! text-green-700! dark:text-green-300!">
+          <Chip v-if="generalSeverity === 'danger'" v-tooltip.bottom="'Multiple actions are required!'" class="bg-red-50! dark:bg-red-950! text-red-700! dark:text-red-300!">
+            <template #icon><TimesCircle /></template>
+          </Chip>
+          <Chip v-else-if="generalSeverity === 'warning'" v-tooltip.bottom="'One or more actions is needed!'" class="bg-orange-100! dark:bg-orange-950! text-orange-700! dark:text-orange-300!">
+            <template #icon><ExclamationCircle /></template>
+          </Chip>
+          <Chip v-else v-tooltip.bottom="'Everything is under control!'" class="bg-green-50! dark:bg-green-950! text-green-700! dark:text-green-300!">
             <template #icon><CheckCircle /></template>
           </Chip>
         </div>
@@ -90,7 +115,13 @@
         <div class="main-infos py-2 px-4 flex flex-col justify-items-start gap-5">
           <div class="flex justify-items-start items-center gap-5 w-full">
             <span class="title flex-1 flex items-center">Last analyze<Help model="ANALYZE" /></span>
-            <span v-if="rowsStats && rowsStats.lastAnalyze">{{formatDate((rowsStats.lastAnalyze))}}</span>
+            <span class="flex items-center gap-2">
+                  <Chip v-if="lastAnalyzeTooOld" v-tooltip.bottom="'Analyze never made or too old!'" class="bg-red-50! dark:bg-red-950! text-red-700! dark:text-red-300!">
+                    <template #icon><TimesCircle /></template>
+                  </Chip>
+               <span v-if="rowsStats">{{formatDate(rowsStats.lastAnalyze)}}</span>
+            </span>
+
           </div>
           <div class="flex justify-items-start items-center gap-5 w-full">
             <span class="title flex-1 flex items-center">Last Vacuum<Help model="VACUUM" /></span>
@@ -102,7 +133,7 @@
                   </Chip>
                 </template>
               </Help>
-              <span v-if="rowsStats">{{formatDate((rowsStats.lastVacuum))}}</span>
+              <span v-if="rowsStats">{{formatDate(rowsStats.lastVacuum)}}</span>
             </span>
           </div>
           <div class="flex justify-items-start items-center gap-5 w-full">
@@ -248,6 +279,9 @@
           <span class="title">Indexes ({{indexesStats.length}})</span>
           <Chip v-if="indexesStatsSeverity === 'warning'" v-tooltip.bottom="'One or more indexes unused'" class="bg-orange-100! dark:bg-orange-950! text-orange-700! dark:text-orange-300!">
             <template #icon><ExclamationCircle /></template>
+          </Chip>
+          <Chip v-if="indexesStatsSeverity === 'danger'" v-tooltip.bottom="'Every indexes are unused'" class="bg-red-50! dark:bg-red-950! text-red-700! dark:text-red-300!">
+            <template #icon><TimesCircle /></template>
           </Chip>
           <Chip v-else v-tooltip.bottom="'All indexes are used'" class="bg-green-50! dark:bg-green-950! text-green-700! dark:text-green-300!">
             <template #icon><CheckCircle /></template>

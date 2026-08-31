@@ -83,7 +83,9 @@ function logout() {
 
       <div class="content">
         <div class="background m-h-dvh" />
-        <router-view />
+        <transition name="slide" mode="out-in">
+          <router-view />
+        </transition>
       </div>
     </div>
   </transition>
@@ -101,14 +103,19 @@ function logout() {
   background-image:  repeating-radial-gradient( circle at 0 0, transparent 0, #f9fafb 9px ), repeating-linear-gradient( rgb(68 76 247 / 0.07), rgb(68 76 247 / 0.08));
 }
 
-/* Transition pour les sous-routes (general, tables, query) */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
+/* Transition simple pour toutes les routes */
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s ease;
 }
 
-.fade-enter-from,
-.fade-leave-to {
+.slide-enter-from {
   opacity: 0;
+  transform: translateX(20px);
+}
+
+.slide-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
 }
 </style>

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {useDatasourcesStore} from "../../stores/datasource-store";
-import {computed, onBeforeMount, onMounted} from "vue";
-import {Box, ExclamationCircle, Indent, ListOl, ListTree, Table, SignOut, Refresh, CheckCircle} from "@primeicons/vue";
-import {Card, Chip, Column, DataTable, Divider, Button} from "primevue";
+import {computed} from "vue";
+import {Box, CheckCircle, ExclamationCircle, ListOl, ListTree, Refresh, SignOut, Table} from "@primeicons/vue";
+import {Button, Card, Chip, Column, DataTable, Divider} from "primevue";
 
 const datasourceStore = useDatasourcesStore();
 
