@@ -1,14 +1,17 @@
-import Database from "better-sqlite3";
+import {Database} from "better-sqlite3";
 import { DatasourceDto } from "../commons/data/dto/datasource-dto";
 import { CreateDatasourceFormDto } from "../commons/data/dto/forms/create-datasource-form-dto";
 import PostgresqlService from "./postgresql.service";
 import { safeStorage, app } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
+import { MigrationRunner } from "./migrations/migration-runner";
 
 const APP_DATA_DIR = 'dba-app';
 
 export class SqliteService {
+
+    private static db: Database | null = null;
 
     private static getDatabasePath(): string {
         const userDataPath = app.getPath('userData');
@@ -16,7 +19,10 @@ export class SqliteService {
     }
 
     static getDatabase(): Database {
-        return new Database(SqliteService.getDatabasePath());
+        if (!SqliteService.db) {
+            throw new Error('Database not initialized. Call SqliteService.init() first.');
+        }
+        return SqliteService.db;
     }
 
     /**
@@ -40,44 +46,13 @@ export class SqliteService {
             }
         }
 
-        const db = this.getDatabase();
+        const Database = require("better-sqlite3")
+        const db = new Database(SqliteService.getDatabasePath());
+        db.pragma('journal_mode = WAL');
 
-        db.exec(`
-            CREATE TABLE IF NOT EXISTS datasource (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL UNIQUE,
-                hostname TEXT NOT NULL,
-                port INTEGER NOT NULL,
-                dbname TEXT NOT NULL,
-                username TEXT NOT NULL,
-                password TEXT NOT NULL,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                is_active INTEGER DEFAULT 1
-            )
-        `);
+        SqliteService.db = db;
 
-        db.exec(`
-            CREATE TABLE IF NOT EXISTS query_history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                datasource_id INTEGER NOT NULL,
-                query TEXT NOT NULL,
-                executed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (datasource_id) REFERENCES datasource(id) ON DELETE CASCADE
-            )
-        `);
-
-        db.exec(`
-            CREATE TABLE IF NOT EXISTS saved_query (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                datasource_id INTEGER NOT NULL,
-                name VARCHAR(255) NOT NULL,
-                query TEXT NOT NULL,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (datasource_id) REFERENCES datasource(id) ON DELETE CASCADE
-            )
-        `);
+        MigrationRunner.run(db);
 
         console.log('Database connected successfully');
     }
