@@ -6,6 +6,7 @@ import {SqliteService} from "./back/sqlite.service";
 import {QueryService} from "./back/query.service";
 import {IpcRoutes} from "./commons/ipc-routes";
 import {AiService} from "./back/ai.service";
+import {ParametersService} from "./back/parameters.service";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -159,6 +160,12 @@ async function handleMessageIncoming(event, data) {
       break;
     case IpcRoutes.DATASOURCE_ASK_AI_QUERY:
       result = await AiService.analyzeQuery(args);
+      break;
+    case IpcRoutes.PARAMETERS_GET_ALL:
+      result = await ParametersService.getAll();
+      break;
+    case IpcRoutes.PARAMETERS_UPDATE_ITEM:
+      result = await ParametersService.updateParameterByCode(args);
       break;
     // Streaming AI
     case IpcRoutes.DATASOURCE_ASK_AI_QUERY_STREAM_START:

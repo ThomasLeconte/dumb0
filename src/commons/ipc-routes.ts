@@ -20,7 +20,10 @@ export enum IpcRoutes {
     // AI Streaming
     DATASOURCE_ASK_AI_QUERY_STREAM_START = 'datasource-ask-ai-query-stream-start',
     DATASOURCE_ASK_AI_QUERY_STREAM_CANCEL = 'datasource-ask-ai-query-stream-cancel',
+    // Tables
     TABLES_GET_ALL = 'tables-get-all',
     TABLES_GET_STATS = 'tables-get-stats',
-
+    // Parameters
+    PARAMETERS_GET_ALL = 'parameters-get-all',
+    PARAMETERS_UPDATE_ITEM = 'parameters-update-item'
 }
