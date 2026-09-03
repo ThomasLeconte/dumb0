@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {computed, onMounted, ref} from "vue";
 import {useDatasourcesStore} from "../../stores/datasource-store";
-import {Button, Card, Column, DataTable, Divider, Textarea, useToast} from "primevue";
-import {Clipboard, List, Play, Save, History, Trash, Spinner, Sparkles} from "@primeicons/vue";
+import {Button, Card, Column, DataTable, Divider, SplitButton, Toast, useToast} from "primevue";
+import {Clipboard, History, List, Play, Save, Sparkles, Spinner, Trash} from "@primeicons/vue";
 import SidebarAside from "primevue/sidebaraside";
 import SidebarGroupContent from "primevue/sidebargroupcontent";
 import SidebarMenu from "primevue/sidebargroupcontent";
@@ -18,10 +18,12 @@ import SidebarContent from "primevue/sidebarcontent";
 import {CodeEditor, EditorOptions} from 'monaco-editor-vue3';
 import {DatasourceQueryDto} from "../../../commons/data/dto/datasource-query-dto";
 import UpsertQueryDialog from "../../components/upsert-query-dialog.vue";
-import DOMPurify from 'dompurify';
-import { Converter } from "showdown";
+import AiSettingsDialog from "../../components/ai-settings-dialog.vue";
+import {useSettingsStore} from "../../stores/settings-store";
+import {ParametersEnum} from "../../../commons/data/dto/parameters-enum";
 
 const datasourceStore = useDatasourcesStore();
+const settingsStore = useSettingsStore();
 const toast = useToast();
 
 const query = ref("");
@@ -31,6 +33,7 @@ const selectedHistoryQuery = ref<string | null>(null);
 const showHistory = ref(false);
 const isLoading = ref(false);
 const createQueryDialog = ref(false);
+const aiSettingsDialog = ref(false);
 const editorOptions = ref({
   fontSize: 14,
   minimap: { enabled: false },
@@ -39,6 +42,14 @@ const editorOptions = ref({
     height: 200
   }
 } as EditorOptions)
+const aiButtonOptions = ref([
+  {
+    label: 'Settings',
+    command: () => {
+      aiSettingsDialog.value = true;
+    }
+  }
+])
 
 const datasource = computed(() => datasourceStore.datasourceChoosen);
 const history = computed(() => {
@@ -71,7 +82,6 @@ function executeQuery() {
             rowCount: res.rowCount,
           };
 
-          // Recharger l'historique
           await loadHistory();
 
           toast.add({
@@ -145,7 +155,7 @@ function copyToClipboard() {
   const csv = [
     results.value.fields.join(","),
     ...results.value.rows.map(row =>
-      results.value.fields.map(field => {
+      results.value?.fields.map(field => {
         const value = row[field];
         if (value === null || value === undefined) return "";
         if (typeof value === "string" && value.includes(",")) {
@@ -185,7 +195,20 @@ function formatDate(date: string) {
 }
 
 function analyzeQuery() {
-  datasourceStore.startAiAnalysisStream(query.value);
+  const aiApiKeyParameter = settingsStore.getByCode(ParametersEnum.AI_API_KEY);
+  console.log(aiApiKeyParameter)
+  if(!aiApiKeyParameter || aiApiKeyParameter.value === '') {
+    console.log('no api key')
+    toast.add({
+      severity: 'error',
+      group: 'top-right',
+      summary: "Error",
+      detail: `No API key provided in settings!`,
+      life: 3000,
+    });
+  } else {
+    datasourceStore.startAiAnalysisStream(query.value);
+  }
 }
 
 function cancelAnalysis() {
@@ -286,13 +309,14 @@ onMounted(() => {
             <Save />
             Save
           </Button>
-          <Button
+          <SplitButton
+              :model="aiButtonOptions"
               @click="analyzeQuery"
               severity="contrast"
               :disabled="!query.trim() || !datasource || isAnalyzing"
           >
             <Sparkles :spin="isAnalyzing" />Analyze
-          </Button>
+          </SplitButton>
           <Button
               @click="cancelAnalysis"
               severity="danger"
@@ -399,8 +423,9 @@ onMounted(() => {
       </div>
     </SidebarMain>
   </SidebarLayout>
-
+  <Toast position="top-right" group="top-right"/>
   <UpsertQueryDialog v-if="createQueryDialog" v-model="createQueryDialog" :initial-query="query" />
+  <AiSettingsDialog v-if="aiSettingsDialog" v-model="aiSettingsDialog" />
 </template>
 
 <style scoped>

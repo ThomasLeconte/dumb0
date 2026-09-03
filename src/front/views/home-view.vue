@@ -12,10 +12,12 @@ import UpsertDatasourceDialog from "../components/upsert-datasource-dialog.vue";
 import {MenuItemCommandEvent} from "primevue/menuitem";
 import DeleteDatasourceDialog from "../components/delete-datasource-dialog.vue";
 import {useAppStore} from "../stores/app-store";
+import {useSettingsStore} from "../stores/settings-store";
 
 const appStore = useAppStore();
 const tableStore = useTablesStore();
 const datasourceStore = useDatasourcesStore();
+const settingsStore = useSettingsStore();
 const router = useRouter();
 
 const createDialog = ref(false);
@@ -60,8 +62,9 @@ const items = ref([
 ]);
 
 onMounted(() => {
+  settingsStore.getAll();
   appStore.setTitle('Connections')
-  datasourceStore.loadDatasources();
+  datasourceStore.getAll();
 });
 
 const datasources = computed(() => datasourceStore.datasources);
@@ -93,7 +96,7 @@ function showCreateDialog() {
       <div class="home-background"></div>
       <div class="title flex flex-col justify-center items-center">
         <div class="text-5xl title">DB-APP</div>
-        <div class="text-xl">Your personal DBA for PostgreSQL </div>
+        <div class="text-xl">Your personal DBA for PostgreSQL 🐘</div>
       </div>
 
       <div class="flex flex-col justify-center items-center w-6/12 mt-10">

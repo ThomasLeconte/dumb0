@@ -26,7 +26,7 @@ export const useDatasourcesStore = defineStore('datasources', {
         aiStreamError: null as string | null,
     }),
     actions: {
-        loadDatasources() {
+        getAll() {
             return IpcUtils.send(IpcRoutes.DATASOURCE_GET_ALL)
                 .then((res) => this.datasources = res)
         },
@@ -38,18 +38,18 @@ export const useDatasourcesStore = defineStore('datasources', {
             return IpcUtils.send(IpcRoutes.DATASOURCE_DELETE, {datasourceId: datasource.id})
                 .then(() => {
                     this.clearDatasource();
-                    return this.loadDatasources();
+                    return this.getAll();
                 });
         },
         updateDatasource(datasourceId: number, form: CreateDatasourceFormDto) {
             return IpcUtils.send(IpcRoutes.DATASOURCE_UPDATE, {id: datasourceId, form})
                 .then(() => {
-                    return this.loadDatasources();
+                    return this.getAll();
                 });
         },
         createDatasource(form: CreateDatasourceFormDto) {
             return IpcUtils.send(IpcRoutes.DATASOURCE_CREATE, {form})
-                .then((res) => this.loadDatasources())
+                .then((res) => this.getAll())
         },
         clearDatasource() {
             this.datasourceChoosen = null;
@@ -96,7 +96,7 @@ export const useDatasourcesStore = defineStore('datasources', {
         analyzeQuery(query: string) {
             return IpcUtils.send(IpcRoutes.DATASOURCE_ASK_AI_QUERY, {query, datasourceId: this.datasourceChoosen?.id.toString()});
         },
-        
+
         // --------- ask AI (streaming) ------------
         /**
          * Démarre une analyse IA en streaming.

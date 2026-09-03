@@ -15,6 +15,7 @@ export class SqliteService {
 
     private static getDatabasePath(): string {
         const userDataPath = app.getPath('userData');
+        console.log(userDataPath)
         return path.join(userDataPath, 'app.db');
     }
 

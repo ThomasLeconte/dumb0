@@ -13,7 +13,7 @@ export class ParametersService {
             const result = rows.map(row => {
                 if(ParametersEnum.AI_API_KEY === row.code) {
                     let value = row.value as string;
-                    if(value === null && value !== '') {
+                    if(value && value !== '') {
                         value = "*".repeat(value.length - 4) + value.substring(value.length - 3, value.length)
                     }
                     return new ParameterDto(ParametersEnum.AI_API_KEY.toString(), value);
@@ -29,7 +29,7 @@ export class ParametersService {
         }
     }
 
-    public static updateParameterByCode(args) {
+    public static updateParameterByCode(args: { code: string; value: string; }) {
         let {code, value} = args;
 
         const db = SqliteService.getDatabase();
@@ -37,7 +37,7 @@ export class ParametersService {
         try {
             if(ParametersEnum.AI_API_KEY.toString() === code) {
                 if(value && value !== '') {
-                    value = safeStorage.encryptString(value);
+                    value = safeStorage.encryptString(value).toString('base64');
                 }
             }
 

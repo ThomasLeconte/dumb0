@@ -12,15 +12,6 @@ export class MigrationRunner {
   static run(db: Database): void {
     MigrationRunner.ensureMigrationsTable(db);
 
-    if (MigrationRunner.isFreshInstall(db) && MigrationRunner.tablesAlreadyExist(db)) {
-      const latestVersion = migrations[migrations.length - 1].version;
-      db.prepare(
-        "INSERT INTO migrations (version, description) VALUES (?, ?)"
-      ).run(latestVersion, "bootstrap: existing schema adopted");
-      console.log(`[migrations] Existing DB detected, adopted as version ${latestVersion}`);
-      return;
-    }
-
     const appliedVersions = MigrationRunner.getAppliedVersions(db);
 
     for (const migration of migrations) {

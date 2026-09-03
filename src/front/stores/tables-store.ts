@@ -3,7 +3,7 @@ import {TableStatsDto} from "../../commons/data/dto/table-stats-dto";
 import {IpcRoutes} from "../../commons/ipc-routes";
 import {IpcUtils} from "./ipc-utils";
 
-export const useTablesStore = defineStore('tables', {
+export const useTablesStore = defineStore('tablesStore', {
     state: () => ({
         tables: [] as string[],
         tableStats: null as TableStatsDto | null

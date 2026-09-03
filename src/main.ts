@@ -15,7 +15,6 @@ if (started) {
 
 let mainWindow: BrowserWindow;
 
-// Map pour stocker les WebContents des fenêtres (pour envoyer des événements personnalisés)
 const windowMap = new Map<number, Electron.WebContents>();
 
 const createWindow = () => {
@@ -45,13 +44,11 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
-  // Vérifier si le chiffrement est disponible (nécessaire pour sécuriser les mots de passe)
   if (!safeStorage.isEncryptionAvailable()) {
     console.error(
       '\u274c ERREUR CRITIQUE: Le chiffrement des données sensibles n\'est pas disponible sur cette machine.'
     );
 
-    // Afficher une boîte de dialogue d'erreur avant de quitter
     await dialog.showErrorBox(
       'Erreur de sécurité',
       'Le chiffrement des données sensibles n\'est pas disponible sur cette machine. ' +
@@ -62,13 +59,11 @@ app.whenReady().then(async () => {
     return;
   }
 
-  // Initialiser SQLiteService (va vérifier/créer le dossier de données)
   try {
     SqliteService.init();
   } catch (err) {
     console.error('\u274c ERREUR CRITIQUE:', err);
 
-    // Afficher une boîte de dialogue d'erreur pour le dossier de données
     await dialog.showErrorBox(
       'Erreur de stockage',
       'Impossible de créer le dossier de stockage des données. ' +
@@ -79,7 +74,6 @@ app.whenReady().then(async () => {
   }
 
   ipcMain.handle('send', async (event, args) => {
-    // Stocker le WebContents pour pouvoir envoyer des événements personnalisés plus tard
     const windowId = event.sender.id;
     if (!windowMap.has(windowId)) {
       windowMap.set(windowId, event.sender);
@@ -188,7 +182,7 @@ async function handleMessageIncoming(event, data) {
  */
 async function handleAiStreamStart(event, args: { query: string; datasourceId?: string; requestId: string }): Promise<{ requestId: string }> {
   const { query, datasourceId, requestId } = args;
-  
+
   // Démarrer le stream via AiService
   AiService.startStream(
       requestId,
