@@ -14,6 +14,7 @@ export class ParametersService {
                 if(ParametersEnum.AI_API_KEY === row.code) {
                     let value = row.value as string;
                     if(value && value !== '') {
+                        value = safeStorage.decryptString(row.value);
                         value = "*".repeat(value.length - 4) + value.substring(value.length - 3, value.length)
                     }
                     return new ParameterDto(ParametersEnum.AI_API_KEY.toString(), value);
@@ -47,5 +48,13 @@ export class ParametersService {
             console.error('Error updating parameters:', err);
             throw new Error('Failed to update parameters');
         }
+    }
+
+    public static getByCode(code: ParametersEnum) {
+        const db = SqliteService.getDatabase();
+
+        const result = db.prepare("SELECT * FROM PARAMETERS WHERE CODE = ?").run(code.toString());
+        console.log(result);
+
     }
 }

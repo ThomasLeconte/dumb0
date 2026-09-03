@@ -1,5 +1,16 @@
 <script setup lang="ts">
-import {Button, Dialog, Divider, Textarea, InputText, Message, Toast, useToast, Listbox} from 'primevue';
+import {
+  Button,
+  Dialog,
+  Divider,
+  Textarea,
+  InputText,
+  Message,
+  Toast,
+  useToast,
+  Listbox,
+  ListboxChangeEvent
+} from 'primevue';
 import {FormField, FormResolverOptions} from '@primevue/forms';
 import {Times} from "@primeicons/vue";
 import {onMounted, ref} from "vue";
@@ -53,14 +64,12 @@ function closeDialog() {
   emit('update:modelValue', false);
 }
 
-function resolver() {
-  return (e: FormResolverOptions) => {
-    console.log(e)
-    return Promise.resolve()
-  }
+function onLanguageChange(evt: ListboxChangeEvent) {
+  form.value.language = evt.value.code;
 }
 
 function onFormSubmit() {
+  console.log(form.value)
   Promise.all([
       settingsStore.update(ParametersEnum.AI_API_KEY, form.value.apiKey),
       settingsStore.update(ParametersEnum.AI_DEFAULT_LANGAGE, form.value.language)
@@ -83,8 +92,8 @@ function onFormSubmit() {
       <div class="header flex flex-col justify-center w-full">
         <div class="flex justify-between items-center w-full">
           <span class="text-lg font-light">AI settings</span>
-          <Button iconOnly rounded outlined severity="contrast">
-            <Times size="16" @click="closeDialog()"/>
+          <Button iconOnly rounded outlined severity="contrast" @click="closeDialog()">
+            <Times size="16"/>
           </Button>
         </div>
         <Divider/>
@@ -96,11 +105,12 @@ function onFormSubmit() {
         <InputText type="text" v-model="form.apiKey" placeholder="AI API Key" />
         <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{$field.error?.message }}</Message>
       </FormField>
-      <Message severity="info" size="small" variant="simple">
+      <Message severity="info" size="small">
         We use Mistral AI API to analyze queries. Please generate API key <a href="https://console.mistral.ai">from here.</a>
       </Message>
-      <FormField v-slot="$field" as="section" name="language" initialValue="" class="flex flex-col gap-2 my-2">
-        <Listbox v-model="form.language" :options="countries" optionLabel="name" class="w-full">
+      <FormField v-slot="$field" as="section" name="language" initialValue="" class="flex flex-col gap-2 mt-8 my-2">
+        <span class="text-xs">Choose AI language response</span>
+        <Listbox @change="onLanguageChange" :options="countries" optionLabel="name" class="w-full">
           <template #option="slotProps">
             <div class="flex items-center gap-2">
               <img :alt="slotProps.option.name" src="https://primefaces.org/cdn/primevue/images/flag/flag_placeholder.png" :class="`flag flag-${slotProps.option.code.toLowerCase()}`" style="width: 18px" />

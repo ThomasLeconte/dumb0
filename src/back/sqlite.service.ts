@@ -6,6 +6,7 @@ import { safeStorage, app } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import { MigrationRunner } from "./migrations/migration-runner";
+import {ParametersEnum} from "../commons/data/dto/parameters-enum";
 
 const APP_DATA_DIR = 'dba-app';
 

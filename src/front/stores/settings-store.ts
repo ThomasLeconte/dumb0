@@ -15,6 +15,7 @@ export const useSettingsStore = defineStore('settingsStore', {
                 .then((res) => this.items = res);
         },
         update(code: ParametersEnum, value: string) {
+            console.log(code, code.toString())
             return IpcUtils.send(IpcRoutes.PARAMETERS_UPDATE_ITEM, {code: code.toString(), value})
                 .then((res) => this.getAll());
         }

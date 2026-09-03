@@ -2,16 +2,21 @@ import {ChatCompletionResponse} from "@mistralai/mistralai/models/components";
 import {SqliteService} from "./sqlite.service";
 import PostgresqlService from "./postgresql.service";
 import {TableIndexesDto} from "../commons/data/dto/table-indexes-dto";
+import {ParametersEnum} from "../commons/data/dto/parameters-enum";
+import {ParametersService} from "./parameters.service";
 
 const {Mistral} = require("@mistralai/mistralai")
 
 export class AiService {
-    private static mistralClient = new Mistral({
-        apiKey: process.env.AI_API_KEY ?? "vgv3PFnsvCi2FHJjQtDznBWasesB8oMG"
-    })
 
     private static cache = new Map<string, ChatCompletionResponse>();
     private static activeStreams = new Map<string, AbortController>();
+
+    public static getMistralClient() {
+        return new Mistral({
+            apiKey: ParametersService.getByCode(ParametersEnum.AI_API_KEY)
+        })
+    }
 
     public static async analyzeQuery(args: { query: string; datasourceId?: string }): Promise<ChatCompletionResponse> {
         const {query, datasourceId} = args;
@@ -56,7 +61,7 @@ export class AiService {
             return Promise.resolve(this.cache.get(query)!);
         }
 
-        const response = await this.mistralClient.chat.complete({
+        const response = await this.getMistralClient().chat.complete({
             model: 'ministral-14b-latest',
             messages: [
                 {
@@ -132,7 +137,7 @@ export class AiService {
         const combinedSignal = signal || controller.signal;
         
         try {
-            const stream = await this.mistralClient.chat.stream({
+            const stream = await this.getMistralClient().chat.stream({
                 model: 'ministral-14b-latest',
                 messages: [
                     {
