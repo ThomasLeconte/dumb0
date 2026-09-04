@@ -8,7 +8,8 @@
 
 <style>
 .title {
-  font-family: 'Consolas', cursive;
+  font-family: 'Consolas';
+  font-family: 'menlo';
 }
 
 /* Transition pour les sous-routes (general, tables, query) */
