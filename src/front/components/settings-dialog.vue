@@ -43,8 +43,8 @@ function closeDialog() {
 
 function onFormSubmit() {
   Promise.all([
-      settingsStore.update(ParametersEnum.AI_API_KEY, form.value.apiKey),
-      form.value.language ? settingsStore.update(ParametersEnum.AI_DEFAULT_LANGAGE, form.value.language.code) : Promise.resolve()
+    settingsStore.update(ParametersEnum.AI_API_KEY, form.value.apiKey),
+    form.value.language ? settingsStore.update(ParametersEnum.AI_DEFAULT_LANGAGE, form.value.language.code) : Promise.resolve()
   ]).then((res) => {
     toast.add({severity: 'success', group: 'bottom-center', summary: 'Settings updated!', life: 3000});
     closeDialog();
@@ -63,7 +63,7 @@ function onFormSubmit() {
     <template #header>
       <div class="header flex flex-col justify-center w-full">
         <div class="flex justify-between items-center w-full">
-          <span class="text-lg font-light">AI settings</span>
+          <span class="text-lg font-light">Settings</span>
           <Button iconOnly rounded outlined severity="contrast" @click="closeDialog()">
             <Times size="16"/>
           </Button>

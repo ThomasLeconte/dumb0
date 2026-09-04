@@ -1,7 +1,19 @@
 <script setup lang="ts">
 import {
   Card, Button, Divider, Carousel, CarouselPrev, Menu, CarouselNext, CarouselContent, CarouselItem } from "primevue";
-import {Plus, Database, SignIn, Times, ChevronLeft, ChevronRight, Clone, Pencil, Bars} from '@primeicons/vue'
+import {
+  Plus,
+  Database,
+  SignIn,
+  Times,
+  ChevronLeft,
+  ChevronRight,
+  Clone,
+  Pencil,
+  Bars,
+  Cog,
+  Github
+} from '@primeicons/vue'
 import {useDatasourcesStore} from "../stores/datasource-store";
 import {computed, onBeforeMount, onMounted, ref, useTemplateRef} from "vue";
 import {DatasourceDto} from "../../commons/data/dto/datasource-dto";
@@ -11,6 +23,7 @@ import {useTablesStore} from "../stores/tables-store";
 import UpsertDatasourceDialog from "../components/upsert-datasource-dialog.vue";
 import {MenuItemCommandEvent} from "primevue/menuitem";
 import DeleteDatasourceDialog from "../components/delete-datasource-dialog.vue";
+import SettingsDialog from "../components/settings-dialog.vue";
 import {useAppStore} from "../stores/app-store";
 import {useSettingsStore} from "../stores/settings-store";
 
@@ -24,6 +37,7 @@ const createDialog = ref(false);
 const updateDialog = ref(false);
 const duplicateDialog = ref(false);
 const deleteDialog = ref(false);
+const settingsDialog = ref(false);
 const datasourceToUpdateOrDelete = ref<DatasourceDto | null>(null);
 const menuRef = useTemplateRef('menu');
 const items = ref([
@@ -81,10 +95,18 @@ function toggle(event: any, datasource: DatasourceDto) {
   if(menuRef.value) {
     menuRef.value[0]?.toggle(event)
   }
-};
+}
+
+function goToGithub() {
+  window.open("https://github.com/ThomasLeconte/dba-app", "_blank");
+}
 
 function showCreateDialog() {
   createDialog.value = true;
+}
+
+function showSettingsDialog() {
+  settingsDialog.value = true;
 }
 
 </script>
@@ -93,6 +115,12 @@ function showCreateDialog() {
   <transition name="fade" mode="out-in" appear>
     <div class="home-content w-full h-full min-h-dvh flex flex-col justify-center items-center">
       <div class="home-background"></div>
+
+      <div class="absolute w-full top-0 p-2 flex justify-end gap-2">
+        <Button iconOnly outlined severity="secondary" @click="goToGithub"><Github /></Button>
+        <Button iconOnly outlined severity="secondary" @click="showSettingsDialog"><Cog /></Button>
+      </div>
+
       <div class="title flex flex-col justify-center items-center">
         <div class="text-5xl title">DB-APP</div>
         <div class="text-xl">Your personal DBA for PostgreSQL 🐘</div>
@@ -166,6 +194,7 @@ function showCreateDialog() {
     </div>
   </transition>
 
+  <SettingsDialog v-model="settingsDialog" />
   <UpsertDatasourceDialog v-model="createDialog" />
   <UpsertDatasourceDialog v-if="datasourceToUpdateOrDelete && updateDialog" v-model="updateDialog" :datasource="datasourceToUpdateOrDelete" />
   <UpsertDatasourceDialog v-if="datasourceToUpdateOrDelete && duplicateDialog" v-model="duplicateDialog" :datasource="datasourceToUpdateOrDelete" />
