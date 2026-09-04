@@ -3,7 +3,7 @@ import {
   Card, Button, Divider, Carousel, CarouselPrev, Menu, CarouselNext, CarouselContent, CarouselItem } from "primevue";
 import {Plus, Database, SignIn, Times, ChevronLeft, ChevronRight, Clone, Pencil, Bars} from '@primeicons/vue'
 import {useDatasourcesStore} from "../stores/datasource-store";
-import {computed, onMounted, ref, useTemplateRef} from "vue";
+import {computed, onBeforeMount, onMounted, ref, useTemplateRef} from "vue";
 import {DatasourceDto} from "../../commons/data/dto/datasource-dto";
 import {useRouter} from "vue-router";
 import {useTablesStore} from "../stores/tables-store";
@@ -61,7 +61,7 @@ const items = ref([
   },
 ]);
 
-onMounted(() => {
+onBeforeMount(() => {
   Promise.all([settingsStore.getAll(), settingsStore.getAvailableCountries(), datasourceStore.getAll()])
       .then(() => appStore.setTitle('Connections'));
 });
