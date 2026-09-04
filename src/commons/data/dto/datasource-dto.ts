@@ -6,8 +6,9 @@ export class DatasourceDto {
     dbname: string;
     username: string;
     password: string;
+    schema: string;
 
-    constructor(id: number, name: string, username: string, password: string, hostname: string, port: number, dbname: string) {
+    constructor(id: number, name: string, username: string, password: string, hostname: string, port: number, dbname: string, schema: string = 'public') {
         this.id = id;
         this.name = name;
         this.username = username;
@@ -15,5 +16,6 @@ export class DatasourceDto {
         this.hostname = hostname;
         this.port = port;
         this.dbname = dbname;
+        this.schema = schema;
     }
 }

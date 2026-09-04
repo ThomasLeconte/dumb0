@@ -30,7 +30,8 @@ const form = ref({
   port: 5432,
   dbname: '',
   username: '',
-  password: ''
+  password: '',
+  schema: 'public'
 } as CreateDatasourceFormDto)
 
 onMounted(() => {
@@ -41,6 +42,7 @@ onMounted(() => {
     form.value.dbname = props.datasource.dbname;
     form.value.username = props.datasource.username;
     form.value.password = props.datasource.password;
+    form.value.schema = props.datasource.schema || 'public';
   }
 })
 
@@ -51,7 +53,8 @@ function closeDialog() {
     port: 5432,
     dbname: '',
     username: '',
-    password: ''
+    password: '',
+    schema: 'public'
   }
   emit('update:modelValue', false);
 }
@@ -65,7 +68,7 @@ function resolver() {
 
 function onFormSubmit() {
   const _form = new CreateDatasourceFormDto(
-      form.value.name, form.value.hostname, form.value.port, form.value.dbname, form.value.username, form.value.password
+      form.value.name, form.value.hostname, form.value.port, form.value.dbname, form.value.username, form.value.password, form.value.schema
   );
   Promise.resolve(props.datasource && props.datasource.id
       ? datasourceStore.updateDatasource(props.datasource.id, _form)
@@ -142,6 +145,13 @@ function onFormSubmit() {
             }}
           </Message>
         </section>
+      </FormField>
+      <FormField v-slot="$field" as="section" name="schema" initialValue="" class="flex flex-col gap-2 my-2">
+        <InputText type="text" v-model="form.schema" placeholder="Schema (ex: public)"/>
+        <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{
+            $field.error?.message
+          }}
+        </Message>
       </FormField>
     </div>
 
