@@ -161,6 +161,9 @@ async function handleMessageIncoming(event, data) {
     case IpcRoutes.PARAMETERS_UPDATE_ITEM:
       result = await ParametersService.updateParameterByCode(args);
       break;
+    case IpcRoutes.PARAMETERS_GET_AVAILABLE_COUNTRIES:
+      result = await ParametersService.getAvailableCountries();
+      break;
     // Streaming AI
     case IpcRoutes.DATASOURCE_ASK_AI_QUERY_STREAM_START:
       result = await handleAiStreamStart(event, args);

@@ -12,7 +12,7 @@ export class ParametersService {
 
             const result = rows.map(row => {
                 if(ParametersEnum.AI_API_KEY === row.code) {
-                    let value = row.value as string;
+                    let value = row.value as any;
                     if(value && value !== '') {
                         value = safeStorage.decryptString(row.value);
                         value = "*".repeat(value.length - 4) + value.substring(value.length - 3, value.length)
@@ -30,15 +30,21 @@ export class ParametersService {
         }
     }
 
-    public static updateParameterByCode(args: { code: string; value: string; }) {
+    public static updateParameterByCode(args: { code: string; value: any; }) {
         let {code, value} = args;
 
         const db = SqliteService.getDatabase();
 
         try {
             if(ParametersEnum.AI_API_KEY.toString() === code) {
+                const actualParameter = this.getByCode(ParametersEnum.AI_API_KEY);
                 if(value && value !== '') {
-                    value = safeStorage.encryptString(value).toString('base64');
+                    const obfuscedRegex = /[*]{2,}/gm;
+                    if(!(value as string).match(obfuscedRegex)) {
+                        value = safeStorage.encryptString(value);
+                    } else {
+                        value = actualParameter?.value
+                    }
                 }
             }
 
@@ -53,8 +59,29 @@ export class ParametersService {
     public static getByCode(code: ParametersEnum) {
         const db = SqliteService.getDatabase();
 
-        const result = db.prepare("SELECT * FROM PARAMETERS WHERE CODE = ?").run(code.toString());
-        console.log(result);
+        const row = db.prepare("SELECT * FROM PARAMETERS WHERE CODE = ?").get(code.toString()) as any;
+        if(!row) return null;
 
+        let value = row.value;
+        if(ParametersEnum.AI_API_KEY.toString() === row.code) {
+            value = safeStorage.decryptString(row.value);
+        }
+
+        return new ParameterDto(row.code, value);
+    }
+
+    public static getAvailableCountries() {
+        return Promise.resolve([
+            { name: 'Australia', code: 'AU' },
+            { name: 'Brazil', code: 'BR' },
+            { name: 'China', code: 'CN' },
+            { name: 'Egypt', code: 'EG' },
+            { name: 'France', code: 'FR' },
+            { name: 'Germany', code: 'DE' },
+            { name: 'India', code: 'IN' },
+            { name: 'Japan', code: 'JP' },
+            { name: 'Spain', code: 'ES' },
+            { name: 'United States', code: 'US' }
+        ]);
     }
 }

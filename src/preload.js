@@ -6,8 +6,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 contextBridge.exposeInMainWorld('ipc', {
     send: (eventName, args) => {
         return ipcRenderer.invoke('send', JSON.stringify({ eventName, args }));
-    },
-    test: (string) => ipcRenderer.send('test', string)
+    }
 });
 
 // Exposer les méthodes pour le streaming AI

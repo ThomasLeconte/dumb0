@@ -121,12 +121,12 @@
                   </Chip>
                <span v-if="rowsStats">{{formatDate(rowsStats.lastAnalyze)}}</span>
             </span>
-
           </div>
+
           <div class="flex justify-items-start items-center gap-5 w-full">
             <span class="title flex-1 flex items-center">Last Vacuum<Help model="VACUUM" /></span>
             <span class="flex items-center gap-2">
-              <Help model="BLOAT" v-if="!rowsStats.lastVacuum && rowsStats.deadRows >= 0">
+              <Help model="BLOAT" v-if="rowsStats && rowsStats.lastVacuum && rowsStats.deadRows >= 0">
                 <template #activator="{showHelp}">
                   <Chip @click="showHelp" v-tooltip.bottom="'Potential BLOAT'" class="bg-orange-100! text-orange-700!">
                     <template #icon><ExclamationCircle /></template>

@@ -4,6 +4,7 @@ import PostgresqlService from "./postgresql.service";
 import {TableIndexesDto} from "../commons/data/dto/table-indexes-dto";
 import {ParametersEnum} from "../commons/data/dto/parameters-enum";
 import {ParametersService} from "./parameters.service";
+import {ParameterDto} from "../commons/data/dto/parameter-dto";
 
 const {Mistral} = require("@mistralai/mistralai")
 
@@ -13,21 +14,24 @@ export class AiService {
     private static activeStreams = new Map<string, AbortController>();
 
     public static getMistralClient() {
+        const apiKey = ParametersService.getByCode(ParametersEnum.AI_API_KEY);
+        if(!apiKey) throw new Error("Missing API key setting");
+
         return new Mistral({
-            apiKey: ParametersService.getByCode(ParametersEnum.AI_API_KEY)
+            apiKey: apiKey.value
         })
     }
 
     public static async analyzeQuery(args: { query: string; datasourceId?: string }): Promise<ChatCompletionResponse> {
         const {query, datasourceId} = args;
-        
+
         // Si une datasourceId est fournie, récupérer les stats des index
         let indexesStatsFormatted: { tableName: string; indexes: { name: string; def: string }[] }[] = [];
-        
+
         if (datasourceId) {
             const regex = /(?<=[FROM,JOIN]\s)([a-zA-Z]{1,})/gm;
             const tables = query.match(regex)?.map(matche => matche) || [];
-            
+
             if (tables.length > 0) {
                 const datasource = await SqliteService.getDatasourceById(datasourceId);
                 if (!datasource) {
@@ -35,14 +39,14 @@ export class AiService {
                 }
 
                 const db = await PostgresqlService.initConnection(datasource);
-                
+
                 try {
                     const indexes = new Map<string, TableIndexesDto[]>();
-                    
+
                     await Promise.all(
                         tables.map(async (table) => {
                             const tableIndexes = await PostgresqlService.getTableIndexes(db, table);
-                            indexes.set(table, tableIndexes);
+                            if(tableIndexes) indexes.set(table, tableIndexes);
                         })
                     );
 
@@ -61,16 +65,23 @@ export class AiService {
             return Promise.resolve(this.cache.get(query)!);
         }
 
+        const availableCountries = await ParametersService.getAvailableCountries();
+        const preferedLanguage = ParametersService.getByCode(ParametersEnum.AI_DEFAULT_LANGAGE)
+            ? availableCountries.find(a => a.code === ParametersService.getByCode(ParametersEnum.AI_DEFAULT_LANGAGE)!.code)
+            : null;
+
         const response = await this.getMistralClient().chat.complete({
             model: 'ministral-14b-latest',
             messages: [
                 {
                     role: "system",
-                    content: `Analyse cette requ\u00eate SQL pour identifier les probl\u00e8mes de performance (scans s\u00e9quentiels,
-                    index manquants, jointures co\u00fbteuses, etc.) et propose des optimisations concr\u00e8tes (ajout d'index,
-                    r\u00e9\u00e9criture de la requ\u00eate, etc.). Sois pr\u00e9cis et justifie chaque suggestion.${indexesStatsFormatted.length > 0 ? `
-                    Pour t'aider dans l'analyse, voici les statistiques des index de chaque table de la requ\u00eate : ${JSON.stringify(indexesStatsFormatted)}.` : ''}
-                    Chaque partie de ta r\u00e9ponse devra \u00eatre a\u00e9r\u00e9e visuellement, pour rendre la lecture confortable. Voici la requ\u00eate : ${query}`
+                    content: `Analyse cette requete SQL pour identifier les problemes de performance (scans sequentiels,
+                    index manquants, jointures couteuses, etc.) et propose des optimisations concretes (ajout d'index,
+                    reecriture de la requete, etc.). Sois precis et justifie chaque suggestion.${indexesStatsFormatted.length > 0 ? `
+                    Pour t'aider dans l'analyse, voici les statistiques des index de chaque table de la requete : ${JSON.stringify(indexesStatsFormatted)}.` : ''}
+                    Chaque partie de ta reponse devra etre aeree visuellement, pour rendre la lecture confortable.
+                    ${preferedLanguage ? `Pour finir, l'utilisateur souhaite que l'analyse soit dans la langue suivante : ${preferedLanguage}`: ""}
+                    Voici la requete : ${query}`
                 }
             ],
             responseFormat: {
@@ -93,18 +104,18 @@ export class AiService {
         onChunk: (chunk: string) => void
     ): Promise<void> {
         const { query, datasourceId, signal } = args;
-        
+
         if (!query.trim()) {
             throw new Error("Query is empty");
         }
 
         // Préparer le prompt avec les stats des index si datasourceId est fourni
         let indexesStatsFormatted: { tableName: string; indexes: { name: string; def: string }[] }[] = [];
-        
+
         if (datasourceId) {
             const regex = /(?<=[FROM,JOIN]\s)([a-zA-Z]{1,})/gm;
             const tables = query.match(regex)?.map(matche => matche) || [];
-            
+
             if (tables.length > 0) {
                 const datasource = await SqliteService.getDatasourceById(datasourceId);
                 if (!datasource) {
@@ -112,14 +123,14 @@ export class AiService {
                 }
 
                 const db = await PostgresqlService.initConnection(datasource);
-                
+
                 try {
                     const indexes = new Map<string, TableIndexesDto[]>();
-                    
+
                     await Promise.all(
                         tables.map(async (table) => {
                             const tableIndexes = await PostgresqlService.getTableIndexes(db, table);
-                            indexes.set(table, tableIndexes);
+                            if(tableIndexes) indexes.set(table, tableIndexes);
                         })
                     );
 
@@ -135,18 +146,25 @@ export class AiService {
 
         const controller = new AbortController();
         const combinedSignal = signal || controller.signal;
-        
+
+        const availableCountries = await ParametersService.getAvailableCountries();
+        const preferedLanguage = ParametersService.getByCode(ParametersEnum.AI_DEFAULT_LANGAGE)
+            ? availableCountries.find(a => a.code === ParametersService.getByCode(ParametersEnum.AI_DEFAULT_LANGAGE)!.code)
+            : null;
+
         try {
             const stream = await this.getMistralClient().chat.stream({
                 model: 'ministral-14b-latest',
                 messages: [
                     {
                         role: "system",
-                        content: `Analyse cette requ\u00eate SQL pour identifier les probl\u00e8mes de performance (scans s\u00e9quentiels,
+                        content: `Analyse cette requete SQL pour identifier les probl\u00e8mes de performance (scans sequentiels,
                         index manquants, jointures co\u00fbteuses, etc.) et propose des optimisations concr\u00e8tes (ajout d'index,
-                        r\u00e9\u00e9criture de la requ\u00eate, etc.). Sois pr\u00e9cis et justifie chaque suggestion.${indexesStatsFormatted.length > 0 ? `
-                        Pour t'aider dans l'analyse, voici les statistiques des index de chaque table de la requ\u00eate : ${JSON.stringify(indexesStatsFormatted)}.` : ''}
-                        Chaque partie de ta r\u00e9ponse devra \u00eatre a\u00e9r\u00e9e visuellement, pour rendre la lecture confortable. Voici la requ\u00eate : ${query}`
+                        reecriture de la requete, etc.). Sois precis et justifie chaque suggestion.${indexesStatsFormatted.length > 0 ? `
+                        Pour t'aider dans l'analyse, voici les statistiques des index de chaque table de la requete : ${JSON.stringify(indexesStatsFormatted)}.` : ''}
+                        Chaque partie de ta reponse devra etre aeree visuellement, pour rendre la lecture confortable.
+                        ${preferedLanguage ? `Pour finir, l'utilisateur souhaite que l'analyse soit dans la langue suivante : ${preferedLanguage}`: ""}
+                        Voici la requete : ${query}`
                     }
                 ],
                 responseFormat: { type: 'text' },
@@ -195,7 +213,7 @@ export class AiService {
     ): Promise<void> {
         const controller = new AbortController();
         this.activeStreams.set(requestId, controller);
-        
+
         try {
             await this.analyzeQueryStream(
                 { ...args, signal: controller.signal },

@@ -13,7 +13,7 @@ import {
 } from 'primevue';
 import {FormField, FormResolverOptions} from '@primevue/forms';
 import {Times} from "@primeicons/vue";
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {useDatasourcesStore} from "../stores/datasource-store";
 import {CreateDatasourceFormDto} from "../../commons/data/dto/forms/create-datasource-form-dto";
 import {DatasourceDto} from "../../commons/data/dto/datasource-dto";
@@ -29,7 +29,6 @@ const props = defineProps({
   },
 });
 
-const datasourceStore = useDatasourcesStore();
 const settingsStore = useSettingsStore();
 
 const toast = useToast();
@@ -38,41 +37,30 @@ const emit = defineEmits(['update:modelValue'])
 
 const form = ref({
   apiKey: '',
-  language: ''
+  language: {} as {name: string, code: string} | undefined
 })
-const countries = ref([
-  { name: 'Australia', code: 'AU' },
-  { name: 'Brazil', code: 'BR' },
-  { name: 'China', code: 'CN' },
-  { name: 'Egypt', code: 'EG' },
-  { name: 'France', code: 'FR' },
-  { name: 'Germany', code: 'DE' },
-  { name: 'India', code: 'IN' },
-  { name: 'Japan', code: 'JP' },
-  { name: 'Spain', code: 'ES' },
-  { name: 'United States', code: 'US' }
-]);
 
 onMounted(() => {
   const apiKeySettingValue = settingsStore.getByCode(ParametersEnum.AI_API_KEY);
   const aiDefaultLanguageSettingValue = settingsStore.getByCode(ParametersEnum.AI_DEFAULT_LANGAGE);
+
   form.value.apiKey = apiKeySettingValue?.value ?? '';
-  form.value.language = aiDefaultLanguageSettingValue?.value ?? '';
+  if(aiDefaultLanguageSettingValue?.value) {
+    form.value.language = countries.value.find(country =>
+        country.code === aiDefaultLanguageSettingValue.value)
+  }
 })
+
+const countries = computed(() => settingsStore.availableCountries)
 
 function closeDialog() {
   emit('update:modelValue', false);
 }
 
-function onLanguageChange(evt: ListboxChangeEvent) {
-  form.value.language = evt.value.code;
-}
-
 function onFormSubmit() {
-  console.log(form.value)
   Promise.all([
       settingsStore.update(ParametersEnum.AI_API_KEY, form.value.apiKey),
-      settingsStore.update(ParametersEnum.AI_DEFAULT_LANGAGE, form.value.language)
+      form.value.language ? settingsStore.update(ParametersEnum.AI_DEFAULT_LANGAGE, form.value.language.code) : Promise.resolve()
   ]).then((res) => {
     toast.add({severity: 'success', group: 'bottom-center', summary: 'Settings updated!', life: 3000});
     closeDialog();
@@ -110,7 +98,7 @@ function onFormSubmit() {
       </Message>
       <FormField v-slot="$field" as="section" name="language" initialValue="" class="flex flex-col gap-2 mt-8 my-2">
         <span class="text-xs">Choose AI language response</span>
-        <Listbox @change="onLanguageChange" :options="countries" optionLabel="name" class="w-full">
+        <Listbox v-model="form.language" :options="countries" optionLabel="name" class="w-full">
           <template #option="slotProps">
             <div class="flex items-center gap-2">
               <img :alt="slotProps.option.name" src="https://primefaces.org/cdn/primevue/images/flag/flag_placeholder.png" :class="`flag flag-${slotProps.option.code.toLowerCase()}`" style="width: 18px" />

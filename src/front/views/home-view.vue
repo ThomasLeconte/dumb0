@@ -62,9 +62,8 @@ const items = ref([
 ]);
 
 onMounted(() => {
-  settingsStore.getAll();
-  appStore.setTitle('Connections')
-  datasourceStore.getAll();
+  Promise.all([settingsStore.getAll(), settingsStore.getAvailableCountries(), datasourceStore.getAll()])
+      .then(() => appStore.setTitle('Connections'));
 });
 
 const datasources = computed(() => datasourceStore.datasources);

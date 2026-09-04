@@ -25,5 +25,6 @@ export enum IpcRoutes {
     TABLES_GET_STATS = 'tables-get-stats',
     // Parameters
     PARAMETERS_GET_ALL = 'parameters-get-all',
-    PARAMETERS_UPDATE_ITEM = 'parameters-update-item'
+    PARAMETERS_UPDATE_ITEM = 'parameters-update-item',
+    PARAMETERS_GET_AVAILABLE_COUNTRIES = 'parameters-get-available-countries'
 }
