@@ -28,8 +28,8 @@ export class SqliteService {
     }
 
     /**
-     * Initialise le dossier de données et la base SQLite
-     * @throws {Error} Si le dossier ne peut pas être créé
+     * Initialise le dossier de donnees et la base SQLite
+     * @throws {Error} Si le dossier ne peut pas etre cree
      */
     public static init(): void {
         const userDataPath = app.getPath('userData');
@@ -38,12 +38,12 @@ export class SqliteService {
         if (!fs.existsSync(appDataDir)) {
             try {
                 fs.mkdirSync(appDataDir, { recursive: true });
-                console.log(`Dossier de données créé: ${appDataDir}`);
+                console.log(`Dossier de donnees cree: ${appDataDir}`);
             } catch (err) {
-                console.error(`\u274c ERREUR CRITIQUE: Impossible de créer le dossier de données: ${err}`);
+                console.error(`ERREUR CRITIQUE: Impossible de creer le dossier de donnees: ${err}`);
                 throw new Error(
-                    'Impossible de créer le dossier de stockage des données. ' +
-                    'Vérifiez les permissions d\'écriture dans le dossier utilisateur.'
+                    'Impossible de creer le dossier de stockage des donnees. ' +
+                    'Verifiez les permissions d ecriture dans le dossier utilisateur.'
                 );
             }
         }
@@ -78,7 +78,8 @@ export class SqliteService {
                     decryptedPassword,
                     row.hostname,
                     row.port,
-                    row.dbname
+                    row.dbname,
+                    row.schema || 'public'
                 );
             });
 
@@ -113,7 +114,8 @@ export class SqliteService {
                 decryptedPassword,
                 row.hostname,
                 row.port,
-                row.dbname
+                row.dbname,
+                row.schema || 'public'
             ));
         } catch (err) {
             console.error('Error fetching datasource by ID:', err);
@@ -123,6 +125,11 @@ export class SqliteService {
 
     static async createDatasource(args: any): Promise<void> {
         const form = args["form"] as CreateDatasourceFormDto;
+
+        // Validation du schema pour eviter les injections SQL
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(form.schema)) {
+            throw new Error('Invalid schema name');
+        }
 
         const db = this.getDatabase();
 
@@ -138,8 +145,8 @@ export class SqliteService {
             const encryptedPassword = safeStorage.encryptString(form.password);
 
             const stmt = db.prepare(
-                `INSERT INTO datasource (name, username, password, hostname, port, dbname)
-                 VALUES (?, ?, ?, ?, ?, ?)`
+                `INSERT INTO datasource (name, username, password, hostname, port, dbname, schema)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`
             );
 
             stmt.run(
@@ -148,7 +155,8 @@ export class SqliteService {
                 encryptedPassword,
                 form.hostname,
                 form.port,
-                form.dbname
+                form.dbname,
+                form.schema
             );
 
             console.log("success");
@@ -185,16 +193,21 @@ export class SqliteService {
             throw new Error('Invalid datasource ID');
         }
 
+        // Validation du schema pour eviter les injections SQL
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(form.schema)) {
+            throw new Error('Invalid schema name');
+        }
+
         const db = this.getDatabase();
 
         try {
             // Chiffrer le nouveau mot de passe
             const encryptedPassword = safeStorage.encryptString(form.password);
 
-            // Requte param9tre pour 9viter l'injection SQL
+            // Requete parametree pour eviter l'injection SQL
             db.prepare(
                 `UPDATE datasource
-                 SET name = ?, username = ?, password = ?, hostname = ?, port = ?, dbname = ?
+                 SET name = ?, username = ?, password = ?, hostname = ?, port = ?, dbname = ?, schema = ?
                  WHERE id = ?`
             ).run(
                 form.name,
@@ -203,6 +216,7 @@ export class SqliteService {
                 form.hostname,
                 form.port,
                 form.dbname,
+                form.schema,
                 datasourceId
             );
         } catch (err) {

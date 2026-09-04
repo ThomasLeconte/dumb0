@@ -2,10 +2,12 @@ import { Database } from "better-sqlite3";
 import type { Migration } from "./types";
 import { initialSchema } from "./001_initial_schema";
 import {addParametersMigrations} from "./002_add_parameters_table";
+import { addSchemaToDatasource } from "./003_add_schema_to_datasource";
 
 const migrations: Migration[] = [
     initialSchema,
-    addParametersMigrations
+    addParametersMigrations,
+    addSchemaToDatasource
 ];
 
 export class MigrationRunner {

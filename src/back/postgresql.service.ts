@@ -31,10 +31,10 @@ export default class PostgresqlService {
                 SELECT distinct table_name 
                 FROM information_schema.tables 
                 WHERE table_type = 'BASE TABLE' 
-                    AND table_schema NOT IN ('pg_catalog', 'information_schema') 
+                    AND table_schema = $1
                 ORDER BY table_name
             `;
-            const result = await client.query(query);
+            const result = await client.query(query, [datasource.schema]);
             return result.rows.map(row => row.table_name);
         } catch (err) {
             console.error('Error fetching tables:', err);
@@ -47,7 +47,7 @@ export default class PostgresqlService {
     static async getTableStats(args: { tableName: string; datasourceId: string }) {
         const { tableName, datasourceId } = args;
         
-        // Validation du nom de table (alphanumérique + underscores)
+        // Validation du nom de table (alphanumerique + underscores)
         if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tableName)) {
             throw new Error('Invalid table name');
         }
@@ -64,11 +64,11 @@ export default class PostgresqlService {
 
         try {
             const [size, rows, locks, ioStats, indexes] = await Promise.all([
-                this.getTableSize(client, tableName),
-                this.getTableRowsStats(client, tableName),
-                this.getTableLocks(client, tableName),
-                this.getTableIOStats(client, tableName),
-                this.getTableIndexes(client, tableName)
+                this.getTableSize(client, tableName, datasource.schema),
+                this.getTableRowsStats(client, tableName, datasource.schema),
+                this.getTableLocks(client, tableName, datasource.schema),
+                this.getTableIOStats(client, tableName, datasource.schema),
+                this.getTableIndexes(client, tableName, datasource.schema)
             ]);
 
             // @ts-ignore
@@ -102,7 +102,7 @@ export default class PostgresqlService {
                 connections
             ] = await Promise.all([
                 this.checkPgStatStatementExtensionActivated(client),
-                this.getDatasourceMainStats(client),
+                this.getDatasourceMainStats(client, datasource.schema),
                 this.getDatasourceLocks(client),
                 this.getDatasourceConnections(client)
             ]);
@@ -121,16 +121,17 @@ export default class PostgresqlService {
         }
     }
 
-    private static async getTableSize(client: Client, tableName: string) {
+    private static async getTableSize(client: Client, tableName: string, schema: string) {
         const query = `
             SELECT
-                pg_size_pretty(pg_total_relation_size($1)) AS total_size,
-                pg_size_pretty(pg_table_size($1)) AS table_size,
-                pg_size_pretty(pg_indexes_size($1)) AS indexes_size;
+                pg_size_pretty(pg_total_relation_size($1::regclass)) AS total_size,
+                pg_size_pretty(pg_table_size($1::regclass)) AS table_size,
+                pg_size_pretty(pg_indexes_size($1::regclass)) AS indexes_size;
         `;
 
         try {
-            const res = await client.query(query, [tableName]);
+            const fullTableName = `${schema}.${tableName}`;
+            const res = await client.query(query, [fullTableName]);
             if (res.rowCount === null || res.rowCount === 0) {
                 return null;
             }
@@ -146,7 +147,7 @@ export default class PostgresqlService {
         }
     }
 
-    private static async getTableRowsStats(client: Client, tableName: string) {
+    private static async getTableRowsStats(client: Client, tableName: string, schema: string) {
         const query = `
             SELECT
                 schemaname,
@@ -161,11 +162,11 @@ export default class PostgresqlService {
             FROM
                 pg_stat_user_tables
             WHERE
-                relname = $1;
+                schemaname = $1 AND relname = $2;
         `;
 
         try {
-            const res = await client.query(query, [tableName]);
+            const res = await client.query(query, [schema, tableName]);
             if (res.rowCount === null || res.rowCount === 0) {
                 return null;
             }
@@ -182,7 +183,7 @@ export default class PostgresqlService {
         }
     }
 
-    private static async getTableLocks(client: Client, tableName: string) {
+    private static async getTableLocks(client: Client, tableName: string, schema: string) {
         const query = `
             SELECT
                 locktype,
@@ -202,7 +203,8 @@ export default class PostgresqlService {
         `;
 
         try {
-            const res = await client.query(query, [tableName]);
+            const fullTableName = `${schema}.${tableName}`;
+            const res = await client.query(query, [fullTableName]);
             if (res.rowCount === null || res.rowCount === 0) {
                 return null;
             }
@@ -224,7 +226,7 @@ export default class PostgresqlService {
         }
     }
 
-    private static async getTableIOStats(client: Client, tableName: string) {
+    private static async getTableIOStats(client: Client, tableName: string, schema: string) {
         const query = `
             SELECT 
                 stat.seq_scan,
@@ -236,13 +238,13 @@ export default class PostgresqlService {
                 stat_io.idx_blks_read,
                 stat_io.idx_blks_hit
             FROM pg_stat_user_tables stat
-            JOIN pg_statio_all_tables stat_io ON stat_io.relname = stat.relname
-            WHERE stat.relname = $1
+            JOIN pg_statio_all_tables stat_io ON stat_io.relname = stat.relname AND stat_io.schemaname = stat.schemaname
+            WHERE stat.schemaname = $1 AND stat.relname = $2
             LIMIT 1;
         `;
 
         try {
-            const res = await client.query(query, [tableName]);
+            const res = await client.query(query, [schema, tableName]);
             if (res.rowCount === null || res.rowCount === 0) {
                 return null;
             }
@@ -263,7 +265,7 @@ export default class PostgresqlService {
         }
     }
 
-    public static async getTableIndexes(client: Client, tableName: string) {
+    public static async getTableIndexes(client: Client, tableName: string, schema: string) {
         const query = `
             SELECT stat_io.indexrelname,
                    stat_io.idx_blks_read,
@@ -275,11 +277,11 @@ export default class PostgresqlService {
                           ON LOWER(stat.indexrelname) = LOWER(stat_io.indexrelname)
                               AND LOWER(stat.schemaname) = LOWER(stat_io.schemaname)
                      JOIN pg_indexes def ON LOWER(def.indexname) = LOWER(stat_io.indexrelname) AND LOWER(def.tablename) = LOWER(stat_io.relname)
-            WHERE LOWER(stat_io.relname) = LOWER($1);
+            WHERE LOWER(stat_io.schemaname) = LOWER($1) AND LOWER(stat_io.relname) = LOWER($2);
         `;
 
         try {
-            const res = await client.query(query, [tableName]);
+            const res = await client.query(query, [schema, tableName]);
             if (res.rowCount === null || res.rowCount === 0) {
                 return null;
             }
@@ -377,7 +379,7 @@ export default class PostgresqlService {
         }
     }
 
-    private static async getDatasourceMainStats(client: Client) {
+    private static async getDatasourceMainStats(client: Client, schema: string = 'public') {
         const statsQuery = `
             SELECT 
                 relkind AS object_type,
@@ -386,8 +388,7 @@ export default class PostgresqlService {
                 pg_class c
                 JOIN pg_namespace n ON n.oid = c.relnamespace
             WHERE
-                n.nspname NOT LIKE 'pg_%'
-                AND n.nspname != 'information_schema'
+                n.nspname = $1
                 AND c.relkind IN ('r', 'i', 'S')
             GROUP BY
                 relkind;
@@ -398,7 +399,7 @@ export default class PostgresqlService {
 
         try {
             const [statsRes, sizeRes, sharedBuffersRes] = await Promise.all([
-                client.query(statsQuery),
+                client.query(statsQuery, [schema]),
                 client.query(sizeQuery),
                 client.query(sharedBuffersQuery)
             ]);
@@ -470,7 +471,8 @@ export default class PostgresqlService {
                 form.password,
                 form.hostname,
                 form.port,
-                form.dbname
+                form.dbname,
+                form.schema
             )
         );
     }
