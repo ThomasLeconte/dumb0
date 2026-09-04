@@ -130,6 +130,13 @@ function onFormSubmit() {
           }}
         </Message>
       </FormField>
+      <FormField v-slot="$field" as="section" name="schema" initialValue="" class="flex flex-col gap-2 my-2">
+        <InputText type="text" v-model="form.schema" placeholder="Schema (ex: public)"/>
+        <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{
+            $field.error?.message
+          }}
+        </Message>
+      </FormField>
       <FormField v-slot="$field" as="section" name="username" initialValue="" class="flex flex-col gap-2 my-2">
         <InputText type="text" v-model="form.username" placeholder="Username"/>
         <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{
@@ -145,13 +152,6 @@ function onFormSubmit() {
             }}
           </Message>
         </section>
-      </FormField>
-      <FormField v-slot="$field" as="section" name="schema" initialValue="" class="flex flex-col gap-2 my-2">
-        <InputText type="text" v-model="form.schema" placeholder="Schema (ex: public)"/>
-        <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{
-            $field.error?.message
-          }}
-        </Message>
       </FormField>
     </div>
 

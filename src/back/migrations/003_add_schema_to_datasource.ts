@@ -8,11 +8,5 @@ export const addSchemaToDatasource: Migration = {
     db.exec(`
       ALTER TABLE datasource ADD COLUMN schema TEXT NOT NULL DEFAULT 'public'
     `);
-  },
-
-  down: (db) => {
-    db.exec(`
-      ALTER TABLE datasource DROP COLUMN schema
-    `);
-  },
+  }
 };
