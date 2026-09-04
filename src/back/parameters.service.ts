@@ -64,7 +64,7 @@ export class ParametersService {
 
         let value = row.value;
         if(ParametersEnum.AI_API_KEY.toString() === row.code) {
-            value = safeStorage.decryptString(row.value);
+            if(value && value !== '') value = safeStorage.decryptString(row.value);
         }
 
         return new ParameterDto(row.code, value);

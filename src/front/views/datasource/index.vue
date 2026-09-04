@@ -92,10 +92,6 @@ function logout() {
 </template>
 
 <style scoped>
-.title {
-  font-family: 'consolas';
-  font-family: 'menlo';
-}
 
 .content {
   min-height: 100dvh;

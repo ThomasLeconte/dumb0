@@ -2,7 +2,7 @@
 import {computed, onMounted, ref} from "vue";
 import {useDatasourcesStore} from "../../stores/datasource-store";
 import {Button, Card, Column, DataTable, Divider, SplitButton, Toast, useToast} from "primevue";
-import {Clipboard, History, List, Play, Save, Sparkles, Spinner, Trash} from "@primeicons/vue";
+import {Clipboard, Cog, History, List, Play, Save, Sparkles, Spinner, Trash} from "@primeicons/vue";
 import SidebarAside from "primevue/sidebaraside";
 import SidebarGroupContent from "primevue/sidebargroupcontent";
 import SidebarMenu from "primevue/sidebargroupcontent";
@@ -42,14 +42,6 @@ const editorOptions = ref({
     height: 200
   }
 } as EditorOptions)
-const aiButtonOptions = ref([
-  {
-    label: 'Settings',
-    command: () => {
-      aiSettingsDialog.value = true;
-    }
-  }
-])
 
 const datasource = computed(() => datasourceStore.datasourceChoosen);
 const history = computed(() => {
@@ -64,6 +56,10 @@ const savedQueries = computed(() => {
 const aiResponse = computed(() => datasourceStore.aiResponse);
 const isAnalyzing = computed(() => datasourceStore.isAnalyzing);
 const aiStreamError = computed(() => datasourceStore.aiStreamError);
+
+function showAiSettings() {
+  aiSettingsDialog.value = true;
+}
 
 function executeQuery() {
   if (!query.value.trim() || !datasource.value) return;
@@ -276,6 +272,7 @@ onMounted(() => {
           <span class="text-lg title font-medium flex items-center gap-2">
             SQL Executor
           </span>
+          <Button severity="contrast" @click="showAiSettings"><Cog />Settings</Button>
         </div>
 
         <div class="flex gap-2 sql-editor">
@@ -309,14 +306,13 @@ onMounted(() => {
             <Save />
             Save
           </Button>
-          <SplitButton
-              :model="aiButtonOptions"
+          <Button
               @click="analyzeQuery"
               severity="contrast"
               :disabled="!query.trim() || !datasource || isAnalyzing"
           >
             <Sparkles :spin="isAnalyzing" />Analyze
-          </SplitButton>
+          </Button>
           <Button
               @click="cancelAnalysis"
               severity="danger"
