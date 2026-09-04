@@ -149,22 +149,24 @@ export class AiService {
 
         const availableCountries = await ParametersService.getAvailableCountries();
         const preferedLanguage = ParametersService.getByCode(ParametersEnum.AI_DEFAULT_LANGAGE)
-            ? availableCountries.find(a => a.code === ParametersService.getByCode(ParametersEnum.AI_DEFAULT_LANGAGE)!.code)
+            ? availableCountries.find(a => a.code === ParametersService.getByCode(ParametersEnum.AI_DEFAULT_LANGAGE)!.value)?.name
             : null;
 
         try {
+            const prompt = `Analyse cette requete SQL pour identifier les probl\u00e8mes de performance (scans sequentiels,
+                        index manquants, jointures co\u00fbteuses, etc.) et propose des optimisations concr\u00e8tes (ajout d'index,
+                        reecriture de la requete, etc.). Sois precis et justifie chaque suggestion.${indexesStatsFormatted.length > 0 ? `
+                        Pour t'aider dans l'analyse, voici les statistiques des index de chaque table de la requete : ${JSON.stringify(indexesStatsFormatted)}.` : ''}
+                        Chaque partie de ta reponse devra etre aeree visuellement, pour rendre la lecture confortable.
+                        ${preferedLanguage ? `Pour finir, et c'est tres important, l'utilisateur souhaite que l'analyse soit écrite dans la langue suivante : ${preferedLanguage}`: ""}
+                        Voici la requete : ${query}`;
+            console.log(prompt);
             const stream = await this.getMistralClient().chat.stream({
                 model: 'ministral-14b-latest',
                 messages: [
                     {
                         role: "system",
-                        content: `Analyse cette requete SQL pour identifier les probl\u00e8mes de performance (scans sequentiels,
-                        index manquants, jointures co\u00fbteuses, etc.) et propose des optimisations concr\u00e8tes (ajout d'index,
-                        reecriture de la requete, etc.). Sois precis et justifie chaque suggestion.${indexesStatsFormatted.length > 0 ? `
-                        Pour t'aider dans l'analyse, voici les statistiques des index de chaque table de la requete : ${JSON.stringify(indexesStatsFormatted)}.` : ''}
-                        Chaque partie de ta reponse devra etre aeree visuellement, pour rendre la lecture confortable.
-                        ${preferedLanguage ? `Pour finir, l'utilisateur souhaite que l'analyse soit dans la langue suivante : ${preferedLanguage}`: ""}
-                        Voici la requete : ${query}`
+                        content: prompt
                     }
                 ],
                 responseFormat: { type: 'text' },

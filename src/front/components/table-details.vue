@@ -44,7 +44,7 @@
   }
 
   const lastAnalyzeTooOld = computed(() => {
-    if(!rowsStats || !rowsStats.value.lastAnalyze) return true;
+    if(!rowsStats.value || !rowsStats.value.lastAnalyze) return true;
     const diff = new Date().getTime() - rowsStats.value.lastAnalyze.getTime();
     // if last analyze is 1 month old
     if(diff > 2629746000) return true;
@@ -77,7 +77,7 @@
   })
 
   const diskCacheHitRatio = computed(() => {
-    if(ioStats == null) return null;
+    if(ioStats.value == null) return null;
     if(ioStats.value.cacheIndexBlocksRead === 0 && ioStats.value.cachediskBlocksRead === 0) return 0;
     const result = ioStats.value.cacheIndexBlocksRead / (ioStats.value.cacheIndexBlocksRead + ioStats.value.cachediskBlocksRead) * 100;
     return Math.round(result);
