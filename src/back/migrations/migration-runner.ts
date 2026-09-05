@@ -3,11 +3,13 @@ import type { Migration } from "./types";
 import { initialSchema } from "./001_initial_schema";
 import {addParametersMigrations} from "./002_add_parameters_table";
 import { addSchemaToDatasource } from "./003_add_schema_to_datasource";
+import { addAutoRefreshParameters } from "./004_add_auto_refresh_parameters";
 
 const migrations: Migration[] = [
     initialSchema,
     addParametersMigrations,
-    addSchemaToDatasource
+    addSchemaToDatasource,
+    addAutoRefreshParameters
 ];
 
 export class MigrationRunner {
