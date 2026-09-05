@@ -18,9 +18,5 @@ export const addAutoRefreshParameters: Migration = {
       VALUES ('AUTO_REFRESH_INTERVAL', '5000')
       ON CONFLICT(code) DO NOTHING
     `);
-  },
-
-  down: (db) => {
-    db.exec(`DELETE FROM parameters WHERE code IN ('AUTO_REFRESH', 'AUTO_REFRESH_INTERVAL')`);
-  },
+  }
 };
