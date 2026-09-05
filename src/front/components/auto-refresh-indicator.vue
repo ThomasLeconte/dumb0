@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import {computed} from "vue";
-import {useAutoRefreshStore} from "../stores/auto-refresh-store";
+import {useSettingsStore} from "../stores/settings-store";
 import {Refresh} from "@primeicons/vue";
 import {Tooltip} from "primevue";
 
-const autoRefreshStore = useAutoRefreshStore();
+const settingsStore = useSettingsStore();
 
-const isEnabled = computed(() => autoRefreshStore.isEnabled);
-const interval = computed(() => autoRefreshStore.interval);
-const isActive = computed(() => autoRefreshStore.isActive);
-const isRefreshing = computed(() => autoRefreshStore.isRefreshing);
+const isEnabled = computed(() => settingsStore.isAutoRefreshEnabled);
+const interval = computed(() => settingsStore.autoRefreshInterval);
+const isActive = computed(() => settingsStore.isAutoRefreshActive);
+const isRefreshing = computed(() => settingsStore.isRefreshing);
 
 const tooltipText = computed(() => {
   if (!isEnabled.value) {

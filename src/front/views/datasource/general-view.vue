@@ -3,12 +3,10 @@ import {useDatasourcesStore} from "../../stores/datasource-store";
 import {computed, onMounted, onUnmounted, watch} from "vue";
 import {Box, CheckCircle, ExclamationCircle, ListOl, ListTree, Refresh, SignOut, Table} from "@primeicons/vue";
 import {Button, Card, Chip, Column, DataTable, Divider, useToast} from "primevue";
-import {useAutoRefreshStore} from "../../stores/auto-refresh-store";
 import {useSettingsStore} from "../../stores/settings-store";
 import {ParametersEnum} from "../../../commons/data/dto/parameters-enum";
 
 const datasourceStore = useDatasourcesStore();
-const autoRefreshStore = useAutoRefreshStore();
 const settingsStore = useSettingsStore();
 const toast = useToast();
 
@@ -18,13 +16,13 @@ const locks = computed(() => datasourceDetails.value?.locks);
 
 const reloadCallback = async () => {
   await datasourceStore.loadDatasourceDetails();
-  await autoRefreshStore.refreshParameters();
+  await settingsStore.getAll();
 };
 
 watch(
   () => [settingsStore.getByCode(ParametersEnum.AUTO_REFRESH)?.value, settingsStore.getByCode(ParametersEnum.AUTO_REFRESH_INTERVAL)?.value],
   () => {
-    autoRefreshStore.restartAutoRefresh(reloadCallback);
+    settingsStore.restartAutoRefresh(reloadCallback);
   }
 );
 
@@ -37,11 +35,11 @@ function reloadDetails() {
 }
 
 onMounted(() => {
-  autoRefreshStore.startAutoRefresh(reloadCallback);
+  settingsStore.startAutoRefresh(reloadCallback);
 });
 
 onUnmounted(() => {
-  autoRefreshStore.stopAutoRefresh();
+  settingsStore.stopAutoRefresh();
 });
 
 </script>

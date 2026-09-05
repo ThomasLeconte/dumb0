@@ -5,7 +5,6 @@
   import {CheckCircle, TimesCircle, ExclamationCircle, Refresh, Table} from '@primeicons/vue'
   import {onMounted, computed, onUnmounted, watch} from "vue";
   import {useDatasourcesStore} from "../stores/datasource-store";
-  import {useAutoRefreshStore} from "../stores/auto-refresh-store";
   import {useSettingsStore} from "../stores/settings-store";
   import {ParametersEnum} from "../../commons/data/dto/parameters-enum";
   import TableLocks from "./table-stats/table-locks.vue";
@@ -19,7 +18,6 @@
 
   const tablesStore = useTablesStore();
   const datasourceStore = useDatasourcesStore();
-  const autoRefreshStore = useAutoRefreshStore();
   const settingsStore = useSettingsStore();
 
   const sizeStats = computed(() => tablesStore.tableStats?.size);
@@ -30,22 +28,22 @@
 
   const reloadCallback = async () => {
     await tablesStore.getTableStats(datasourceStore.datasourceChoosen!.id, props.tableName);
-    await autoRefreshStore.refreshParameters();
+    await settingsStore.getAll();
   };
 
   watch(
     () => [settingsStore.getByCode(ParametersEnum.AUTO_REFRESH)?.value, settingsStore.getByCode(ParametersEnum.AUTO_REFRESH_INTERVAL)?.value],
     () => {
-      autoRefreshStore.restartAutoRefresh(reloadCallback);
+      settingsStore.restartAutoRefresh(reloadCallback);
     }
   );
 
   onMounted(() => {
-    autoRefreshStore.startAutoRefresh(reloadCallback);
+    settingsStore.startAutoRefresh(reloadCallback);
   });
 
   onUnmounted(() => {
-    autoRefreshStore.stopAutoRefresh();
+    settingsStore.stopAutoRefresh();
   });
 
   function reloadDetails() {
