@@ -15,8 +15,17 @@ const connections = computed(() => datasourceDetails.value?.connections);
 const locks = computed(() => datasourceDetails.value?.locks);
 
 const reloadCallback = async () => {
-  await datasourceStore.loadDatasourceDetails();
-  await settingsStore.getAll();
+  try {
+    await datasourceStore.loadDatasourceDetails();
+    await settingsStore.getAll();
+  } catch (error) {
+    toast.add({
+      severity: "error",
+      summary: "Auto-refresh error",
+      detail: error instanceof Error ? error.message : "Unknown error",
+      life: 3000,
+    });
+  }
 };
 
 watch(

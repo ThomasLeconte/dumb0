@@ -3,7 +3,6 @@ import {IpcUtils} from "./ipc-utils";
 import {IpcRoutes} from "../../commons/ipc-routes";
 import {ParameterDto} from "../../commons/data/dto/parameter-dto";
 import {ParametersEnum} from "../../commons/data/dto/parameters-enum";
-import {useToast} from "primevue";
 
 export const useSettingsStore = defineStore('settingsStore', {
     state: () => ({
@@ -29,8 +28,6 @@ export const useSettingsStore = defineStore('settingsStore', {
         startAutoRefresh(callback: () => Promise<void>) {
             this.stopAutoRefresh();
             
-            const toast = useToast();
-            
             const autoRefreshEnabled = this.getByCode(ParametersEnum.AUTO_REFRESH);
             const autoRefreshInterval = this.getByCode(ParametersEnum.AUTO_REFRESH_INTERVAL);
             
@@ -45,12 +42,7 @@ export const useSettingsStore = defineStore('settingsStore', {
                 try {
                     await callback();
                 } catch (error) {
-                    toast.add({
-                        severity: "error",
-                        summary: "Auto-refresh error",
-                        detail: error instanceof Error ? error.message : "Unknown error",
-                        life: 3000,
-                    });
+                    throw error;
                 } finally {
                     this.isRefreshing = false;
                 }

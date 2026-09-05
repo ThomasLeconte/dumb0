@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import Help from "./help.vue";
   import {useTablesStore} from "../stores/tables-store";
-  import {Card, Divider, Chip, DataTable, Column, Button} from "primevue";
+  import {Card, Divider, Chip, DataTable, Column, Button, useToast} from "primevue";
   import {CheckCircle, TimesCircle, ExclamationCircle, Refresh, Table} from '@primeicons/vue'
   import {onMounted, computed, onUnmounted, watch} from "vue";
   import {useDatasourcesStore} from "../stores/datasource-store";
@@ -19,6 +19,7 @@
   const tablesStore = useTablesStore();
   const datasourceStore = useDatasourcesStore();
   const settingsStore = useSettingsStore();
+  const toast = useToast();
 
   const sizeStats = computed(() => tablesStore.tableStats?.size);
   const rowsStats = computed(() => tablesStore.tableStats?.rowsStats);
@@ -27,8 +28,17 @@
   const locks = computed(() => tablesStore.tableStats?.locks);
 
   const reloadCallback = async () => {
-    await tablesStore.getTableStats(datasourceStore.datasourceChoosen!.id, props.tableName);
-    await settingsStore.getAll();
+    try {
+      await tablesStore.getTableStats(datasourceStore.datasourceChoosen!.id, props.tableName);
+      await settingsStore.getAll();
+    } catch (error) {
+      toast.add({
+        severity: "error",
+        summary: "Auto-refresh error",
+        detail: error instanceof Error ? error.message : "Unknown error",
+        life: 3000,
+      });
+    }
   };
 
   watch(
