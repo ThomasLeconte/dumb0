@@ -3,8 +3,11 @@
   import {useTablesStore} from "../stores/tables-store";
   import {Card, Divider, Chip, DataTable, Column, Button} from "primevue";
   import {CheckCircle, TimesCircle, ExclamationCircle, Refresh, Table} from '@primeicons/vue'
-  import {onMounted, computed} from "vue";
+  import {onMounted, computed, onUnmounted, watch} from "vue";
   import {useDatasourcesStore} from "../stores/datasource-store";
+  import {useAutoRefreshStore} from "../stores/auto-refresh-store";
+  import {useSettingsStore} from "../stores/settings-store";
+  import {ParametersEnum} from "../../commons/data/dto/parameters-enum";
   import TableLocks from "./table-stats/table-locks.vue";
 
   const props = defineProps({
@@ -16,6 +19,8 @@
 
   const tablesStore = useTablesStore();
   const datasourceStore = useDatasourcesStore();
+  const autoRefreshStore = useAutoRefreshStore();
+  const settingsStore = useSettingsStore();
 
   const sizeStats = computed(() => tablesStore.tableStats?.size);
   const rowsStats = computed(() => tablesStore.tableStats?.rowsStats);
@@ -23,9 +28,25 @@
   const indexesStats = computed(() => tablesStore.tableStats?.indexesStats);
   const locks = computed(() => tablesStore.tableStats?.locks);
 
+  const reloadCallback = async () => {
+    await tablesStore.getTableStats(datasourceStore.datasourceChoosen!.id, props.tableName);
+    await autoRefreshStore.refreshParameters();
+  };
+
+  watch(
+    () => [settingsStore.getByCode(ParametersEnum.AUTO_REFRESH)?.value, settingsStore.getByCode(ParametersEnum.AUTO_REFRESH_INTERVAL)?.value],
+    () => {
+      autoRefreshStore.restartAutoRefresh(reloadCallback);
+    }
+  );
+
   onMounted(() => {
-    console.log(props.tableName, tablesStore.tableStats?.size);
-  })
+    autoRefreshStore.startAutoRefresh(reloadCallback);
+  });
+
+  onUnmounted(() => {
+    autoRefreshStore.stopAutoRefresh();
+  });
 
   function reloadDetails() {
     tablesStore.getTableStats(datasourceStore.datasourceChoosen!.id, props.tableName)

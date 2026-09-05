@@ -6,6 +6,7 @@ import {computed, onMounted, ref} from "vue";
 import {useTablesStore} from "../../stores/tables-store";
 import {useRouter} from "vue-router";
 import {useAppStore} from "../../stores/app-store";
+import AutoRefreshIndicator from "../../components/auto-refresh-indicator.vue";
 
 const appStore = useAppStore();
 const datasourceStore = useDatasourcesStore();
@@ -77,6 +78,7 @@ function logout() {
         </template>
 
         <template #end>
+          <AutoRefreshIndicator />
           <Button outlined severity="danger" @click="logout()"><SignOut />Log out</Button>
         </template>
       </Menubar>

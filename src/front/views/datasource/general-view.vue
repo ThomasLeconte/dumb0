@@ -1,14 +1,32 @@
 <script setup lang="ts">
 import {useDatasourcesStore} from "../../stores/datasource-store";
-import {computed} from "vue";
+import {computed, onMounted, onUnmounted, watch} from "vue";
 import {Box, CheckCircle, ExclamationCircle, ListOl, ListTree, Refresh, SignOut, Table} from "@primeicons/vue";
-import {Button, Card, Chip, Column, DataTable, Divider} from "primevue";
+import {Button, Card, Chip, Column, DataTable, Divider, useToast} from "primevue";
+import {useAutoRefreshStore} from "../../stores/auto-refresh-store";
+import {useSettingsStore} from "../../stores/settings-store";
+import {ParametersEnum} from "../../../commons/data/dto/parameters-enum";
 
 const datasourceStore = useDatasourcesStore();
+const autoRefreshStore = useAutoRefreshStore();
+const settingsStore = useSettingsStore();
+const toast = useToast();
 
 const datasourceDetails = computed(() => datasourceStore.datasourceDetails);
 const connections = computed(() => datasourceDetails.value?.connections);
 const locks = computed(() => datasourceDetails.value?.locks);
+
+const reloadCallback = async () => {
+  await datasourceStore.loadDatasourceDetails();
+  await autoRefreshStore.refreshParameters();
+};
+
+watch(
+  () => [settingsStore.getByCode(ParametersEnum.AUTO_REFRESH)?.value, settingsStore.getByCode(ParametersEnum.AUTO_REFRESH_INTERVAL)?.value],
+  () => {
+    autoRefreshStore.restartAutoRefresh(reloadCallback);
+  }
+);
 
 function formatDate(date: Date) {
   return date.toLocaleDateString();
@@ -17,6 +35,14 @@ function formatDate(date: Date) {
 function reloadDetails() {
   datasourceStore.loadDatasourceDetails();
 }
+
+onMounted(() => {
+  autoRefreshStore.startAutoRefresh(reloadCallback);
+});
+
+onUnmounted(() => {
+  autoRefreshStore.stopAutoRefresh();
+});
 
 </script>
 
