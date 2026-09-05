@@ -2,7 +2,7 @@
 import {computed} from "vue";
 import {useSettingsStore} from "../stores/settings-store";
 import {Refresh} from "@primeicons/vue";
-import {Tooltip} from "primevue";
+import {Button} from "primevue";
 
 const settingsStore = useSettingsStore();
 
@@ -23,16 +23,15 @@ const iconClass = computed(() => {
     return "text-gray-400";
   }
   if (isRefreshing.value) {
-    return "text-blue-500 animate-spin";
+    return "text-green-500 animate-spin";
   }
-  return "text-blue-500";
+  return "text-green-500";
 });
 </script>
 
 <template>
-  <Tooltip :target="() => $refs.indicator" :text="tooltipText" />
-  <div ref="indicator" class="flex items-center justify-center p-2 cursor-default">
-    <Refresh :class="iconClass" :size="20" />
+  <div v-tooltip.bottom="tooltipText" class="flex items-center justify-center p-2 cursor-default">
+    <Button iconOnly text><Refresh :class="iconClass" :size="20" /></Button>
   </div>
 </template>
 

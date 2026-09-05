@@ -78,8 +78,10 @@ function logout() {
         </template>
 
         <template #end>
-          <AutoRefreshIndicator />
-          <Button outlined severity="danger" @click="logout()"><SignOut />Log out</Button>
+          <div class="flex gap-2 justify-end">
+            <AutoRefreshIndicator />
+            <Button outlined severity="danger" @click="logout()"><SignOut />Log out</Button>
+          </div>
         </template>
       </Menubar>
 
