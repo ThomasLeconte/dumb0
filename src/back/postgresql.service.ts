@@ -15,10 +15,25 @@ import {CreateDatasourceFormDto} from "../commons/data/dto/forms/create-datasour
 
 export default class PostgresqlService {
 
+    private static validateSchemaName(schema: string): boolean {
+        // Validation stricte : uniquement alphanumérique + underscores, pas de caractères spéciaux
+        return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(schema) && schema.length <= 64;
+    }
+
+    private static validateTableName(tableName: string): boolean {
+        // Validation stricte pour les noms de tables
+        return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tableName) && tableName.length <= 64;
+    }
+
     static async getTables(args: { datasourceId: string }) {
         const datasource = await SqliteService.getDatasourceById(args.datasourceId);
         if (!datasource) {
             return [];
+        }
+
+        // Validation du schema
+        if (!PostgresqlService.validateSchemaName(datasource.schema)) {
+            throw new Error('Invalid schema name - potential SQL injection detected');
         }
 
         const client = await PostgresqlService.initConnection(datasource);
@@ -40,21 +55,32 @@ export default class PostgresqlService {
             console.error('Error fetching tables:', err);
             throw new Error('Failed to fetch tables');
         } finally {
-            client.end();
+            try {
+                if (client) {
+                    client.end();
+                }
+            } catch (endErr) {
+                console.error('Error closing PostgreSQL client:', endErr);
+            }
         }
     }
 
     static async getTableStats(args: { tableName: string; datasourceId: string }) {
         const { tableName, datasourceId } = args;
         
-        // Validation du nom de table (alphanumerique + underscores)
-        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tableName)) {
-            throw new Error('Invalid table name');
+        // Validation stricte du nom de table
+        if (!PostgresqlService.validateTableName(tableName)) {
+            throw new Error('Invalid table name - potential SQL injection detected');
         }
 
         const datasource = await SqliteService.getDatasourceById(datasourceId);
         if (!datasource) {
             return null;
+        }
+
+        // Validation du schema
+        if (!PostgresqlService.validateSchemaName(datasource.schema)) {
+            throw new Error('Invalid schema name - potential SQL injection detected');
         }
 
         const client = await PostgresqlService.initConnection(datasource);
@@ -77,7 +103,13 @@ export default class PostgresqlService {
             console.error('Error fetching table stats:', err);
             throw new Error('Failed to fetch table statistics');
         } finally {
-            client.end();
+            try {
+                if (client) {
+                    client.end();
+                }
+            } catch (endErr) {
+                console.error('Error closing PostgreSQL client:', endErr);
+            }
         }
     }
 
@@ -87,6 +119,11 @@ export default class PostgresqlService {
         const datasource = await SqliteService.getDatasourceById(datasourceId);
         if (!datasource) {
             return null;
+        }
+
+        // Validation du schema
+        if (!PostgresqlService.validateSchemaName(datasource.schema)) {
+            throw new Error('Invalid schema name - potential SQL injection detected');
         }
 
         const client = await PostgresqlService.initConnection(datasource);
@@ -117,11 +154,22 @@ export default class PostgresqlService {
             console.error('Error fetching datasource stats:', err);
             throw new Error('Failed to fetch datasource statistics');
         } finally {
-            client.end();
+            try {
+                if (client) {
+                    client.end();
+                }
+            } catch (endErr) {
+                console.error('Error closing PostgreSQL client:', endErr);
+            }
         }
     }
 
     private static async getTableSize(client: Client, tableName: string, schema: string) {
+        // Validation des paramètres
+        if (!PostgresqlService.validateSchemaName(schema) || !PostgresqlService.validateTableName(tableName)) {
+            throw new Error('Invalid schema or table name - potential SQL injection detected');
+        }
+
         const query = `
             SELECT
                 pg_size_pretty(pg_total_relation_size($1::regclass)) AS total_size,
@@ -148,6 +196,11 @@ export default class PostgresqlService {
     }
 
     private static async getTableRowsStats(client: Client, tableName: string, schema: string) {
+        // Validation des paramètres
+        if (!PostgresqlService.validateSchemaName(schema) || !PostgresqlService.validateTableName(tableName)) {
+            throw new Error('Invalid schema or table name - potential SQL injection detected');
+        }
+
         const query = `
             SELECT
                 schemaname,
@@ -184,6 +237,11 @@ export default class PostgresqlService {
     }
 
     private static async getTableLocks(client: Client, tableName: string, schema: string) {
+        // Validation des paramètres
+        if (!PostgresqlService.validateSchemaName(schema) || !PostgresqlService.validateTableName(tableName)) {
+            throw new Error('Invalid schema or table name - potential SQL injection detected');
+        }
+
         const query = `
             SELECT
                 locktype,
@@ -227,6 +285,11 @@ export default class PostgresqlService {
     }
 
     private static async getTableIOStats(client: Client, tableName: string, schema: string) {
+        // Validation des paramètres
+        if (!PostgresqlService.validateSchemaName(schema) || !PostgresqlService.validateTableName(tableName)) {
+            throw new Error('Invalid schema or table name - potential SQL injection detected');
+        }
+
         const query = `
             SELECT 
                 stat.seq_scan,
@@ -266,6 +329,12 @@ export default class PostgresqlService {
     }
 
     public static async getTableIndexes(client: Client, tableName: string, schema: string) {
+        // Validation des paramètres
+        if (!PostgresqlService.validateSchemaName(schema) || !PostgresqlService.validateTableName(tableName)) {
+            throw new Error('Invalid schema or table name - potential SQL injection detected');
+        }
+
+        // Utilisation de la comparaison case-insensitive de PostgreSQL sans LOWER() pour permettre l'utilisation des index
         const query = `
             SELECT stat_io.indexrelname,
                    stat_io.idx_blks_read,
@@ -274,10 +343,10 @@ export default class PostgresqlService {
                    def.indexdef
             FROM pg_statio_all_indexes stat_io
                      JOIN pg_stat_all_indexes stat
-                          ON LOWER(stat.indexrelname) = LOWER(stat_io.indexrelname)
-                              AND LOWER(stat.schemaname) = LOWER(stat_io.schemaname)
-                     JOIN pg_indexes def ON LOWER(def.indexname) = LOWER(stat_io.indexrelname) AND LOWER(def.tablename) = LOWER(stat_io.relname)
-            WHERE LOWER(stat_io.schemaname) = LOWER($1) AND LOWER(stat_io.relname) = LOWER($2);
+                          ON stat.indexrelname = stat_io.indexrelname
+                              AND stat.schemaname = stat_io.schemaname
+                     JOIN pg_indexes def ON def.indexname = stat_io.indexrelname AND def.tablename = stat_io.relname
+            WHERE stat_io.schemaname = $1 AND stat_io.relname = $2;
         `;
 
         try {
@@ -380,6 +449,11 @@ export default class PostgresqlService {
     }
 
     private static async getDatasourceMainStats(client: Client, schema: string = 'public') {
+        // Validation du schema
+        if (!PostgresqlService.validateSchemaName(schema)) {
+            throw new Error('Invalid schema name - potential SQL injection detected');
+        }
+
         const statsQuery = `
             SELECT 
                 relkind AS object_type,
@@ -453,8 +527,9 @@ export default class PostgresqlService {
             user: datasource.username,
             password: datasource.password,
             application_name: 'dba-app',
-            connectionTimeoutMillis: 0,
-            idle_in_transaction_session_timeout: 0
+            connectionTimeoutMillis: 5000,
+            idle_in_transaction_session_timeout: 10000,
+            statement_timeout: 10000 // Timeout de 10 secondes pour les requêtes
         });
 
         client = await client.connect();

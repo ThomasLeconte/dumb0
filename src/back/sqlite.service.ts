@@ -142,7 +142,17 @@ export class SqliteService {
                 throw new Error("A datasource already exists with these informations!");
             }
 
-            const encryptedPassword = safeStorage.encryptString(form.password);
+            // Chiffrement sécurisé du mot de passe avec vérification
+            let encryptedPassword: string;
+            try {
+                encryptedPassword = safeStorage.encryptString(form.password);
+                if (!encryptedPassword || encryptedPassword.length === 0) {
+                    throw new Error('Password encryption failed - empty result');
+                }
+            } catch (encryptionError) {
+                console.error('Error encrypting password:', encryptionError);
+                throw new Error('Failed to encrypt password - secure storage not available');
+            }
 
             const stmt = db.prepare(
                 `INSERT INTO datasource (name, username, password, hostname, port, dbname, schema)
@@ -201,8 +211,17 @@ export class SqliteService {
         const db = this.getDatabase();
 
         try {
-            // Chiffrer le nouveau mot de passe
-            const encryptedPassword = safeStorage.encryptString(form.password);
+            // Chiffrer le nouveau mot de passe avec vérification
+            let encryptedPassword: string;
+            try {
+                encryptedPassword = safeStorage.encryptString(form.password);
+                if (!encryptedPassword || encryptedPassword.length === 0) {
+                    throw new Error('Password encryption failed - empty result');
+                }
+            } catch (encryptionError) {
+                console.error('Error encrypting password:', encryptionError);
+                throw new Error('Failed to encrypt password - secure storage not available');
+            }
 
             // Requete parametree pour eviter l'injection SQL
             db.prepare(

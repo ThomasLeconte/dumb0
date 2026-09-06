@@ -199,87 +199,116 @@ export class QueryService {
     }
 
     private static isSafeQuery(query: string): boolean {
-        // Normaliser la requête pour la validation
-        const normalizedQuery = query.trim().toUpperCase();
+        // Normaliser la requête pour la validation (supprimer les commentaires et les espaces multiples)
+        const cleanedQuery = query
+            .replace(/--.*?$|\/\*[\s\S]*?\*\//gm, '') // Supprimer les commentaires SQL
+            .trim()
+            .toUpperCase();
 
-        // Liste des motifs de requêtes dangereuses à bloquer
-        const forbiddenPatterns = [
+        // Liste des mots-clés dangereux à bloquer (case-insensitive)
+        const forbiddenKeywords = [
             // Requêtes de suppression
-            /^DROP\s+(TABLE|DATABASE|SCHEMA|INDEX|VIEW|SEQUENCE|FUNCTION|TRIGGER|ROLE|USER|GROUP)\b/i,
-            /^TRUNCATE\s+/i,
-            /^DELETE\s+FROM\s+/i,
+            'DROP', 'TRUNCATE', 'DELETE FROM',
             
             // Requêtes de modification de structure
-            /^ALTER\s+(TABLE|DATABASE|SYSTEM)\b/i,
+            'ALTER TABLE', 'ALTER DATABASE', 'ALTER SYSTEM',
             
             // Requêtes de modification de données
-            /^UPDATE\s+.*\s+SET\s+/i,
+            'UPDATE', 'INSERT INTO',
             
             // Requêtes d'administration système
-            /^SHUTDOWN\b/i,
-            /^RESTART\b/i,
-            /^RELOAD\b/i,
+            'SHUTDOWN', 'RESTART', 'RELOAD',
             
             // Requêtes de permissions
-            /^GRANT\s+/i,
-            /^REVOKE\s+/i,
-            /^CREATE\s+(ROLE|USER|GROUP)\b/i,
-            /^ALTER\s+(ROLE|USER|GROUP)\b/i,
-            /^DROP\s+(ROLE|USER|GROUP)\b/i,
+            'GRANT', 'REVOKE', 'CREATE ROLE', 'ALTER ROLE', 'DROP ROLE',
+            'CREATE USER', 'ALTER USER', 'DROP USER', 'CREATE GROUP', 'ALTER GROUP', 'DROP GROUP',
             
             // Requêtes de configuration
-            /^SET\s+(password|role|session_authorization)\b/i,
+            'SET PASSWORD', 'SET ROLE', 'SET SESSION_AUTHORIZATION',
             
             // Requêtes de réplication
-            /^CREATE\s+REPLICATION\s+SLOT\b/i,
-            /^DROP\s+REPLICATION\s+SLOT\b/i,
+            'CREATE REPLICATION SLOT', 'DROP REPLICATION SLOT',
             
             // Requêtes de tablespace
-            /^CREATE\s+TABLESPACE\b/i,
-            /^ALTER\s+TABLESPACE\b/i,
-            /^DROP\s+TABLESPACE\b/i,
+            'CREATE TABLESPACE', 'ALTER TABLESPACE', 'DROP TABLESPACE',
             
             // Requêtes de base de données
-            /^CREATE\s+DATABASE\b/i,
-            /^ALTER\s+DATABASE\b/i,
-            /^DROP\s+DATABASE\b/i,
+            'CREATE DATABASE', 'ALTER DATABASE', 'DROP DATABASE',
             
             // Requêtes de extension
-            /^DROP\s+EXTENSION\b/i,
+            'DROP EXTENSION', 'CREATE EXTENSION',
             
             // Requêtes de language
-            /^DROP\s+LANGUAGE\b/i,
-            /^CREATE\s+LANGUAGE\b/i,
+            'DROP LANGUAGE', 'CREATE LANGUAGE',
             
             // Requêtes de collation
-            /^DROP\s+COLLATION\b/i,
-            /^CREATE\s+COLLATION\b/i,
+            'DROP COLLATION', 'CREATE COLLATION',
             
             // Requêtes de conversion
-            /^DROP\s+CONVERSION\b/i,
-            /^CREATE\s+CONVERSION\b/i,
+            'DROP CONVERSION', 'CREATE CONVERSION',
             
-            // Requêtes de opérateur
-            /^DROP\s+OPERATOR\b/i,
-            /^CREATE\s+OPERATOR\b/i,
+            // Requêtes d'opérateur
+            'DROP OPERATOR', 'CREATE OPERATOR',
             
             // Requêtes de type
-            /^DROP\s+TYPE\b/i,
-            /^CREATE\s+TYPE\b/i,
+            'DROP TYPE', 'CREATE TYPE',
             
             // Requêtes de domaine
-            /^DROP\s+DOMAIN\b/i,
-            /^CREATE\s+DOMAIN\b/i,
+            'DROP DOMAIN', 'CREATE DOMAIN',
+            
+            // Requêtes de schéma
+            'CREATE SCHEMA', 'DROP SCHEMA', 'ALTER SCHEMA',
+            
+            // Requêtes de fonction
+            'CREATE FUNCTION', 'DROP FUNCTION', 'ALTER FUNCTION',
+            
+            // Requêtes de trigger
+            'CREATE TRIGGER', 'DROP TRIGGER',
+            
+            // Requêtes de vue
+            'CREATE VIEW', 'DROP VIEW',
+            
+            // Requêtes de séquence
+            'CREATE SEQUENCE', 'DROP SEQUENCE', 'ALTER SEQUENCE',
+            
+            // Requêtes de table
+            'CREATE TABLE', 'DROP TABLE',
+            
+            // Requêtes de index
+            'CREATE INDEX', 'DROP INDEX',
+            
+            // Requêtes avec des sous-requêtes de modification
+            'WITH', ';',
         ];
 
-        // Vérifier si la requête commence par un motif interdit
-        for (const pattern of forbiddenPatterns) {
-            if (pattern.test(normalizedQuery)) {
+        // Vérifier si la requête contient un mot-clé interdit
+        for (const keyword of forbiddenKeywords) {
+            // Vérifier au début de la requête ou après un espace/parenthèse
+            if (cleanedQuery.includes(` ${keyword} `) || 
+                cleanedQuery.startsWith(keyword + ' ') ||
+                cleanedQuery.startsWith(keyword + '(') ||
+                cleanedQuery.includes(`(${keyword} `) ||
+                cleanedQuery.includes(` ${keyword}(`)) {
                 return false;
             }
         }
 
-        // Autoriser les requêtes SELECT, INSERT (sans valeurs dangereuses), etc.
+        // Autoriser uniquement les requêtes SELECT de base (sans sous-requêtes complexes)
+        // On vérifie que la requête commence bien par SELECT
+        if (!cleanedQuery.startsWith('SELECT ')) {
+            return false;
+        }
+
+        // Bloquer les SELECT avec des sous-requêtes de modification
+        if (cleanedQuery.includes(' WITH ') || cleanedQuery.includes('(SELECT')) {
+            return false;
+        }
+
+        // Bloquer les requêtes avec des points-virgules (multiples requêtes)
+        if (query.includes(';')) {
+            return false;
+        }
+
         return true;
     }
 }
