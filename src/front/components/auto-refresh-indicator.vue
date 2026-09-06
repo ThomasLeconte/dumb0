@@ -31,7 +31,7 @@ const iconClass = computed(() => {
 
 <template>
   <div v-tooltip.bottom="tooltipText" class="flex items-center justify-center p-2 cursor-default">
-    <Button iconOnly text><Refresh :class="iconClass" :size="20" /></Button>
+    <Chip ><Refresh :class="iconClass" :size="20" /></Chip>
   </div>
 </template>
 

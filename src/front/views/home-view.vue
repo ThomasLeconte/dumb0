@@ -12,7 +12,7 @@ import {
   Pencil,
   Bars,
   Cog,
-  Github
+  Github, Spinner
 } from '@primeicons/vue'
 import {useDatasourcesStore} from "../stores/datasource-store";
 import {computed, onBeforeMount, onMounted, ref, useTemplateRef} from "vue";
@@ -38,6 +38,7 @@ const updateDialog = ref(false);
 const duplicateDialog = ref(false);
 const deleteDialog = ref(false);
 const settingsDialog = ref(false);
+const loading = ref(false);
 const datasourceToUpdateOrDelete = ref<DatasourceDto | null>(null);
 const menuRef = useTemplateRef('menu');
 const items = ref([
@@ -75,9 +76,11 @@ const items = ref([
   },
 ]);
 
-onBeforeMount(() => {
+onMounted(() => {
+  loading.value = true;
   Promise.all([settingsStore.getAll(), settingsStore.getAvailableCountries(), datasourceStore.getAll()])
-      .then(() => appStore.setTitle('Connections'));
+      .then(() => appStore.setTitle('Connections'))
+      .finally(() => loading.value = false);
 });
 
 const datasources = computed(() => datasourceStore.datasources);
@@ -113,7 +116,11 @@ function showSettingsDialog() {
 
 <template>
   <transition name="fade" mode="out-in" appear>
-    <div class="home-content w-full h-full min-h-dvh flex flex-col justify-center items-center">
+    <div v-if="loading" class="flex h-dvh justify-center items-center">
+      <Spinner size="48" />
+    </div>
+
+    <div v-else class="home-content w-full h-full min-h-dvh flex flex-col justify-center items-center">
       <div class="home-background"></div>
 
       <div class="absolute w-full top-0 p-2 flex justify-end gap-2">

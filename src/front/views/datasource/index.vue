@@ -57,6 +57,9 @@ onMounted(() => {
 })
 
 const datasource = computed(() => datasourceStore.datasourceChoosen);
+const showRefreshIndicator = computed(() => {
+  return !['query'].includes(router.currentRoute.value.name as string);
+})
 
 function logout() {
   datasourceStore.clearDatasource();
@@ -79,7 +82,7 @@ function logout() {
 
         <template #end>
           <div class="flex gap-2 justify-end">
-            <AutoRefreshIndicator />
+            <AutoRefreshIndicator v-if="showRefreshIndicator" />
             <Button outlined severity="danger" @click="logout()"><SignOut />Log out</Button>
           </div>
         </template>
