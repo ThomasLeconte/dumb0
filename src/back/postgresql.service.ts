@@ -334,7 +334,6 @@ export default class PostgresqlService {
             throw new Error('Invalid schema or table name - potential SQL injection detected');
         }
 
-        // Utilisation de la comparaison case-insensitive de PostgreSQL sans LOWER() pour permettre l'utilisation des index
         const query = `
             SELECT stat_io.indexrelname,
                    stat_io.idx_blks_read,
@@ -343,10 +342,10 @@ export default class PostgresqlService {
                    def.indexdef
             FROM pg_statio_all_indexes stat_io
                      JOIN pg_stat_all_indexes stat
-                          ON stat.indexrelname = stat_io.indexrelname
-                              AND stat.schemaname = stat_io.schemaname
-                     JOIN pg_indexes def ON def.indexname = stat_io.indexrelname AND def.tablename = stat_io.relname
-            WHERE stat_io.schemaname = $1 AND stat_io.relname = $2;
+                          ON LOWER(stat.indexrelname) = LOWER(stat_io.indexrelname)
+                              AND LOWER(stat.schemaname) = LOWER(stat_io.schemaname)
+                     JOIN pg_indexes def ON LOWER(def.indexname) = LOWER(stat_io.indexrelname) AND LOWER(def.tablename) = LOWER(stat_io.relname)
+            WHERE LOWER(stat_io.schemaname) = LOWER($1) AND LOWER(stat_io.relname) = LOWER($2);
         `;
 
         try {
