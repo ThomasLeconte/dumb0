@@ -80,7 +80,7 @@
   })
 
   const generalSeverity = computed(() => {
-    if (lastAnalyzeTooOld.value && (rowStatsSeverity.value !== 'success' || indexesStatsSeverity.value !== 'success')) return "warning";
+    if (lastAnalyzeTooOld.value || rowStatsSeverity.value !== 'success' || indexesStatsSeverity.value !== 'success') return "warning";
     else if (lastAnalyzeTooOld.value && rowStatsSeverity.value !== 'success' && indexesStatsSeverity.value !== 'success') return "danger";
     else return "success"
   })
