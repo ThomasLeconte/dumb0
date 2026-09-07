@@ -265,7 +265,7 @@ onMounted(() => {
         </SidebarPanel>
       </SidebarAside>
     </Sidebar>
-    <SidebarMain class="dba-sidebar-aside-content mt-2 mr-2 bg-transparent!">
+    <SidebarMain class="dba-sidebar-aside-content mt-2 mr-2 bg-transparent! max-h-[100dvh] overflow-auto">
       <!-- Éditeur de requêtes -->
       <div class="flex-1 flex flex-col gap-4 mt-4 min-h-0">
         <div class="flex justify-between items-center">
@@ -338,7 +338,7 @@ onMounted(() => {
         </div>
 
         <div v-if="aiResponse || isAnalyzing" class="mt-4">
-          <Card class="ai-analysis-card">
+          <Card class="ai-analysis-card max-h-full overflow-auto">
             <template #title>
               <div class="flex items-center gap-2">
                 <Sparkles class="ai-icon" :spin="isAnalyzing" />
@@ -395,9 +395,8 @@ onMounted(() => {
               <DataTable
                   :value="results.rows"
                   stripedRows
-                  class="mt-4"
+                  class="mt-4 max-h-full"
                   scrollable
-                  scrollHeight="flex"
                   resizableColumns
               >
                 <Column v-for="field in results.fields" :key="field" :field="field" :header="field" :sortable="true">
