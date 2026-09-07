@@ -304,11 +304,6 @@ export class QueryService {
             return false;
         }
 
-        // Bloquer les requêtes avec des points-virgules (multiples requêtes)
-        if (query.includes(';')) {
-            return false;
-        }
-
         return true;
     }
 }

@@ -143,7 +143,7 @@ export class SqliteService {
             }
 
             // Chiffrement sécurisé du mot de passe avec vérification
-            let encryptedPassword: string;
+            let encryptedPassword: Buffer;
             try {
                 encryptedPassword = safeStorage.encryptString(form.password);
                 if (!encryptedPassword || encryptedPassword.length === 0) {

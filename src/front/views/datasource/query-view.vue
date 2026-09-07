@@ -361,7 +361,7 @@ onMounted(() => {
 
         <!-- Résultats -->
         <div v-if="results" class="flex-1 min-h-0">
-          <Card class="h-full">
+          <Card>
             <template #title>
               <div class="flex justify-between items-center">
                 <div class="flex gap-2 items-baseline">
