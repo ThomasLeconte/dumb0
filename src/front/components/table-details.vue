@@ -67,7 +67,7 @@
     })
   }
 
-  function formatDate(date: Date) {
+  function formatDate(date: Date | null) {
     if(date == null) return "-";
     return date.toLocaleString();
   }

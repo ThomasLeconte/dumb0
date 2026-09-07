@@ -3,6 +3,7 @@ import {SqliteService} from "./sqlite.service";
 import {DatasourceDto} from "../commons/data/dto/datasource-dto";
 import {CreateQueryFormDto} from "../commons/data/dto/forms/create-query-form-dto";
 import {DatasourceSavedQueryDto} from "../commons/data/dto/datasource-saved-query-dto";
+import PostgresqlService from "./postgresql.service";
 
 export class QueryService {
 
@@ -25,7 +26,7 @@ export class QueryService {
             throw new Error("Unsafe query detected: potentially destructive operation");
         }
 
-        const client = await this.initConnection(datasource);
+        const client = await PostgresqlService.initConnection(datasource);
 
         const startTime = Date.now();
         let queryResult: QueryResult<any>;
@@ -179,23 +180,6 @@ export class QueryService {
             console.error('Error deleting query:', err);
             return { success: false };
         }
-    }
-
-    private static async initConnection(datasource: DatasourceDto): Promise<Client> {
-        const { Client } = require('pg');
-
-        const client = new Client({
-            host: datasource.hostname,
-            port: datasource.port,
-            database: datasource.dbname,
-            user: datasource.username,
-            password: datasource.password,
-            application_name: 'dba-app-query-executor',
-            connectionTimeoutMillis: 5000,
-            idle_in_transaction_session_timeout: 10000,
-        });
-
-        return client.connect();
     }
 
     private static isSafeQuery(query: string): boolean {
