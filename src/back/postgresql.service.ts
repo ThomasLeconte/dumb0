@@ -536,18 +536,24 @@ export default class PostgresqlService {
         return client;
     }
 
-    public static testConnection(form: CreateDatasourceFormDto) {
-        return PostgresqlService.initConnection(
-            new DatasourceDto(
-                null,
-                form.name,
-                form.username,
-                form.password,
-                form.hostname,
-                form.port,
-                form.dbname,
-                form.schema
-            )
-        );
+    public static async testConnection(form: CreateDatasourceFormDto) {
+        try {
+            const client = await PostgresqlService.initConnection(
+                new DatasourceDto(
+                    null,
+                    form.name,
+                    form.username,
+                    form.password,
+                    form.hostname,
+                    form.port,
+                    form.dbname,
+                    form.schema
+                )
+            );
+            client.end();
+        } catch (err) {
+            console.error("Error during test connection : ", err);
+            throw new Error("Error during test connection : " + err);
+        }
     }
 }
