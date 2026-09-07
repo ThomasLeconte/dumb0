@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import {Database, Plus, Print, Search, SignOut, PenLine, Cog, Table, Play} from '@primeicons/vue';
-import {Toolbar, Button, IconField, InputIcon, Menubar, Toast} from "primevue";
+import {Toolbar, Button, IconField, InputIcon, Menubar, ProgressBar, Toast} from "primevue";
 import {useDatasourcesStore} from "../../stores/datasource-store";
 import {computed, onMounted, ref} from "vue";
 import {useTablesStore} from "../../stores/tables-store";
 import {useRouter} from "vue-router";
 import {useAppStore} from "../../stores/app-store";
 import AutoRefreshIndicator from "../../components/auto-refresh-indicator.vue";
+import {useSettingsStore} from "../../stores/settings-store";
 
 const appStore = useAppStore();
 const datasourceStore = useDatasourcesStore();
+const settingsStore = useSettingsStore();
 const tablesStore = useTablesStore();
 const router = useRouter();
 
@@ -60,6 +62,7 @@ const datasource = computed(() => datasourceStore.datasourceChoosen);
 const showRefreshIndicator = computed(() => {
   return !['query'].includes(router.currentRoute.value.name as string);
 })
+const isRefreshing = computed(() => settingsStore.isRefreshing);
 
 function logout() {
   datasourceStore.clearDatasource();

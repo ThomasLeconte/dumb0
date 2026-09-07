@@ -5,6 +5,7 @@ import {TableIndexesDto} from "../commons/data/dto/table-indexes-dto";
 import {ParametersEnum} from "../commons/data/dto/parameters-enum";
 import {ParametersService} from "./parameters.service";
 import {ParameterDto} from "../commons/data/dto/parameter-dto";
+import {data} from "autoprefixer";
 
 const {Mistral} = require("@mistralai/mistralai")
 
@@ -45,7 +46,7 @@ export class AiService {
 
                     await Promise.all(
                         tables.map(async (table) => {
-                            const tableIndexes = await PostgresqlService.getTableIndexes(db, table);
+                            const tableIndexes = await PostgresqlService.getTableIndexes(db, table, datasource.schema);
                             if(tableIndexes) indexes.set(table, tableIndexes);
                         })
                     );
@@ -77,7 +78,7 @@ export class AiService {
                     role: "system",
                     content: `Analyse cette requete SQL pour identifier les problemes de performance (scans sequentiels,
                     index manquants, jointures couteuses, etc.) et propose des optimisations concretes (ajout d'index,
-                    reecriture de la requete, etc.). Sois precis et justifie chaque suggestion.${indexesStatsFormatted.length > 0 ? `
+                    reecriture de la requete, etc.). Sois precis et justifie chaque suggestion.${indexesStatsFormatted && indexesStatsFormatted.length > 0 ? `
                     Pour t'aider dans l'analyse, voici les statistiques des index de chaque table de la requete : ${JSON.stringify(indexesStatsFormatted)}.` : ''}
                     Chaque partie de ta reponse devra etre aeree visuellement, pour rendre la lecture confortable.
                     ${preferedLanguage ? `Pour finir, l'utilisateur souhaite que l'analyse soit dans la langue suivante : ${preferedLanguage}`: ""}
@@ -129,7 +130,7 @@ export class AiService {
 
                     await Promise.all(
                         tables.map(async (table) => {
-                            const tableIndexes = await PostgresqlService.getTableIndexes(db, table);
+                            const tableIndexes = await PostgresqlService.getTableIndexes(db, table, datasource.schema);
                             if(tableIndexes) indexes.set(table, tableIndexes);
                         })
                     );
@@ -152,10 +153,12 @@ export class AiService {
             ? availableCountries.find(a => a.code === ParametersService.getByCode(ParametersEnum.AI_DEFAULT_LANGAGE)!.value)?.name
             : null;
 
+        console.log(indexesStatsFormatted, preferedLanguage)
+
         try {
             const prompt = `Analyse cette requete SQL pour identifier les probl\u00e8mes de performance (scans sequentiels,
                         index manquants, jointures co\u00fbteuses, etc.) et propose des optimisations concr\u00e8tes (ajout d'index,
-                        reecriture de la requete, etc.). Sois precis et justifie chaque suggestion.${indexesStatsFormatted.length > 0 ? `
+                        reecriture de la requete, etc.). Sois precis et justifie chaque suggestion.${indexesStatsFormatted && indexesStatsFormatted.length > 0 ? `
                         Pour t'aider dans l'analyse, voici les statistiques des index de chaque table de la requete : ${JSON.stringify(indexesStatsFormatted)}.` : ''}
                         Chaque partie de ta reponse devra etre aeree visuellement, pour rendre la lecture confortable.
                         ${preferedLanguage ? `Pour finir, et c'est tres important, l'utilisateur souhaite que l'analyse soit écrite dans la langue suivante : ${preferedLanguage}`: ""}

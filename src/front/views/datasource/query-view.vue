@@ -265,9 +265,9 @@ onMounted(() => {
         </SidebarPanel>
       </SidebarAside>
     </Sidebar>
-    <SidebarMain class="dba-sidebar-aside-content mt-2 mr-2 bg-transparent! max-h-[100dvh] overflow-auto">
+    <SidebarMain class="dba-sidebar-aside-content mt-2 mr-2 bg-transparent! overflow-auto">
       <!-- Éditeur de requêtes -->
-      <div class="flex-1 flex flex-col gap-4 mt-4 min-h-0">
+      <div class="flex-1 flex flex-col gap-4 my-4 min-h-0">
         <div class="flex justify-between items-center">
           <span class="text-lg title font-medium flex items-center gap-2">
             SQL Executor
