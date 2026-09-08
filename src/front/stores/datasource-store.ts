@@ -112,11 +112,13 @@ export const useDatasourcesStore = defineStore('datasources', {
             this.aiStreamError = null;
             this.currentRequestId = crypto.randomUUID();
 
+            if(!this.datasourceChoosen) return;
+
             try {
                 // Démarrer le stream via IPC
                 const { requestId } = await IpcUtils.send(
                     IpcRoutes.DATASOURCE_ASK_AI_QUERY_STREAM_START,
-                    { query, datasourceId: this.datasourceChoosen?.id.toString(), requestId: this.currentRequestId }
+                    { query, datasourceId: this.datasourceChoosen.id.toString(), requestId: this.currentRequestId }
                 );
 
                 // S'abonner aux événements de streaming
