@@ -23,6 +23,7 @@ const createWindow = () => {
     title: 'DBA-APP',
     width: 1000,
     height: 800,
+    resizable: false,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

@@ -228,6 +228,8 @@ export default class PostgresqlService {
                 Number.parseFloat(row.live_rows),
                 Number.parseFloat(row.dead_rows),
                 row.last_analyze,
+                row.last_autoanalyze,
+                row.last_vacuum,
                 row.last_autovacuum
             );
         } catch (err) {

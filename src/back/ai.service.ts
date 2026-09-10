@@ -4,8 +4,6 @@ import PostgresqlService from "./postgresql.service";
 import {TableIndexesDto} from "../commons/data/dto/table-indexes-dto";
 import {ParametersEnum} from "../commons/data/dto/parameters-enum";
 import {ParametersService} from "./parameters.service";
-import {ParameterDto} from "../commons/data/dto/parameter-dto";
-import {data} from "autoprefixer";
 
 const {Mistral} = require("@mistralai/mistralai")
 

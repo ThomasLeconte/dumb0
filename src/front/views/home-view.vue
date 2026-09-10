@@ -124,8 +124,8 @@ function showSettingsDialog() {
       <div class="home-background"></div>
 
       <div class="absolute w-full top-0 p-2 flex justify-end gap-2">
-        <Button iconOnly outlined severity="secondary" @click="goToGithub"><Github /></Button>
-        <Button iconOnly outlined severity="secondary" @click="showSettingsDialog"><Cog /></Button>
+        <Button iconOnly outlined severity="contrast" @click="goToGithub"><Github /></Button>
+        <Button iconOnly outlined severity="contrast" @click="showSettingsDialog"><Cog /></Button>
       </div>
 
       <div class="title flex flex-col justify-center items-center">
@@ -179,6 +179,10 @@ function showSettingsDialog() {
                   <div class="datasource-details">
                     <span class="datasource-details-title title">Port</span>
                     <span class="datasource-details-value">{{item.port}}</span>
+                  </div>
+                  <div class="datasource-details">
+                    <span class="datasource-details-title title">Schema</span>
+                    <span class="datasource-details-value">{{item.schema}}</span>
                   </div>
                   <div class="datasource-details">
                     <span class="datasource-details-title title">Username</span>

@@ -1,5 +1,4 @@
 import {defineStore} from "pinia";
-import {computed, ref} from "vue";
 import {DatasourceDto} from "../../commons/data/dto/datasource-dto";
 import {CreateDatasourceFormDto} from "../../commons/data/dto/forms/create-datasource-form-dto";
 import {DatasourceStatsDto} from "../../commons/data/dto/datasource-stats-dto";
@@ -9,7 +8,7 @@ import {IpcUtils} from "./ipc-utils";
 import {CreateQueryFormDto} from "../../commons/data/dto/forms/create-query-form-dto";
 import {DatasourceSavedQueryDto} from "../../commons/data/dto/datasource-saved-query-dto";
 import DOMPurify from 'dompurify';
-import { Converter } from "showdown";
+import {Converter} from "showdown";
 
 export const useDatasourcesStore = defineStore('datasources', {
     state: () => ({

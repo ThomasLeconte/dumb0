@@ -54,6 +54,15 @@ function showDialog() {
       <template v-else-if="'BLOAT' === model">
         <strong>BLOAT</strong> in PostgreSQL is the wasted space and inefficiency caused by dead rows (from updates/deletes) and fragmentation that make tables and indexes larger than necessary. This slows down queries and increases storage usage until cleaned up by operations like <code>VACUUM</code>.
       </template>
+      <template v-else-if="'INDEX-STATS' === model">
+        <p>
+          <code>Disk read</code>: Number of disk blocks read from disk (high values may indicate cache issues). Values can be increased when
+        </p>
+        <p class="my-2">
+          <code>Cache read</code>: Number of index blocks read from memory cache (higher is better for performance).
+        </p>
+        <p class="italic text-xs">Note: If disk or cache read are > 0, but index scan is not scanned, the index is still being used (e.g., for bitmap heap scans, sorting, or joins), just not for direct scans.</p>
+      </template>
     </div>
 
     <template #footer>

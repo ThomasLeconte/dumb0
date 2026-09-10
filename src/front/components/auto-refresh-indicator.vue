@@ -2,7 +2,7 @@
 import {computed} from "vue";
 import {useSettingsStore} from "../stores/settings-store";
 import {Clock, Refresh} from "@primeicons/vue";
-import {Button} from "primevue";
+import {Chip} from "primevue";
 
 const settingsStore = useSettingsStore();
 
@@ -31,7 +31,7 @@ const iconClass = computed(() => {
 
 <template>
   <div v-tooltip.bottom="tooltipText" class="flex items-center justify-center p-2 cursor-default">
-    <Chip ><Clock :class="iconClass" :size="20" /></Chip>
+    <Clock :class="iconClass" :size="20" />
   </div>
 </template>
 

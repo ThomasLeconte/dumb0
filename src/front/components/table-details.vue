@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import Help from "./help.vue";
   import {useTablesStore} from "../stores/tables-store";
-  import {Card, Divider, Chip, DataTable, Column, Button, useToast} from "primevue";
+  import {Card, Divider, Chip, DataTable, Column, Button, Message, useToast} from "primevue";
   import {CheckCircle, TimesCircle, ExclamationCircle, Refresh, Table} from '@primeicons/vue'
   import {onMounted, computed, onUnmounted, watch} from "vue";
   import {useDatasourcesStore} from "../stores/datasource-store";
@@ -60,6 +60,13 @@
     tablesStore.getTableStats(datasourceStore.datasourceChoosen!.id, props.tableName)
   }
 
+  function getMostRecentDate(d1: Date, d2: Date) {
+    if(!d1 && !d2) return null;
+    if(!d1 && d2) return d2;
+    if(d1 && !d2) return d1;
+    return d1.getTime() > d2.getTime() ? d1 : d2;
+  }
+
   function formatQuantity(n: number) {
     return n.toLocaleString('en-US', {
       notation: "compact",
@@ -73,15 +80,17 @@
   }
 
   const lastAnalyzeTooOld = computed(() => {
-    if(!rowsStats.value || !rowsStats.value.lastAnalyze) return true;
-    const diff = new Date().getTime() - rowsStats.value.lastAnalyze.getTime();
+    if(!rowsStats.value || (!rowsStats.value.lastAnalyze && !rowsStats.value.lastAutoAnalyze)) return true;
+    const lastAnalyze = getMostRecentDate(rowsStats.value.lastAnalyze, rowsStats.value.lastAutoAnalyze);
+    const diff = new Date().getTime() - lastAnalyze.getTime();
     // if last analyze is 1 month old
     if(diff > 2629746000) return true;
   })
 
   const generalSeverity = computed(() => {
-    if (lastAnalyzeTooOld.value || rowStatsSeverity.value !== 'success' || indexesStatsSeverity.value !== 'success') return "warning";
-    else if (lastAnalyzeTooOld.value && rowStatsSeverity.value !== 'success' && indexesStatsSeverity.value !== 'success') return "danger";
+    const lastAnalyze = getMostRecentDate(rowsStats.value.lastAnalyze, rowsStats.value.lastAutoAnalyze);
+    if (lastAnalyze || rowStatsSeverity.value !== 'success' || indexesStatsSeverity.value !== 'success') return "warning";
+    else if (lastAnalyze && rowStatsSeverity.value !== 'success' && indexesStatsSeverity.value !== 'success') return "danger";
     else return "success"
   })
 
@@ -105,6 +114,18 @@
     }
   })
 
+  const ioStatsSeverity = computed(() => {
+    if(ioStats.value == null) return null;
+    if(rowsStats.value === null) return null;
+    if(diskCacheHitRatio.value == null) return null;
+    if(rowsStats.value.activeRows > 0) {
+      if (diskCacheHitRatio.value === 0) return "danger";
+      if (diskCacheHitRatio.value > 25) return "warning";
+      if (diskCacheHitRatio.value > 50) return "success";
+    }
+    return "success";
+  });
+
   const diskCacheHitRatio = computed(() => {
     if(ioStats.value == null) return null;
     if(ioStats.value.cacheIndexBlocksRead === 0 && ioStats.value.cachediskBlocksRead === 0) return 0;
@@ -123,6 +144,9 @@
       </div>
       <Divider />
     </div>
+
+    <Message severity="warn" v-if="!rowsStats.lastAnalyze && !rowsStats.lastAutoAnalyze">This table has never been analyzed. Following stats should be wrong!</Message>
+    <Message severity="warn" v-if="(rowsStats.lastAnalyze || rowsStats.lastAutoAnalyze) && lastAnalyzeTooOld">Last analyze on this table is too old (more than 1 month). Following stats should be wrong!</Message>
 
     <Card class="mt-2 mb-10 border-2 border-gray-200">
       <template #title>
@@ -148,7 +172,7 @@
                   <Chip v-if="lastAnalyzeTooOld" v-tooltip.bottom="'Analyze never made or too old!'" class="bg-red-50! dark:bg-red-950! text-red-700! dark:text-red-300!">
                     <template #icon><TimesCircle /></template>
                   </Chip>
-               <span v-if="rowsStats">{{formatDate(rowsStats.lastAnalyze)}}</span>
+               <span v-if="rowsStats">{{formatDate(getMostRecentDate(rowsStats.lastAnalyze,rowsStats.lastAutoAnalyze))}}</span>
             </span>
           </div>
 
@@ -249,8 +273,14 @@
         <template #title>
           <div class="flex justify-between items-start">
             <span class="title">I/O</span>
-            <Chip class="bg-orange-100! dark:bg-orange-950! text-orange-700! dark:text-orange-300!">
+            <Chip v-if="ioStatsSeverity === 'danger'" v-tooltip.bottom="'Cache is never used!'" class="bg-orange-100! dark:bg-orange-950! text-orange-700! dark:text-orange-300!">
               <template #icon><ExclamationCircle /></template>
+            </Chip>
+            <Chip v-if="ioStatsSeverity === 'warning'" v-tooltip.bottom="'Cache is not enough used, consider upgrading shared-buffers of server!'" class="bg-red-50! dark:bg-red-950! text-red-700! dark:text-red-300!">
+              <template #icon><TimesCircle /></template>
+            </Chip>
+            <Chip v-else v-tooltip.bottom="'Cache is nicely used!'" class="bg-green-50! dark:bg-green-950! text-green-700! dark:text-green-300!">
+              <template #icon><CheckCircle /></template>
             </Chip>
           </div>
         </template>
@@ -305,7 +335,7 @@
     <Card class="w-full my-2" v-if="indexesStats">
       <template #title>
         <div class="flex justify-between items-start">
-          <span class="title">Indexes ({{indexesStats.length}})</span>
+          <span class="title">Indexes ({{indexesStats.length}})<Help model="INDEX-STATS"/></span>
           <Chip v-if="indexesStatsSeverity === 'warning'" v-tooltip.bottom="'One or more indexes unused'" class="bg-orange-100! dark:bg-orange-950! text-orange-700! dark:text-orange-300!">
             <template #icon><ExclamationCircle /></template>
           </Chip>

@@ -6,7 +6,6 @@ import { safeStorage, app } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import { MigrationRunner } from "./migrations/migration-runner";
-import {ParametersEnum} from "../commons/data/dto/parameters-enum";
 
 const APP_DATA_DIR = 'dba-app';
 
@@ -211,8 +210,7 @@ export class SqliteService {
         const db = this.getDatabase();
 
         try {
-            // Chiffrer le nouveau mot de passe avec vérification
-            let encryptedPassword: string;
+            let encryptedPassword: any;
             try {
                 encryptedPassword = safeStorage.encryptString(form.password);
                 if (!encryptedPassword || encryptedPassword.length === 0) {

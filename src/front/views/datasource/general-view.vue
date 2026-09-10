@@ -1,7 +1,17 @@
 <script setup lang="ts">
 import {useDatasourcesStore} from "../../stores/datasource-store";
 import {computed, onMounted, onUnmounted, watch} from "vue";
-import {Box, CheckCircle, ExclamationCircle, ListOl, ListTree, Refresh, SignOut, Table} from "@primeicons/vue";
+import {
+  Box,
+  CheckCircle,
+  ExclamationCircle,
+  ListOl,
+  ListTree,
+  Refresh,
+  SignOut,
+  Table,
+  TimesCircle
+} from "@primeicons/vue";
 import {Button, Card, Chip, Column, DataTable, Divider, useToast} from "primevue";
 import {useSettingsStore} from "../../stores/settings-store";
 import {ParametersEnum} from "../../../commons/data/dto/parameters-enum";
@@ -119,9 +129,6 @@ onUnmounted(() => {
         <template #title>
           <div class="flex justify-between items-start">
             <span class="section-title">Connections ({{connections.length}})</span>
-            <Chip class="bg-orange-100! dark:bg-orange-950! text-orange-700! dark:text-orange-300!">
-              <template #icon><ExclamationCircle /></template>
-            </Chip>
           </div>
         </template>
         <template #content>
@@ -158,8 +165,11 @@ onUnmounted(() => {
         <template #title>
           <div class="flex justify-between items-start">
             <span class="section-title">Locks ({{locks?.length || 0}})</span>
-            <Chip class="bg-orange-100! dark:bg-orange-950! text-orange-700! dark:text-orange-300!">
-              <template #icon><ExclamationCircle /></template>
+            <Chip v-if="locks && locks.length > 0" v-tooltip.bottom="'There is locks on this database!'" class="bg-red-50! dark:bg-red-950! text-red-700! dark:text-red-300!">
+              <template #icon><TimesCircle /></template>
+            </Chip>
+            <Chip v-else v-tooltip.bottom="'Everything is under control!'" class="bg-green-50! dark:bg-green-950! text-green-700! dark:text-green-300!">
+              <template #icon><CheckCircle /></template>
             </Chip>
           </div>
         </template>
@@ -172,6 +182,9 @@ onUnmounted(() => {
                 <Column field="username" header="Username" />
                 <Column field="applicationName" header="Application" />
                 <Column field="queryStart" header="Query start" />
+                <template #empty>
+                  <div class="text-lg text-gray-400 font-light text-center my-2">Any item...</div>
+                </template>
               </DataTable>
             </div>
           </div>
