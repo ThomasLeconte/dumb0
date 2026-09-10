@@ -1,135 +1,135 @@
 <p align="center">
   <h1 align="center">DBA App</h1>
-  <p align="center">Un aperçu simple et rapide de votre base de données PostgreSQL — pensé pour les DBAs, les développeurs et les curieux.</p>
+  <p align="center">A simple and quick overview of your PostgreSQL database — built for DBAs, developers, and the curious.</p>
   <p align="center">
-    <a href="#-fonctionnalités">Fonctionnalités</a> ·
-    <a href="#-captures-décran">Captures d'écran</a> ·
+    <a href="#-features">Features</a> ·
+    <a href="#-screenshots">Screenshots</a> ·
     <a href="#-installation">Installation</a> ·
-    <a href="#-licence">Licence</a>
+    <a href="#-license">License</a>
   </p>
 </p>
 
 ---
 
-## 🎯 Pourquoi DBA App ?
+## 🎯 Why DBA App?
 
-Piloter une base PostgreSQL, c'est souvent jongler entre `psql`, pgAdmin, Datadog et une poignée de scripts maison. **DBA App** rassemble l'essentiel dans une application de bureau légère et locale : un tableau de bord clair pour visualiser l'état de votre base en un coup d'œil, comprendre ce qui se passe sous le capot, et agir vite quand quelque chose cloche.
+Running a PostgreSQL database usually means juggling between `psql`, pgAdmin, Datadog, and a handful of home-grown scripts. **DBA App** brings the essentials together in a lightweight, local desktop application: a clear dashboard to visualize the state of your database at a glance, understand what's happening under the hood, and act fast when something goes wrong.
 
-Pas de cloud, pas de compte à créer, pas de données qui quittent votre machine. Vous connectez votre base, et c'est tout.
+No cloud, no account to create, no data leaving your machine. You connect your database, and that's it.
 
-> Conçue pour celles et ceux qui veulent **un aperçu simple et rapide** de leur base de données — sans usine à gaz.
+> Designed for those who want **a simple and quick overview** of their database — no bloat, no overkill.
 
 ---
 
-## ✨ Fonctionnalités
+## ✨ Features
 
-### 📊 Tableau de bord général
-Dès la connexion, un panorama complet de votre base :
-- Compteurs clés : **nombre de tables**, **nombre d'index**, **taille totale**, **shared buffers**
-- Liste des **connexions actives** (utilisateur, application, IP, date de début) avec possibilité de déconnecter une session
-- Suivi des **verrous (locks)** en temps réel, avec alerte visuelle quand des verrous bloquent la base
-- Détection automatique de l'extension **`pg_stat_statements`** pour savoir si l'analyse fine des requêtes est disponible
+### 📊 General dashboard
+Right after connecting, a full panorama of your database:
+- Key counters: **number of tables**, **number of indexes**, **total size**, **shared buffers**
+- List of **active connections** (user, application, IP, start date) with the ability to disconnect a session
+- Real-time **locks** tracking, with a visual alert when locks are blocking the database
+- Automatic detection of the **`pg_stat_statements`** extension to know whether fine-grained query analysis is available
 
-![Tableau de bord général](docs/screenshots/general.png)
+![General dashboard](docs/screenshots/general.png)
 
-### 🗂️ Inspection par table
-Plongez dans chaque table individuellement :
-- **Taille** : total, données et index
-- **Statistiques de lignes** (insertions, mises à jour, suppressions, scans)
-- **Statistiques d'I/O** : scans séquentiels vs index, blocs lus sur disque vs en cache
-- **Index** : définition de chaque index de la table
-- **Verrous** spécifiques à la table
+### 🗂️ Per-table inspection
+Dive into each table individually:
+- **Size**: total, data, and index
+- **Row statistics** (insertions, updates, deletions, scans)
+- **I/O statistics**: sequential scans vs index scans, blocks read from disk vs cache
+- **Indexes**: definition of every index on the table
+- **Locks** specific to the table
 
-![Inspection d'une table](docs/screenshots/table-details.png)
+![Table inspection](docs/screenshots/table-details.png)
 
-### 🧪 Éditeur de requêtes SQL
-Un éditeur complet, propulsé par **Monaco** (le moteur de VS Code) :
-- Coloration syntaxique, autocomplétion, multi-curseurs
-- **Exécution** des requêtes avec mesure du temps et du nombre de lignes
-- **Historique** des requêtes exécutées
-- **Sauvegarde et réutilisation** de vos requêtes favorites
-- **Garde-fou intégré** : les requêtes potentiellement destructrices sont bloquées avant exécution
-- Copie des résultats en un clic
+### 🧪 SQL Query editor
+A full-featured editor, powered by **Monaco** (the engine behind VS Code):
+- Syntax highlighting, autocompletion, multi-cursor
+- **Execute** queries with timing and row count
+- **History** of executed queries
+- **Save and reuse** your favorite queries
+- **Built-in guardrail**: potentially destructive queries are blocked before execution
+- Copy results in one click
 
-![Éditeur de requêtes](docs/screenshots/query-view.png)
+![Query editor](docs/screenshots/query-view.png)
 
-### 🤖 Assistant IA intégré
-Un coup de pouce de l'IA pour comprendre et optimiser vos requêtes :
-- **Analyse de requête** : explication, points d'attention, suggestions d'optimisation
-- **Suggestions d'index** contextuelles, basées sur les tables réellement interrogées
-- Réponses rendues en **Markdown** propre, directement dans l'app
-- Propulsé par **Mistral AI** — il suffit de renseigner votre clé API dans les paramètres
+### 🤖 Built-in AI assistant
+A helping hand from AI to understand and optimize your queries:
+- **Query analysis**: explanation, points of attention, optimization suggestions
+- Contextual **index suggestions**, based on the tables actually queried
+- Clean **Markdown** rendering of the answers, right inside the app
+- Powered by **Mistral AI** — just set your API key in the settings
 
-![Assistant IA](docs/screenshots/ai-assistant.png)
+![AI assistant](docs/screenshots/ai-assistant.png)
 
 ### 🔄 Auto-refresh
-- Rafraîchissement automatique et configurable des indicateurs (intervalle personnalisable)
-- Indicateur visuel en temps réel de l'état du rafraîchissement
-- Idéal pour monitorer une base en continu sans cliquer sur « Reload »
+- Automatic and configurable refresh of indicators (custom interval)
+- Real-time visual indicator of the refresh status
+- Ideal for monitoring a database continuously without clicking "Reload"
 
-### 🔌 Gestion multi-datasources
-- Connectez **plusieurs bases PostgreSQL** et basculez entre elles instantanément
-- Connexions **stockées localement** (base SQLite embarquée) — vos identifiants ne quittent jamais votre machine
-- Duplication, édition et suppression de vos connexions en quelques clics
+### 🔌 Multi-datasource management
+- Connect **multiple PostgreSQL databases** and switch between them instantly
+- Connections **stored locally** (embedded SQLite database) — your credentials never leave your machine
+- Duplicate, edit, and delete your connections in a few clicks
 
-### 🎨 Interface soignée
-- UI moderne avec **PrimeVue** et **Tailwind CSS**
-- **Mode sombre / clair** pris en charge
-- Application de bureau native multiplateforme : **Windows, macOS, Linux**
+### 🎨 Polished interface
+- Modern UI with **PrimeVue** and **Tailwind CSS**
+- **Dark / light mode** supported
+- Native cross-platform desktop application: **Windows, macOS, Linux**
 
 ---
 
-## 🛠️ Stack technique
+## 🛠️ Tech stack
 
-| Domaine | Technologie |
+| Area | Technology |
 | --- | --- |
-| Application desktop | **Electron** + Electron Forge |
+| Desktop app | **Electron** + Electron Forge |
 | Frontend | **Vue 3** + TypeScript |
 | UI | **PrimeVue**, **Tailwind CSS** |
-| Éditeur SQL | **Monaco Editor** |
-| Bases distantes | **PostgreSQL** (`pg`) |
-| Stockage local | **SQLite** (`better-sqlite3`) |
-| IA | **Mistral AI** |
+| SQL editor | **Monaco Editor** |
+| Remote databases | **PostgreSQL** (`pg`) |
+| Local storage | **SQLite** (`better-sqlite3`) |
+| AI | **Mistral AI** |
 
 ---
 
 ## 🚀 Installation
 
-### Prérequis
+### Prerequisites
 - [Node.js](https://nodejs.org/) (>= 18)
-- Une base PostgreSQL accessible
+- An accessible PostgreSQL database
 
-### Lancer en développement
+### Run in development
 ```bash
 npm install
 npm start
 ```
 
-### Compiler une version installable
+### Build an installable version
 ```bash
 npm run make
 ```
-Les artefacts (`.exe` / `.deb` / `.rpm` / `.app`) sont générés dans le dossier `out/make/`.
+Artifacts (`.exe` / `.deb` / `.rpm` / `.app`) are generated in the `out/make/` folder.
 
 ---
 
-## 📸 Captures d'écran
+## 📸 Screenshots
 
-> Les illustrations ci-dessous (emplacements `docs/screenshots/`) seront ajoutées prochainement.
+> The illustrations below (located in `docs/screenshots/`) will be added soon.
 
-- [Tableau de bord général](docs/screenshots/general.png)
-- [Inspection d'une table](docs/screenshots/table-details.png)
-- [Éditeur de requêtes](docs/screenshots/query-view.png)
-- [Assistant IA](docs/screenshots/ai-assistant.png)
-
----
-
-## 🤝 Contribution
-
-Les contributions sont les bienvenues ! Forkez le dépôt, créez une branche, et ouvrez une pull request.
+- [General dashboard](docs/screenshots/general.png)
+- [Table inspection](docs/screenshots/table-details.png)
+- [Query editor](docs/screenshots/query-view.png)
+- [AI assistant](docs/screenshots/ai-assistant.png)
 
 ---
 
-## 📄 Licence
+## 🤝 Contributing
 
-Distribué sous licence **MIT**. Voir le fichier [`LICENSE`](LICENSE).
+Contributions are welcome! Fork the repository, create a branch, and open a pull request.
+
+---
+
+## 📄 License
+
+Distributed under the **MIT** license. See the [`LICENSE`](LICENSE) file.
