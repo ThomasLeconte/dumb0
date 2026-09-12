@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center">Elephant</h1>
+  <h1 align="center">Dumb0</h1>
   <p align="center">A simple and quick overview of your PostgreSQL database — built for DBAs, developers, and the curious.</p>
   <p align="center">
     <a href="#-features">Features</a> ·
@@ -11,9 +11,9 @@
 
 ---
 
-## 🎯 Why Elephant?
+## 🎯 Why Dumb0?
 
-Running a PostgreSQL database usually means juggling between `psql`, pgAdmin, Datadog, and a handful of home-grown scripts. **Elephant** brings the essentials together in a lightweight, local desktop application: a clear dashboard to visualize the state of your database at a glance, understand what's happening under the hood, and act fast when something goes wrong.
+Running a PostgreSQL database usually means juggling between `psql`, pgAdmin, Datadog, and a handful of home-grown scripts. **Dumb0** brings the essentials together in a lightweight, local desktop application: a clear dashboard to visualize the state of your database at a glance, understand what's happening under the hood, and act fast when something goes wrong.
 
 No cloud, no account to create, no data leaving your machine. You connect your database, and that's it.
 

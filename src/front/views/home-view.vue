@@ -129,7 +129,7 @@ function showSettingsDialog() {
       </div>
 
       <div class="title flex flex-col justify-center items-center">
-        <div class="text-5xl title">Elephant</div>
+        <div class="text-5xl title">Dumb0</div>
         <div class="text-xl">Manage your PostgreSQL database like a pro 🐘</div>
       </div>
 
