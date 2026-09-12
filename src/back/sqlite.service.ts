@@ -2,7 +2,8 @@ import {Database} from "better-sqlite3";
 import { DatasourceDto } from "../commons/data/dto/datasource-dto";
 import { CreateDatasourceFormDto } from "../commons/data/dto/forms/create-datasource-form-dto";
 import PostgresqlService from "./postgresql.service";
-import { safeStorage, app } from 'electron';
+import { app } from 'electron';
+import { CryptoService } from "./crypto.service";
 import path from 'node:path';
 import fs from 'node:fs';
 import { MigrationRunner } from "./migrations/migration-runner";
@@ -69,7 +70,7 @@ export class SqliteService {
             }
 
             const datasources = rows.map((row: any) => {
-                const decryptedPassword = safeStorage.decryptString(row.password);
+                const decryptedPassword = CryptoService.decryptString(row.password);
                 return new DatasourceDto(
                     row.id,
                     row.name,
@@ -105,7 +106,7 @@ export class SqliteService {
                 return Promise.resolve(null);
             }
 
-            const decryptedPassword = safeStorage.decryptString(row.password);
+            const decryptedPassword = CryptoService.decryptString(row.password);
             return Promise.resolve(new DatasourceDto(
                 row.id,
                 row.name,
@@ -142,9 +143,9 @@ export class SqliteService {
             }
 
             // Chiffrement sécurisé du mot de passe avec vérification
-            let encryptedPassword: Buffer;
+            let encryptedPassword: string;
             try {
-                encryptedPassword = safeStorage.encryptString(form.password);
+                encryptedPassword = CryptoService.encryptString(form.password);
                 if (!encryptedPassword || encryptedPassword.length === 0) {
                     throw new Error('Password encryption failed - empty result');
                 }
@@ -210,9 +211,9 @@ export class SqliteService {
         const db = this.getDatabase();
 
         try {
-            let encryptedPassword: any;
+            let encryptedPassword: string;
             try {
-                encryptedPassword = safeStorage.encryptString(form.password);
+                encryptedPassword = CryptoService.encryptString(form.password);
                 if (!encryptedPassword || encryptedPassword.length === 0) {
                     throw new Error('Password encryption failed - empty result');
                 }

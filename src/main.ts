@@ -1,4 +1,4 @@
-import {app, BrowserWindow, dialog, ipcMain, safeStorage} from 'electron';
+import {app, BrowserWindow, dialog, ipcMain} from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import PostgresqlService from "./back/postgresql.service";
@@ -45,16 +45,14 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
-  if (!safeStorage.isEncryptionAvailable()) {
-    console.error(
-      '\u274c ERREUR CRITIQUE: Le chiffrement des données sensibles n\'est pas disponible sur cette machine.'
-    );
-
+  try {
+    CryptoService.init();
+  } catch (err) {
+    console.error('\u274c ERREUR CRITIQUE: Impossible d\'initialiser le chiffrement.', err);
     await dialog.showErrorBox(
-      'Erreur de sécurité',
-      'Le chiffrement des données sensibles n\'est pas disponible sur cette machine. ' +
-      'L\'application ne peut pas démarrer sans cette protection. ' +
-      'Veuillez vérifier que votre système d\'exploitation est à jour.'
+      'Erreur de s\u00e9curit\u00e9',
+      'Impossible d\'initialiser le chiffrement des donn\u00e9es sensibles. ' +
+      'V\u00e9rifiez les permissions d\'écriture dans votre dossier utilisateur.'
     );
     app.quit();
     return;

@@ -1,7 +1,7 @@
 import {SqliteService} from "./sqlite.service";
 import {ParameterDto} from "../commons/data/dto/parameter-dto";
-import { safeStorage, app } from 'electron';
 import {ParametersEnum} from "../commons/data/dto/parameters-enum";
+import {CryptoService} from "./crypto.service";
 
 export class ParametersService {
     public static getAll() {
@@ -14,7 +14,7 @@ export class ParametersService {
                 if(ParametersEnum.AI_API_KEY === row.code) {
                     let value = row.value as any;
                     if(value && value !== '') {
-                        value = safeStorage.decryptString(row.value);
+                        value = CryptoService.decryptString(row.value);
                         value = "*".repeat(value.length - 4) + value.substring(value.length - 3, value.length)
                     }
                     return new ParameterDto(ParametersEnum.AI_API_KEY.toString(), value);
@@ -41,7 +41,7 @@ export class ParametersService {
                 if(value && value !== '') {
                     const obfuscedRegex = /[*]{2,}/gm;
                     if(!(value as string).match(obfuscedRegex)) {
-                        value = safeStorage.encryptString(value);
+                        value = CryptoService.encryptString(value);
                     } else {
                         value = actualParameter?.value
                     }
@@ -64,7 +64,7 @@ export class ParametersService {
 
         let value = row.value;
         if(ParametersEnum.AI_API_KEY.toString() === row.code) {
-            if(value && value !== '') value = safeStorage.decryptString(row.value);
+            if(value && value !== '') value = CryptoService.decryptString(row.value);
         }
 
         return new ParameterDto(row.code, value);
