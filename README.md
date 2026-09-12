@@ -111,6 +111,30 @@ npm run make
 ```
 Artifacts (`.exe` / `.deb` / `.rpm` / `.app`) are generated in the `out/make/` folder.
 
+### 🍎 macOS: running the unsigned app
+
+The app is **not code-signed** (no Apple Developer certificate is required to build it). On macOS, Gatekeeper will therefore block the app on first launch with the message *"my-vue-app cannot be opened because the developer cannot be verified"*.
+
+To run it, you need to **remove the quarantine attribute** that macOS attaches to downloaded apps. Two options:
+
+**Option A — Terminal (recommended):**
+```bash
+xattr -cr /path/to/my-vue-app.app
+```
+This removes the `com.apple.quarantine` extended attribute recursively, after which the app launches normally.
+
+**Option B — Finder:**
+Right-click the app → **Open** → confirm **Open anyway** in the dialog that appears. This only needs to be done once.
+
+> 💡 The quarantine attribute is only set on apps transferred to your Mac (downloaded, AirDrop, USB, etc.). An app built and run on the same machine is generally not quarantined.
+
+If you want to **self-sign** the app for your own use (avoids the warning on your machine, still requires the quarantine step on other machines):
+```bash
+npm run make
+codesign --force --deep --sign - "out/my-vue-app-darwin-arm64/my-vue-app.app"
+```
+The `-` signs with an ad-hoc identity (no certificate needed). Requires the macOS Command Line Tools (`xcode-select --install`).
+
 ---
 
 ## 📸 Screenshots
