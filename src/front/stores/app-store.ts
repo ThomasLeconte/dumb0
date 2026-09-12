@@ -5,7 +5,7 @@ import {IpcUtils} from "./ipc-utils";
 export const useAppStore = defineStore('appStore', {
     actions: {
         setTitle(title: string) {
-            return IpcUtils.send(IpcRoutes.APP_SET_TITLE, {title: `DBAPP - ${title}`});
+            return IpcUtils.send(IpcRoutes.APP_SET_TITLE, {title: `DUMBØ - ${title}`});
         }
     }
 })

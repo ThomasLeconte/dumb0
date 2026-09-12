@@ -20,7 +20,7 @@ const windowMap = new Map<number, Electron.WebContents>();
 const createWindow = () => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    title: 'DBA-APP',
+    title: 'DUMBØ',
     width: 1000,
     height: 800,
     resizable: false,

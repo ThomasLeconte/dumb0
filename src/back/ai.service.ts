@@ -1,15 +1,14 @@
-import {ChatCompletionResponse} from "@mistralai/mistralai/models/components";
 import {SqliteService} from "./sqlite.service";
 import PostgresqlService from "./postgresql.service";
 import {TableIndexesDto} from "../commons/data/dto/table-indexes-dto";
 import {ParametersEnum} from "../commons/data/dto/parameters-enum";
 import {ParametersService} from "./parameters.service";
 
-const {Mistral} = require("@mistralai/mistralai")
+const {Mistral, ChatCompletionResponse} = require("@mistralai/mistralai")
 
 export class AiService {
 
-    private static cache = new Map<string, ChatCompletionResponse>();
+    private static cache = new Map<string, typeof ChatCompletionResponse>();
     private static activeStreams = new Map<string, AbortController>();
 
     public static getMistralClient() {
@@ -21,7 +20,7 @@ export class AiService {
         })
     }
 
-    public static async analyzeQuery(args: { query: string; datasourceId?: string }): Promise<ChatCompletionResponse> {
+    public static async analyzeQuery(args: { query: string; datasourceId?: string }): Promise<typeof ChatCompletionResponse> {
         const {query, datasourceId} = args;
 
         // Si une datasourceId est fournie, récupérer les stats des index
