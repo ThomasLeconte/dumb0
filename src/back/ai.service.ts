@@ -1,26 +1,28 @@
+import {ChatCompletionResponse} from "@mistralai/mistralai/models/components";
 import {SqliteService} from "./sqlite.service";
 import PostgresqlService from "./postgresql.service";
 import {TableIndexesDto} from "../commons/data/dto/table-indexes-dto";
 import {ParametersEnum} from "../commons/data/dto/parameters-enum";
 import {ParametersService} from "./parameters.service";
 
-const {Mistral, ChatCompletionResponse} = require("@mistralai/mistralai")
+const MistralModule = import("@mistralai/mistralai");
 
 export class AiService {
 
-    private static cache = new Map<string, typeof ChatCompletionResponse>();
+    private static cache = new Map<string, ChatCompletionResponse>();
     private static activeStreams = new Map<string, AbortController>();
 
-    public static getMistralClient() {
+    public static async getMistralClient() {
         const apiKey = ParametersService.getByCode(ParametersEnum.AI_API_KEY);
         if(!apiKey) throw new Error("Missing API key setting");
 
+        const {Mistral} = await MistralModule;
         return new Mistral({
             apiKey: apiKey.value
         })
     }
 
-    public static async analyzeQuery(args: { query: string; datasourceId?: string }): Promise<typeof ChatCompletionResponse> {
+    public static async analyzeQuery(args: { query: string; datasourceId?: string }): Promise<ChatCompletionResponse> {
         const {query, datasourceId} = args;
 
         // Si une datasourceId est fournie, récupérer les stats des index
@@ -68,7 +70,8 @@ export class AiService {
             ? availableCountries.find(a => a.code === ParametersService.getByCode(ParametersEnum.AI_DEFAULT_LANGAGE)!.code)
             : null;
 
-        const response = await this.getMistralClient().chat.complete({
+        const client = await this.getMistralClient();
+        const response = await client.chat.complete({
             model: 'ministral-14b-latest',
             messages: [
                 {
@@ -161,7 +164,8 @@ export class AiService {
                         ${preferedLanguage ? `Pour finir, et c'est tres important, l'utilisateur souhaite que l'analyse soit écrite dans la langue suivante : ${preferedLanguage}`: ""}
                         Voici la requete : ${query}`;
             console.log(prompt);
-            const stream = await this.getMistralClient().chat.stream({
+            const client = await this.getMistralClient();
+            const stream = await client.chat.stream({
                 model: 'ministral-14b-latest',
                 messages: [
                     {
