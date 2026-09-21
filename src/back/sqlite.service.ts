@@ -1,0 +1,245 @@
+import {Database} from "better-sqlite3";
+import { DatasourceDto } from "../commons/data/dto/datasource-dto";
+import { CreateDatasourceFormDto } from "../commons/data/dto/forms/create-datasource-form-dto";
+import PostgresqlService from "./postgresql.service";
+import { app } from 'electron';
+import { CryptoService } from "./crypto.service";
+import path from 'node:path';
+import fs from 'node:fs';
+import { MigrationRunner } from "./migrations/migration-runner";
+
+const APP_DATA_DIR = 'dba-app';
+
+export class SqliteService {
+
+    private static db: Database | null = null;
+
+    private static getDatabasePath(): string {
+        const userDataPath = app.getPath('userData');
+        console.log(userDataPath)
+        return path.join(userDataPath, 'app.db');
+    }
+
+    static getDatabase(): Database {
+        if (!SqliteService.db) {
+            throw new Error('Database not initialized. Call SqliteService.init() first.');
+        }
+        return SqliteService.db;
+    }
+
+    /**
+     * Initialise le dossier de donnees et la base SQLite
+     * @throws {Error} Si le dossier ne peut pas etre cree
+     */
+    public static init(): void {
+        const userDataPath = app.getPath('userData');
+        const appDataDir = path.join(userDataPath, APP_DATA_DIR);
+
+        if (!fs.existsSync(appDataDir)) {
+            try {
+                fs.mkdirSync(appDataDir, { recursive: true });
+                console.log(`Dossier de donnees cree: ${appDataDir}`);
+            } catch (err) {
+                console.error(`ERREUR CRITIQUE: Impossible de creer le dossier de donnees: ${err}`);
+                throw new Error(
+                    'Impossible de creer le dossier de stockage des donnees. ' +
+                    'Verifiez les permissions d ecriture dans le dossier utilisateur.'
+                );
+            }
+        }
+
+        const Database = require("better-sqlite3")
+        const db = new Database(SqliteService.getDatabasePath());
+        db.pragma('journal_mode = WAL');
+
+        SqliteService.db = db;
+
+        MigrationRunner.run(db);
+
+        console.log('Database connected successfully');
+    }
+
+    public static getDatasources(): Promise<DatasourceDto[]> {
+        const db = this.getDatabase();
+
+        try {
+            const rows = db.prepare("SELECT * FROM datasource").all() as any[];
+
+            if (!rows || rows.length === 0) {
+                return Promise.resolve([]);
+            }
+
+            const datasources = rows.map((row: any) => {
+                const decryptedPassword = CryptoService.decryptString(row.password);
+                return new DatasourceDto(
+                    row.id,
+                    row.name,
+                    row.username,
+                    decryptedPassword,
+                    row.hostname,
+                    row.port,
+                    row.dbname,
+                    row.schema || 'public'
+                );
+            });
+
+            return Promise.resolve(datasources);
+        } catch (err) {
+            console.error('Error fetching datasources:', err);
+            return Promise.reject(new Error('Failed to fetch datasources'));
+        }
+    }
+
+    static getDatasourceById(datasourceId: string): Promise<DatasourceDto | null> {
+        const id = Number.parseInt(datasourceId);
+
+        if (isNaN(id) || id <= 0) {
+            return Promise.resolve(null);
+        }
+
+        const db = this.getDatabase();
+
+        try {
+            const row = db.prepare("SELECT * FROM datasource WHERE id = ?").get(id) as any;
+
+            if (!row) {
+                return Promise.resolve(null);
+            }
+
+            const decryptedPassword = CryptoService.decryptString(row.password);
+            return Promise.resolve(new DatasourceDto(
+                row.id,
+                row.name,
+                row.username,
+                decryptedPassword,
+                row.hostname,
+                row.port,
+                row.dbname,
+                row.schema || 'public'
+            ));
+        } catch (err) {
+            console.error('Error fetching datasource by ID:', err);
+            return Promise.reject(new Error('Failed to fetch datasource'));
+        }
+    }
+
+    static async createDatasource(args: any): Promise<void> {
+        const form = args["form"] as CreateDatasourceFormDto;
+
+        // Validation du schema pour eviter les injections SQL
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(form.schema)) {
+            throw new Error('Invalid schema name');
+        }
+
+        const db = this.getDatabase();
+
+        try {
+            await PostgresqlService.testConnection(form);
+
+            const existingDatasources = await this.getDatasources();
+            if(existingDatasources.find(d => d.name == form.name
+                || (d.hostname === form.hostname && d.dbname === form.dbname && d.username === form.username && d.port === form.port))) {
+                throw new Error("A datasource already exists with these informations!");
+            }
+
+            // Chiffrement sécurisé du mot de passe avec vérification
+            let encryptedPassword: string;
+            try {
+                encryptedPassword = CryptoService.encryptString(form.password);
+                if (!encryptedPassword || encryptedPassword.length === 0) {
+                    throw new Error('Password encryption failed - empty result');
+                }
+            } catch (encryptionError) {
+                console.error('Error encrypting password:', encryptionError);
+                throw new Error('Failed to encrypt password - secure storage not available');
+            }
+
+            const stmt = db.prepare(
+                `INSERT INTO datasource (name, username, password, hostname, port, dbname, schema)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`
+            );
+
+            stmt.run(
+                form.name,
+                form.username,
+                encryptedPassword,
+                form.hostname,
+                form.port,
+                form.dbname,
+                form.schema
+            );
+
+            console.log("success");
+        } catch (err) {
+            const message = (err as any)?.message;
+            console.error('Error creating datasource:', err);
+            throw new Error(`Failed to create datasource${message ? ' : ' + message : ''}`);
+        }
+    }
+
+    static async deleteDatasource(args: any): Promise<void> {
+        const datasourceId = args.datasourceId;
+        const id = Number.parseInt(datasourceId);
+
+        if (isNaN(id) || id <= 0) {
+            throw new Error('Invalid datasource ID');
+        }
+
+        const db = this.getDatabase();
+
+        try {
+            db.prepare("DELETE FROM datasource WHERE id = ?").run(id);
+        } catch (err) {
+            console.error('Error deleting datasource:', err);
+            throw new Error('Failed to delete datasource');
+        }
+    }
+
+    static async updateDatasource(args: any): Promise<void> {
+        const { id, form } = args;
+        const datasourceId = Number.parseInt(id);
+
+        if (isNaN(datasourceId) || datasourceId <= 0) {
+            throw new Error('Invalid datasource ID');
+        }
+
+        // Validation du schema pour eviter les injections SQL
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(form.schema)) {
+            throw new Error('Invalid schema name');
+        }
+
+        const db = this.getDatabase();
+
+        try {
+            let encryptedPassword: string;
+            try {
+                encryptedPassword = CryptoService.encryptString(form.password);
+                if (!encryptedPassword || encryptedPassword.length === 0) {
+                    throw new Error('Password encryption failed - empty result');
+                }
+            } catch (encryptionError) {
+                console.error('Error encrypting password:', encryptionError);
+                throw new Error('Failed to encrypt password - secure storage not available');
+            }
+
+            // Requete parametree pour eviter l'injection SQL
+            db.prepare(
+                `UPDATE datasource
+                 SET name = ?, username = ?, password = ?, hostname = ?, port = ?, dbname = ?, schema = ?
+                 WHERE id = ?`
+            ).run(
+                form.name,
+                form.username,
+                encryptedPassword,
+                form.hostname,
+                form.port,
+                form.dbname,
+                form.schema,
+                datasourceId
+            );
+        } catch (err) {
+            console.error('Error updating datasource:', err);
+            throw new Error('Failed to update datasource');
+        }
+    }
+}

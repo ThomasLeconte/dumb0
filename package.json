@@ -1,0 +1,99 @@
+{
+  "name": "dumb0-app",
+  "productName": "dumb0",
+  "version": "1.0.0",
+  "description": "My Electron application description",
+  "main": ".vite/build/main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "echo \"No linting configured\""
+  },
+  "keywords": [],
+  "author": {
+    "name": "Thomas LECONTE",
+    "email": "thomasleconte05@gmail.com"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@electron-forge/cli": "^7.11.2",
+    "@electron-forge/maker-deb": "^7.11.2",
+    "@electron-forge/maker-dmg": "^7.11.2",
+    "@electron-forge/maker-rpm": "^7.11.2",
+    "@electron-forge/maker-squirrel": "^7.11.2",
+    "@electron-forge/maker-zip": "^7.11.2",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.11.2",
+    "@electron-forge/plugin-fuses": "^7.11.2",
+    "@electron-forge/plugin-vite": "^7.11.2",
+    "@electron/fuses": "^1.8.0",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/electron": "^1.4.38",
+    "@types/pg": "^8.20.3",
+    "@types/showdown": "^2.0.6",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "autoprefixer": "^10.5.4",
+    "electron": "43.2.0",
+    "electron-builder": "^26.15.3",
+    "postcss": "^8.5.25",
+    "tailwindcss": "^4.3.3",
+    "vite": "^5.4.21"
+  },
+  "dependencies": {
+    "@mistralai/mistralai": "^2.7.0",
+    "@primeicons/vue": "^8.0.0",
+    "@primeuix/themes": "^3.0.0",
+    "@primevue/forms": "^5.0.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@vueuse/electron": "^14.4.0",
+    "better-sqlite3": "^13.0.3",
+    "dompurify": "^3.4.14",
+    "electron-squirrel-startup": "^1.0.1",
+    "monaco-editor-vue3": "^1.0.5",
+    "pg": "^8.22.0",
+    "pinia": "^4.0.2",
+    "primevue": "^5.0.0",
+    "showdown": "^2.1.0",
+    "tailwindcss-primeui": "^0.6.1",
+    "vue": "^3.5.40",
+    "vue-router": "^4.6.4"
+  },
+  "build": {
+    "appId": "com.thomasleconte.dbapp",
+    "productName": "dba-app",
+    "asar": true,
+    "asarIntegrityValidation": true,
+    "asarUnpack": [
+      "**/*.{node,dll,so,dylib}"
+    ],
+    "mac": {
+      "target": [
+        "pkg"
+      ],
+      "entitlements": "entitlements.mac.plist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "msi",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
+  },
+  "allowScripts": {
+    "better-sqlite3@13.0.3": true,
+    "electron-winstaller@5.4.4": true,
+    "esbuild@0.21.5": true
+  }
+}
