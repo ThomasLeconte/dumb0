@@ -34,7 +34,7 @@ RUN mkdir -p /srv/dumb0/back && \
     mkdir -p /usr/share/nginx/html
 
 # Copy bundled API from backend-builder (single self-contained file, no node_modules needed)
-COPY --from=backend-builder /build/back/built ./srv/dumb0/back/built
+COPY --from=backend-builder /build/back/build ./srv/dumb0/back/build
 
 # Copy build front from frontend-builder
 COPY --from=frontend-builder /build/front/dist ./srv/dumb0/front

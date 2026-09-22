@@ -36,7 +36,7 @@ coverage
 build/Release
 
 # Bundled API output
-src/back/built
+src/back/build
 
 # Dependency directories
 node_modules/

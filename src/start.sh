@@ -7,4 +7,4 @@ nginx -g "daemon off;" &
 
 # Start the API in the foreground
 echo "Starting API server ..."
-exec node back/built/index.cjs
+exec node back/build/index.cjs
