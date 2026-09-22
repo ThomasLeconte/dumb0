@@ -9,6 +9,11 @@ services:
       - "80:80"
     environment:
       - NODE_ENV=production
+    volumes:
+      - dumb0-data:/srv/dumb0/data
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: always
+
+volumes:
+  dumb0-data:
