@@ -77,7 +77,10 @@ A helping hand from AI to understand and optimize your queries:
 ### Run the container
 #### Docker CLI :
 ```bash
-docker run -d --name dumb0-container -p 3000:3000 -p 80:80 --add-host host.docker.internal:host-gateway thomasleconte/dumb0:latest
+docker run -d --name dumb0-container -p 3000:3000 -p 80:80 \
+  --add-host host.docker.internal:host-gateway \
+  -v dumb0-data:/srv/dumb0/data \
+  thomasleconte/dumb0:latest
 ```
 
 #### Docker compose
@@ -93,12 +96,46 @@ services:
       - "80:80"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    volumes:
+      - dumb0-data:/srv/dumb0/data
     restart: always
+
+volumes:
+  dumb0-data:
 ```
 
 The app is then available at `http://localhost` (frontend) and the API at `http://localhost:3000`.
 
 > **Note on PostgreSQL host:** the flag `--add-host host.docker.internal:host-gateway` lets the container reach a PostgreSQL instance running on your host machine via `host.docker.internal`. If your database runs elsewhere, use its hostname or IP address instead.
+
+### Data persistence
+
+The embedded SQLite database (datasources, query history, saved queries, settings) and the encryption key protecting your datasource passwords live in `/srv/dumb0/data` inside the container.
+
+The commands above mount a **named Docker volume** (`dumb0-data`), so your data survives container recreation and image upgrades. Deleting the volume (`docker volume rm dumb0-data`) wipes the data.
+
+<details>
+<summary>Use a folder on your machine instead of a named volume</summary>
+
+Replace `dumb0-data:/srv/dumb0/data` with an **absolute path** to a folder on your host:
+
+```bash
+# Docker CLI
+docker run -d --name dumb0-container -p 3000:3000 -p 80:80 \
+  --add-host host.docker.internal:host-gateway \
+  -v /absolute/path/on/your/machine:/srv/dumb0/data \
+  thomasleconte/dumb0:latest
+```
+
+```yaml
+# Docker compose
+    volumes:
+      - /absolute/path/on/your/machine:/srv/dumb0/data
+```
+
+The folder does not need to exist beforehand — Docker creates it (as root on Linux). On first start the app writes `app.db` and `key.bin` inside it. You can then back up the folder directly, since the SQLite database is a single file. Note: the path must be absolute; a relative path would be interpreted as a named volume.
+
+</details>
 
 
 ---
@@ -112,7 +149,7 @@ The app is then available at `http://localhost` (frontend) and the API at `http:
 | UI           | **PrimeVue**, **Tailwind CSS** |
 | SQL editor   | **Monaco Editor**          |
 | Remote databases | **PostgreSQL** (`pg`)      |
-| Local storage | **SQLite** (`better-sqlite3`) |
+| Local storage | **SQLite** (`node:sqlite`) |
 | AI           | **Mistral AI**             |
 
 ---
@@ -133,7 +170,10 @@ docker build -f src/Dockerfile -t dumb0-image --build-arg VITE_PRIMEVUE_LICENCE_
 
 ### Running container
 ```bash
-docker run --name dumb0-test -p 3000:3000 -p 80:80 --add-host host.docker.internal:host-gateway dumb0-image
+docker run --name dumb0-test -p 3000:3000 -p 80:80 \
+  --add-host host.docker.internal:host-gateway \
+  -v dumb0-data:/srv/dumb0/data \
+  dumb0-image
 ```
 ---
 
