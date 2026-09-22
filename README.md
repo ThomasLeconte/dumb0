@@ -110,7 +110,7 @@ The app is then available at `http://localhost` (frontend) and the API at `http:
 
 ### Data persistence
 
-The embedded SQLite database (datasources, query history, saved queries, settings) and the encryption key protecting your datasource passwords live in `/srv/dumb0/data` inside the container.
+The embedded SQLite database (datasources, query history, saved queries, settings) live in `/srv/dumb0/data` inside the container.
 
 The commands above mount a **named Docker volume** (`dumb0-data`), so your data survives container recreation and image upgrades. Deleting the volume (`docker volume rm dumb0-data`) wipes the data.
 
