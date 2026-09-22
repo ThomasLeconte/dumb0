@@ -1,12 +1,5 @@
 # ========== STAGE 1: Backend Build ==========
-# Utilise une image avec les outils de build necessaires
 FROM node:24.15.0-alpine AS backend-builder
-
-# Installe les dependances necessaires pour compiler better-sqlite3
-ENV PYTHONUNBUFFERED=1
-RUN apk add --no-cache python3 make git && \
-    ln -sf python3 /usr/bin/python && \
-    npm install -g node-gyp@latest
 
 WORKDIR /build/back
 COPY src/back/package.json src/back/package-lock.json ./
@@ -14,8 +7,7 @@ COPY src/back/tsconfig.json ./tsconfig.json
 COPY src/back ./src/back
 COPY src/commons ./src/commons
 
-RUN npm install && \
-    npm prune && \
+RUN npm ci && \
     npm run build
 
 # ========== STAGE 2: Frontend Build ==========
@@ -38,13 +30,11 @@ FROM node:24.15.0-alpine AS final
 RUN apk add --no-cache nginx
 
 # Create nginx folders
-RUN mkdir -p /srv/dumb0/back/dist/back/src && \
+RUN mkdir -p /srv/dumb0/back && \
     mkdir -p /usr/share/nginx/html
 
-# Copy built API from backend-builder
-COPY --from=backend-builder /build/back/dist/back ./srv/dumb0/back
-COPY --from=backend-builder /build/back/package.json ./srv/dumb0/back/package.json
-COPY --from=backend-builder /build/back/node_modules ./srv/dumb0/back/node_modules
+# Copy bundled API from backend-builder (single self-contained file, no node_modules needed)
+COPY --from=backend-builder /build/back/built ./srv/dumb0/back/built
 
 # Copy build front from frontend-builder
 COPY --from=frontend-builder /build/front/dist ./srv/dumb0/front

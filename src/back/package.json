@@ -2,11 +2,11 @@
   "name": "dumb0-back",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/back/src/index.js",
+  "main": "built/index.cjs",
   "scripts": {
     "dev": "tsx --watch --env-file .env src/index.ts",
-    "start": "node --env-file .env dist/back/src/index.js",
-    "build": "esbuild src/index.ts --platform=node --bundle --minify --outfile=built/index.cjs --external:@opentelemetry/api",
+    "start": "node --env-file .env built/index.cjs",
+    "build": "esbuild src/index.ts --platform=node --bundle --minify --outfile=built/index.cjs",
     "type-check": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
@@ -23,7 +23,7 @@
   "type": "module",
   "dependencies": {
     "@mistralai/mistralai": "^2.7.0",
-    "better-sqlite3": "^13.0.3",
+    "@opentelemetry/api": "^1.9.1",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "morgan": "^1.12.1",
@@ -31,7 +31,6 @@
   },
   "devDependencies": {
     "@tsconfig/node24": "^24.0.5",
-    "@types/better-sqlite3": "^9.6.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/morgan": "^1.9.10",

@@ -1,4 +1,4 @@
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 import { DatasourceDto } from "../../../commons/data/dto/datasource-dto.js";
 import { CreateDatasourceFormDto } from "../../../commons/data/dto/forms/create-datasource-form-dto.js";
 import PostgresqlService from "./postgresql.service.js";
@@ -7,7 +7,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { MigrationRunner } from "../migrations/migration-runner.js";
 
-type DatabaseInstance = InstanceType<typeof Database>;
+type DatabaseInstance = DatabaseSync;
 
 export class SqliteService {
 
@@ -52,8 +52,8 @@ export class SqliteService {
             }
         }
 
-        const db = new Database(SqliteService.getDatabasePath());
-        db.pragma('journal_mode = WAL');
+        const db = new DatabaseSync(SqliteService.getDatabasePath());
+        db.exec('PRAGMA journal_mode = WAL');
 
         SqliteService.db = db;
 

@@ -1,4 +1,4 @@
-import { Database } from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 import type { Migration } from "./types.js";
 import { initialSchema } from "./001_initial_schema.js";
 import {addParametersMigrations} from "./002_add_parameters_table.js";
@@ -13,26 +13,30 @@ const migrations: Migration[] = [
 ];
 
 export class MigrationRunner {
-  static run(db: Database): void {
+  static run(db: DatabaseSync): void {
     MigrationRunner.ensureMigrationsTable(db);
 
     const appliedVersions = MigrationRunner.getAppliedVersions(db);
 
     for (const migration of migrations) {
       if (!appliedVersions.has(migration.version)) {
-        const runMigration = db.transaction(() => {
+        db.exec('BEGIN');
+        try {
           migration.up(db);
           db.prepare(
             "INSERT INTO migrations (version, description) VALUES (?, ?)"
           ).run(migration.version, migration.description);
-        });
-        runMigration();
+          db.exec('COMMIT');
+        } catch (err) {
+          db.exec('ROLLBACK');
+          throw err;
+        }
         console.log(`[migrations] Applied ${migration.version}: ${migration.description}`);
       }
     }
   }
 
-  private static ensureMigrationsTable(db: Database): void {
+  private static ensureMigrationsTable(db: DatabaseSync): void {
     db.exec(`
       CREATE TABLE IF NOT EXISTS migrations (
         version INTEGER PRIMARY KEY,
@@ -42,17 +46,17 @@ export class MigrationRunner {
     `);
   }
 
-  private static isFreshInstall(db: Database): boolean {
+  private static isFreshInstall(db: DatabaseSync): boolean {
     const count = db.prepare("SELECT COUNT(*) as count FROM migrations").get() as { count: number };
     return count.count === 0;
   }
 
-  private static getAppliedVersions(db: Database): Set<number> {
+  private static getAppliedVersions(db: DatabaseSync): Set<number> {
     const rows = db.prepare("SELECT version FROM migrations").all() as { version: number }[];
     return new Set(rows.map(row => row.version));
   }
 
-  private static tablesAlreadyExist(db: Database): boolean {
+  private static tablesAlreadyExist(db: DatabaseSync): boolean {
     const row = db
       .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'datasource'")
       .get() as { name: string } | undefined;
