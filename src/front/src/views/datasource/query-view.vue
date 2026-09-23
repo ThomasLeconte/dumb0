@@ -21,10 +21,12 @@ import UpsertQueryDialog from "../../components/upsert-query-dialog.vue";
 import AiSettingsDialog from "../../components/ai-settings-dialog.vue";
 import {useSettingsStore} from "@/stores/settings-store.ts";
 import {ParametersEnum} from "../../../../commons/data/dto/parameters-enum.ts";
+import {usePostHog} from "@/composables/use-posthog.ts";
 
 const datasourceStore = useDatasourcesStore();
 const settingsStore = useSettingsStore();
 const toast = useToast();
+const {posthog} = usePostHog();
 
 const query = ref("");
 const results = ref<{ fields: string[]; rows: any[]; executionTime: number; rowCount: number } | null>(null);
@@ -63,6 +65,8 @@ function showAiSettings() {
 
 function executeQuery() {
   if (!query.value.trim() || !datasource.value) return;
+
+  posthog.capture('execute_query');
 
   isLoading.value = true;
   error.value = null;
@@ -202,11 +206,13 @@ function analyzeQuery() {
       life: 3000,
     });
   } else {
+    posthog.capture('analyze_query');
     datasourceStore.startAiAnalysisStream(query.value);
   }
 }
 
 function cancelAnalysis() {
+  posthog.capture('cancel_analyze_query');
   datasourceStore.cancelAiAnalysisStream();
 }
 

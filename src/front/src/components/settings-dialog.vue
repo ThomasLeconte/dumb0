@@ -5,6 +5,7 @@ import {Times} from "@primeicons/vue";
 import {computed, onMounted, ref} from "vue";
 import {useSettingsStore} from "@/stores/settings-store.ts";
 import {ParametersEnum} from "../../../commons/data/dto/parameters-enum.ts";
+import {usePostHog} from "@/composables/use-posthog.ts";
 
 const props = defineProps({
   modelValue: {
@@ -14,8 +15,8 @@ const props = defineProps({
 });
 
 const settingsStore = useSettingsStore();
-
 const toast = useToast();
+const {posthog} = usePostHog();
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -27,6 +28,7 @@ const form = ref({
 })
 
 onMounted(() => {
+  posthog.capture('update_parameters');
   settingsStore.fetchAll().then(() => {
     const apiKeySettingValue = settingsStore.getByCode(ParametersEnum.AI_API_KEY);
     const aiDefaultLanguageSettingValue = settingsStore.getByCode(ParametersEnum.AI_DEFAULT_LANGAGE);
