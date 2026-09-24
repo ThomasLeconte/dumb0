@@ -1,10 +1,8 @@
-<p align="center">
-      <img src="icons/android-chrome-512x512.png" width="125" align="left"/>
-  <h1 align="center">Dumb0</h1>
-  <p align="center">A simple and quick overview of your PostgreSQL database — built for DBAs, developers, and the curious.</p>
-</p>
+<h1 align="center">
+  <img src="icons/title.svg" height="80" alt="Dumb0">
+</h1>
 
----
+<p align="center">A simple and quick overview of your PostgreSQL database — built for DBAs, developers, and the curious.</p>
 
 ## 🎯 Why Dumb0?
 
