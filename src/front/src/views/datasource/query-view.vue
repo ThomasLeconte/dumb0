@@ -192,14 +192,14 @@ function formatDate(date: string) {
 
 function analyzeQuery() {
   const aiApiKeyParameter = settingsStore.getByCode(ParametersEnum.AI_API_KEY);
-  if(!aiApiKeyParameter || aiApiKeyParameter.value === '') {
+  if(!aiApiKeyParameter || !aiApiKeyParameter.value || aiApiKeyParameter.value === '') {
     console.log('no api key')
     toast.add({
       severity: 'error',
       group: 'top-right',
       summary: "Error",
       detail: `No API key provided in settings!`,
-      life: 3000,
+      life: 5000,
     });
   } else {
     datasourceStore.startAiAnalysisStream(query.value);
