@@ -176,19 +176,19 @@ function showSettingsDialog() {
                   <Divider />
                   <div class="datasource-details">
                     <span class="datasource-details-title title">Host</span>
-                    <span class="datasource-details-value">{{item.hostname}}</span>
+                    <span class="datasource-details-value ph-no-capture">{{item.hostname}}</span>
                   </div>
                   <div class="datasource-details">
                     <span class="datasource-details-title title">Port</span>
-                    <span class="datasource-details-value">{{item.port}}</span>
+                    <span class="datasource-details-value ph-no-capture">{{item.port}}</span>
                   </div>
                   <div class="datasource-details">
                     <span class="datasource-details-title title">Schema</span>
-                    <span class="datasource-details-value">{{item.schema}}</span>
+                    <span class="datasource-details-value ph-no-capture">{{item.schema}}</span>
                   </div>
                   <div class="datasource-details">
                     <span class="datasource-details-title title">Username</span>
-                    <span class="datasource-details-value">{{item.username}}</span>
+                    <span class="datasource-details-value ph-no-capture">{{item.username}}</span>
                   </div>
                   <Divider />
                 </template>

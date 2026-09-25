@@ -77,7 +77,7 @@ function logout() {
       <Menubar :model="menuItems" class="w-full">
         <template #start>
           <div class="flex items-center gap-8 w-full">
-            <span class="flex items-center gap-2 title"><Database />{{datasource!.name}}</span>
+            <span class="flex items-center gap-2 title ph-no-capture"><Database />{{datasource!.name}}</span>
             <div>
             </div>
           </div>

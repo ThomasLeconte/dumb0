@@ -255,7 +255,7 @@ onMounted(() => {
               <SidebarGroupLabel><History class="mr-2" />Query history</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  <SidebarMenuItem v-for="(item, index) in history" :key="index">
+                  <SidebarMenuItem v-for="(item, index) in history" :key="index" class="ph-no-capture">
                     <Button severity="secondary" text class="flex justify-start items-start flex-col h-16 w-full" @click="loadQueryFromHistory(item.query)">
                       <div class="truncate w-full text-start">
                         {{ formatQuery(item) }}
@@ -280,7 +280,7 @@ onMounted(() => {
           <Button severity="contrast" @click="showAiSettings"><Cog />Settings</Button>
         </div>
 
-        <div class="flex gap-2 sql-editor">
+        <div class="flex gap-2 sql-editor ph-no-capture">
           <CodeEditor
               v-model:value="query"
               language="sql"
@@ -354,7 +354,7 @@ onMounted(() => {
               <Divider class="ai-divider" />
               <div class="ai-content">
                 <Spinner v-if="isAnalyzing" spin :size="48" class="ai-spinner" />
-                <div v-if="aiResponse" class="ai-response" v-html="aiResponse"></div>
+                <div v-if="aiResponse" class="ai-response ph-no-capture" v-html="aiResponse"></div>
                 <div v-if="aiStreamError" class="p-2 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded border border-red-200 dark:border-red-800">
                   <i class="pi pi-exclamation-triangle mr-2"></i>
                   {{ aiStreamError }}
@@ -400,7 +400,7 @@ onMounted(() => {
               <DataTable
                   :value="results.rows"
                   stripedRows
-                  class="mt-4 max-h-full"
+                  class="mt-4 max-h-full ph-no-capture"
                   scrollable
                   resizableColumns
               >

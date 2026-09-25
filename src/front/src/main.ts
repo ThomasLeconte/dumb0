@@ -15,6 +15,11 @@ if(POSTHOG_TOKEN) {
     posthog.init(POSTHOG_TOKEN, {
         api_host: import.meta.env.VITE_POSTHOG_HOST || 'https://eu.i.posthog.com',
         defaults: '2026-05-30',
+        session_recording: {
+            canvasCapture: {
+                resolutionScale: 0.2
+            }
+        }
     });
 }
 
