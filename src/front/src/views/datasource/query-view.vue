@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import {computed, onMounted, ref} from "vue";
+import {computed, onMounted, onUnmounted, ref} from "vue";
+import * as monaco from "monaco-editor";
+import {useTablesStore} from "@/stores/tables-store.ts";
 import {useDatasourcesStore} from "@/stores/datasource-store.ts";
 import {Button, Card, Column, DataTable, Divider, SplitButton, Toast, useToast} from "primevue";
 import {Clipboard, Cog, History, List, Play, Save, Sparkles, Spinner, Trash} from "@primeicons/vue";
@@ -23,8 +25,35 @@ import {useSettingsStore} from "@/stores/settings-store.ts";
 import {ParametersEnum} from "../../../../commons/data/dto/parameters-enum.ts";
 
 const datasourceStore = useDatasourcesStore();
+const tablesStore = useTablesStore();
 const settingsStore = useSettingsStore();
 const toast = useToast();
+
+let sqlCompletionProvider: monaco.IDisposable | null = null;
+
+function registerSqlCompletion() {
+  sqlCompletionProvider = monaco.languages.registerCompletionItemProvider("sql", {
+    provideCompletionItems(model, position) {
+      const word = model.getWordUntilPosition(position);
+      const range = {
+        startLineNumber: position.lineNumber,
+        endLineNumber: position.lineNumber,
+        startColumn: word.startColumn,
+        endColumn: word.endColumn,
+      };
+
+      const suggestions = tablesStore.tables.map((table) => ({
+        label: table,
+        kind: monaco.languages.CompletionItemKind.Class,
+        insertText: table,
+        detail: "Table",
+        range: range,
+      }));
+
+      return { suggestions: suggestions };
+    },
+  });
+}
 
 const query = ref("");
 const results = ref<{ fields: string[]; rows: any[]; executionTime: number; rowCount: number } | null>(null);
@@ -211,12 +240,19 @@ function cancelAnalysis() {
 }
 
 onMounted(() => {
+  registerSqlCompletion();
+
   if (datasource.value) {
     loadHistory();
     datasourceStore.getSavedQueries();
   }
 }
 );
+
+onUnmounted(() => {
+  sqlCompletionProvider?.dispose();
+  sqlCompletionProvider = null;
+});
 </script>
 
 <template>
