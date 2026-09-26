@@ -250,7 +250,7 @@ export default class PostgresqlService {
                 relation::regclass AS table_name,
                 mode,
                 pg_locks.pid,
-                pg_stat_activity.datname as username,
+                pg_stat_activity.usename as username,
                 pg_stat_activity.application_name,
                 query_start,
                 query
@@ -379,7 +379,7 @@ export default class PostgresqlService {
                 l.relation::regclass as table_name,
                 l.mode,
                 l.pid,
-                a.datname as username,
+                a.usename as username,
                 a.application_name,
                 a.query,
                 a.query_start
