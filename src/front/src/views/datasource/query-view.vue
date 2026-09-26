@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import {computed, onMounted, ref} from "vue";
+import {computed, onMounted, onUnmounted, ref} from "vue";
+import * as monaco from "monaco-editor";
+import {useTablesStore} from "@/stores/tables-store.ts";
 import {useDatasourcesStore} from "@/stores/datasource-store.ts";
 import {Button, Card, Column, DataTable, Divider, SplitButton, Toast, useToast} from "primevue";
 import {Clipboard, Cog, History, List, Play, Save, Sparkles, Spinner, Trash} from "@primeicons/vue";
@@ -25,10 +27,37 @@ import {usePostHog} from "@/composables/use-posthog.ts";
 import {useRouter} from "vue-router";
 
 const datasourceStore = useDatasourcesStore();
+const tablesStore = useTablesStore();
 const settingsStore = useSettingsStore();
 const toast = useToast();
 const {posthog} = usePostHog();
 const router = useRouter();
+
+let sqlCompletionProvider: monaco.IDisposable | null = null;
+
+function registerSqlCompletion() {
+  sqlCompletionProvider = monaco.languages.registerCompletionItemProvider("sql", {
+    provideCompletionItems(model, position) {
+      const word = model.getWordUntilPosition(position);
+      const range = {
+        startLineNumber: position.lineNumber,
+        endLineNumber: position.lineNumber,
+        startColumn: word.startColumn,
+        endColumn: word.endColumn,
+      };
+
+      const suggestions = tablesStore.tables.map((table) => ({
+        label: table,
+        kind: monaco.languages.CompletionItemKind.Class,
+        insertText: table,
+        detail: "Table",
+        range: range,
+      }));
+
+      return { suggestions: suggestions };
+    },
+  });
+}
 
 const query = ref("");
 const results = ref<{ fields: string[]; rows: any[]; executionTime: number; rowCount: number } | null>(null);
@@ -75,8 +104,6 @@ function showAiSettings() {
 
 function executeQuery() {
   if (!query.value.trim() || !datasource.value) return;
-
-  posthog.capture('execute_query');
 
   isLoading.value = true;
   error.value = null;
@@ -206,14 +233,14 @@ function formatDate(date: string) {
 
 function analyzeQuery() {
   const aiApiKeyParameter = settingsStore.getByCode(ParametersEnum.AI_API_KEY);
-  if(!aiApiKeyParameter || aiApiKeyParameter.value === '') {
+  if(!aiApiKeyParameter || !aiApiKeyParameter.value || aiApiKeyParameter.value === '') {
     console.log('no api key')
     toast.add({
       severity: 'error',
       group: 'top-right',
       summary: "Error",
       detail: `No API key provided in settings!`,
-      life: 3000,
+      life: 5000,
     });
   } else {
     posthog.capture('analyze_query');
@@ -257,7 +284,7 @@ function cancelAnalysis() {
               <SidebarGroupLabel><History class="mr-2" />Query history</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  <SidebarMenuItem v-for="(item, index) in history" :key="index" class="ph-no-capture">
+                  <SidebarMenuItem v-for="(item, index) in history" :key="index">
                     <Button severity="secondary" text class="flex justify-start items-start flex-col h-16 w-full" @click="loadQueryFromHistory(item.query)">
                       <div class="truncate w-full text-start">
                         {{ formatQuery(item) }}
@@ -282,7 +309,7 @@ function cancelAnalysis() {
           <Button severity="contrast" @click="showAiSettings"><Cog />Settings</Button>
         </div>
 
-        <div class="flex gap-2 sql-editor ph-no-capture">
+        <div class="flex gap-2 sql-editor">
           <CodeEditor
               v-model:value="query"
               language="sql"
@@ -356,7 +383,7 @@ function cancelAnalysis() {
               <Divider class="ai-divider" />
               <div class="ai-content">
                 <Spinner v-if="isAnalyzing" spin :size="48" class="ai-spinner" />
-                <div v-if="aiResponse" class="ai-response ph-no-capture" v-html="aiResponse"></div>
+                <div v-if="aiResponse" class="ai-response" v-html="aiResponse"></div>
                 <div v-if="aiStreamError" class="p-2 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded border border-red-200 dark:border-red-800">
                   <i class="pi pi-exclamation-triangle mr-2"></i>
                   {{ aiStreamError }}
@@ -402,7 +429,7 @@ function cancelAnalysis() {
               <DataTable
                   :value="results.rows"
                   stripedRows
-                  class="mt-4 max-h-full ph-no-capture"
+                  class="mt-4 max-h-full"
                   scrollable
                   resizableColumns
               >

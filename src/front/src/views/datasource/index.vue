@@ -41,7 +41,7 @@ const menuItems = ref([
       router.push({name: 'query'})
     }
   },
-  {
+/*  {
     key: 4,
     label: 'IA',
     icon: PenLine,
@@ -49,7 +49,7 @@ const menuItems = ref([
     command: () => {
       router.push({name: 'ia'})
     }
-  },
+  },*/
 ] as any[])
 
 onMounted(() => {
