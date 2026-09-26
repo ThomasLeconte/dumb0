@@ -107,6 +107,12 @@ function initPostHogTelemetry() {
     posthog.init(POSTHOG_TOKEN, {
       api_host: 'https://eu.i.posthog.com',
       defaults: '2026-05-30',
+      autocapture: false,
+      capture_pageview: false,
+      capture_exceptions: false,
+      capture_pageleave: false,
+      capture_performance: false,
+      capture_heatmaps: false,
       session_recording: {
         canvasCapture: {
           resolutionScale: 0.2

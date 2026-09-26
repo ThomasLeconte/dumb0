@@ -15,13 +15,15 @@ import {
 import {Button, Card, Chip, Column, DataTable, Divider, useToast} from "primevue";
 import {useSettingsStore} from "@/stores/settings-store.ts";
 import {ParametersEnum} from "../../../../commons/data/dto/parameters-enum.ts";
+import {useRouter} from "vue-router";
 
 const datasourceStore = useDatasourcesStore();
 const settingsStore = useSettingsStore();
 const toast = useToast();
+const router = useRouter();
 
 onMounted(() => {
-  console.log(datasourceDetails)
+  if(!datasourceStore.datasourceChoosen) router.push({name: 'home'});
 })
 
 const datasourceDetails = computed(() => datasourceStore.datasourceDetails);
@@ -129,41 +131,41 @@ onUnmounted(() => {
         </Card>
       </div>
 
-<!--      <Card class="w-full my-4">-->
-<!--        <template #title>-->
-<!--          <div class="flex justify-between items-start">-->
-<!--            <span class="section-title">Connections ({{connections?.length}})</span>-->
-<!--          </div>-->
-<!--        </template>-->
-<!--        <template #content>-->
-<!--          <Divider />-->
-<!--          <div class="flex">-->
-<!--            <div class="flex justify-evenly w-full mt-4">-->
-<!--              <DataTable :value="datasourceDetails?.connections" stripedRows class="w-full">-->
-<!--                <Column field="username" header="Username">-->
-<!--                  <template #body="{ data }">-->
-<!--                    <span class="font-medium">{{ data.username }}</span>-->
-<!--                  </template>-->
-<!--                </Column>-->
-<!--                <Column field="applicationName" header="Application name" />-->
-<!--                <Column field="ipAdress" header="IP Address" />-->
-<!--                <Column field="startDate" header="Start date">-->
-<!--                  <template #body="{data}">-->
-<!--                    <span>{{formatDate(data.startDate)}}</span>-->
-<!--                  </template>-->
-<!--                </Column>-->
-<!--                <Column header="Actions">-->
-<!--                  <template #body="{data}">-->
-<!--                    <Button iconOnly rounded severity="danger" outlined size="small" style="background-color: var(&#45;&#45;p-red-100)">-->
-<!--                      <SignOut />-->
-<!--                    </Button>-->
-<!--                  </template>-->
-<!--                </Column>-->
-<!--              </DataTable>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </template>-->
-<!--      </Card>-->
+      <Card class="w-full my-4">
+        <template #title>
+          <div class="flex justify-between items-start">
+            <span class="section-title">Connections ({{connections?.length}})</span>
+          </div>
+        </template>
+        <template #content>
+          <Divider />
+          <div class="flex">
+            <div class="flex justify-evenly w-full mt-4">
+              <DataTable :value="datasourceDetails?.connections" stripedRows class="w-full">
+                <Column field="username" header="Username">
+                  <template #body="{ data }">
+                    <span class="font-medium">{{ data.username }}</span>
+                  </template>
+                </Column>
+                <Column field="applicationName" header="Application name" />
+                <Column field="ipAdress" header="IP Address" />
+                <Column field="startDate" header="Start date">
+                  <template #body="{data}">
+                    <span>{{formatDate(data.startDate)}}</span>
+                  </template>
+                </Column>
+                <Column header="Actions">
+                  <template #body="{data}">
+                    <Button iconOnly rounded severity="danger" outlined size="small" style="background-color: var(--p-red-100)">
+                      <SignOut />
+                    </Button>
+                  </template>
+                </Column>
+              </DataTable>
+            </div>
+          </div>
+        </template>
+      </Card>
 
       <Card class="w-full my-4">
         <template #title>

@@ -22,11 +22,13 @@ import AiSettingsDialog from "../../components/ai-settings-dialog.vue";
 import {useSettingsStore} from "@/stores/settings-store.ts";
 import {ParametersEnum} from "../../../../commons/data/dto/parameters-enum.ts";
 import {usePostHog} from "@/composables/use-posthog.ts";
+import {useRouter} from "vue-router";
 
 const datasourceStore = useDatasourcesStore();
 const settingsStore = useSettingsStore();
 const toast = useToast();
 const {posthog} = usePostHog();
+const router = useRouter();
 
 const query = ref("");
 const results = ref<{ fields: string[]; rows: any[]; executionTime: number; rowCount: number } | null>(null);
@@ -44,6 +46,14 @@ const editorOptions = ref({
     height: 200
   }
 } as EditorOptions)
+
+onMounted(() => {
+  if(!datasourceStore.datasourceChoosen) router.push({name: 'home'});
+  if (datasource.value) {
+    loadHistory();
+    datasourceStore.getSavedQueries();
+  }
+});
 
 const datasource = computed(() => datasourceStore.datasourceChoosen);
 const history = computed(() => {
@@ -215,14 +225,6 @@ function cancelAnalysis() {
   posthog.capture('cancel_analyze_query');
   datasourceStore.cancelAiAnalysisStream();
 }
-
-onMounted(() => {
-  if (datasource.value) {
-    loadHistory();
-    datasourceStore.getSavedQueries();
-  }
-}
-);
 </script>
 
 <template>
