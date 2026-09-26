@@ -10,19 +10,6 @@ import './index.css';
 
 const app = createApp(App)
 
-const POSTHOG_TOKEN = import.meta.env.VITE_POSTHOG_KEY;
-if(POSTHOG_TOKEN) {
-    posthog.init(POSTHOG_TOKEN, {
-        api_host: import.meta.env.VITE_POSTHOG_HOST || 'https://eu.i.posthog.com',
-        defaults: '2026-05-30',
-        session_recording: {
-            canvasCapture: {
-                resolutionScale: 0.2
-            }
-        }
-    });
-}
-
 app.use(PrimeVue, PrimeVueConfig)
 app.directive('tooltip', Tooltip)
 app.use(ToastService)

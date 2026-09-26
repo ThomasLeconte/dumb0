@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {Button, Dialog, Divider, InputText, InputNumber, Listbox, Message, Toast, ToggleSwitch, useToast} from 'primevue';
+import {Button, Dialog, Divider, InputText, InputNumber, Tabs, TabPanels, TabList, TabPanel, Tab, Listbox, Message, Toast, ToggleSwitch, useToast} from 'primevue';
 import {FormField} from '@primevue/forms';
 import {Times} from "@primeicons/vue";
 import {computed, onMounted, ref} from "vue";
@@ -24,6 +24,7 @@ const form = ref({
   apiKey: '',
   language: {} as {name: string, code: string} | undefined,
   autoRefresh: false,
+  telemetry: false,
   autoRefreshInterval: 5000
 })
 
@@ -34,6 +35,7 @@ onMounted(() => {
     const aiDefaultLanguageSettingValue = settingsStore.getByCode(ParametersEnum.AI_DEFAULT_LANGAGE);
     const autoRefreshSettingValue = settingsStore.getByCode(ParametersEnum.AUTO_REFRESH);
     const autoRefreshIntervalSettingValue = settingsStore.getByCode(ParametersEnum.AUTO_REFRESH_INTERVAL);
+    const telemetrySettingValue = settingsStore.getByCode(ParametersEnum.TELEMETRY);
 
     form.value.apiKey = apiKeySettingValue?.value ?? '';
     if(aiDefaultLanguageSettingValue?.value) {
@@ -44,6 +46,7 @@ onMounted(() => {
     form.value.autoRefreshInterval = autoRefreshIntervalSettingValue?.value
         ? Number.parseInt(autoRefreshIntervalSettingValue.value)
         : 5000;
+    form.value.telemetry = telemetrySettingValue?.value === 'true' || false;
   })
 })
 
@@ -65,7 +68,8 @@ function onFormSubmit() {
     settingsStore.update(ParametersEnum.AI_API_KEY, form.value.apiKey),
     form.value.language ? settingsStore.update(ParametersEnum.AI_DEFAULT_LANGAGE, form.value.language.code) : Promise.resolve(),
     settingsStore.update(ParametersEnum.AUTO_REFRESH, form.value.autoRefresh.toString()),
-    settingsStore.update(ParametersEnum.AUTO_REFRESH_INTERVAL, form.value.autoRefreshInterval.toString())
+    settingsStore.update(ParametersEnum.AUTO_REFRESH_INTERVAL, form.value.autoRefreshInterval.toString()),
+    settingsStore.update(ParametersEnum.TELEMETRY, form.value.telemetry.toString())
   ]).then((res) => {
     toast.add({severity: 'success', group: 'bottom-center', summary: 'Settings updated!', life: 3000});
     setTimeout(() => {
@@ -91,61 +95,81 @@ function onFormSubmit() {
             <Times size="16"/>
           </Button>
         </div>
-        <Divider/>
       </div>
     </template>
 
     <div class="content">
       <!-- AI Settings Section -->
-      <div class="mb-6">
-        <h3 class="text-lg font-medium mb-4">AI Settings</h3>
-        <FormField v-slot="$field" as="section" name="apiKey" initialValue="" class="flex flex-col gap-2 my-2">
-          <span class="text-xs">AI API key</span>
-          <InputText type="text" v-model="form.apiKey" placeholder="AI API Key" class="ph-no-capture" />
-          <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{$field.error?.message }}</Message>
-        </FormField>
-        <Message severity="info" size="small">
-          We use Mistral AI API to analyze queries. Please generate API key <a class="underline" target="_blank" href="https://console.mistral.ai">from here.</a>
-        </Message>
-        <FormField v-slot="$field" as="section" name="language" initialValue="" class="flex flex-col gap-2 mt-4 my-2">
-          <span class="text-xs">Choose AI language response</span>
-          <Listbox v-model="form.language" :options="countries" optionLabel="name" class="w-full">
-            <template #option="slotProps">
-              <div class="flex items-center gap-2">
-                <img :alt="slotProps.option.name" src="https://primefaces.org/cdn/primevue/images/flag/flag_placeholder.png" :class="`flag flag-${slotProps.option.code.toLowerCase()}`" style="width: 18px" />
-                <div>{{ slotProps.option.name }}</div>
-              </div>
-            </template>
-          </Listbox>
-          <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{
-              $field.error?.message
-            }}
-          </Message>
-        </FormField>
-      </div>
 
-      <Divider />
+      <Tabs value="general">
+        <TabList>
+          <Tab value="general">General</Tab>
+          <Tab value="ai">AI</Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel value="general">
+            <!-- Auto-Refresh Settings Section -->
+            <div>
+              <h3 class="text-lg font-medium mb-4">Auto-Refresh</h3>
+              <FormField v-slot="$field" as="section" name="autoRefresh" initialValue="" class="flex flex-col gap-2 my-2">
+                <div class="flex items-center gap-2">
+                  <ToggleSwitch v-model="form.autoRefresh" inputId="autoRefresh" />
+                  <label for="autoRefresh" class="text-xs">Enable auto-refresh</label>
+                </div>
+                <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{$field.error?.message }}</Message>
+              </FormField>
 
-      <!-- Auto-Refresh Settings Section -->
-      <div class="mt-6">
-        <h3 class="text-lg font-medium mb-4">Auto-Refresh</h3>
-        <FormField v-slot="$field" as="section" name="autoRefresh" initialValue="" class="flex flex-col gap-2 my-2">
-          <div class="flex items-center gap-2">
-            <ToggleSwitch v-model="form.autoRefresh" inputId="autoRefresh" />
-            <label for="autoRefresh" class="text-xs">Enable auto-refresh</label>
-          </div>
-          <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{$field.error?.message }}</Message>
-        </FormField>
-        
-        <FormField v-slot="$field" as="section" name="autoRefreshInterval" initialValue="" class="flex flex-col gap-2 my-2">
-          <span class="text-xs">Refresh interval (ms)</span>
-          <InputNumber v-model="form.autoRefreshInterval" :min="100" placeholder="5000" />
-          <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{$field.error?.message }}</Message>
-        </FormField>
-        <Message severity="info" size="small">
-          Auto-refresh will reload data at the specified interval when enabled.
-        </Message>
-      </div>
+              <FormField v-slot="$field" as="section" name="autoRefreshInterval" initialValue="" class="flex flex-col gap-2 my-2">
+                <span class="text-xs">Refresh interval (ms)</span>
+                <InputNumber v-model="form.autoRefreshInterval" :min="100" placeholder="5000" :disabled="!form.autoRefresh" />
+                <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{$field.error?.message }}</Message>
+              </FormField>
+              <Message severity="info" size="small">
+                Auto-refresh will reload data at the specified interval when enabled.
+              </Message>
+            </div>
+
+            <!-- Telemetry Settings Section -->
+            <div class="mt-6">
+              <h3 class="text-lg font-medium mb-4">Telemetry</h3>
+              <p class="text-xs">Telemetry will be used to improve user experience. It is managed through <a class="underline" href="https://eu.posthog.com">Posthog</a>.</p>
+              <FormField v-slot="$field" as="section" name="autoRefresh" initialValue="" class="flex flex-col gap-2 my-2">
+                <div class="flex items-center gap-2">
+                  <ToggleSwitch v-model="form.telemetry" inputId="telemetry" />
+                  <label for="telemetry" class="text-xs">Enable telemetry</label>
+                </div>
+                <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{$field.error?.message }}</Message>
+              </FormField>
+            </div>
+          </TabPanel>
+
+          <TabPanel value="ai">
+            <FormField v-slot="$field" as="section" name="apiKey" initialValue="" class="flex flex-col gap-2 my-2">
+              <span class="text-xs">AI API key</span>
+              <InputText type="text" v-model="form.apiKey" placeholder="AI API Key" class="ph-no-capture" />
+              <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{$field.error?.message }}</Message>
+            </FormField>
+            <Message severity="info" size="small">
+              We use Mistral AI API to analyze queries. Please generate API key <a class="underline" target="_blank" href="https://console.mistral.ai">from here.</a>
+            </Message>
+            <FormField v-slot="$field" as="section" name="language" initialValue="" class="flex flex-col gap-2 mt-4 my-2">
+              <span class="text-xs">Choose AI default language response :</span>
+              <Listbox v-model="form.language" :options="countries" optionLabel="name" class="w-full">
+                <template #option="slotProps">
+                  <div class="flex items-center gap-2">
+                    <img :alt="slotProps.option.name" src="https://primefaces.org/cdn/primevue/images/flag/flag_placeholder.png" :class="`flag flag-${slotProps.option.code.toLowerCase()}`" style="width: 18px" />
+                    <div>{{ slotProps.option.name }}</div>
+                  </div>
+                </template>
+              </Listbox>
+              <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{
+                  $field.error?.message
+                }}
+              </Message>
+            </FormField>
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
     </div>
 
     <template #footer>

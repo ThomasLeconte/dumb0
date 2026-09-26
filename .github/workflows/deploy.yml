@@ -45,4 +45,6 @@ jobs:
           file: src/Dockerfile
           push: true
           tags: ghcr.io/thomasleconte/dumb0:latest
-          build-args: VITE_PRIMEVUE_LICENCE_KEY=${{secrets.VITE_PRIMEVUE_LICENCE_KEY}}
+          build-args: |
+            VITE_PRIMEVUE_LICENCE_KEY=${{secrets.VITE_PRIMEVUE_LICENCE_KEY}}
+            VITE_POSTHOG_KEY=${{secrets.POSTHOG_KEY}}

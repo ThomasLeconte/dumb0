@@ -1,21 +1,31 @@
 <script setup lang="ts">
 import {
-  Card, Button, Divider, Carousel, CarouselPrev, Menu, CarouselNext, CarouselContent, CarouselItem } from "primevue";
+  Button,
+  Card,
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrev,
+  Divider,
+  Menu
+} from "primevue";
 import {
-  Plus,
-  Database,
-  SignIn,
-  Times,
+  Bars,
   ChevronLeft,
   ChevronRight,
   Clone,
-  Pencil,
-  Bars,
   Cog,
-  Github, Spinner
+  Database,
+  Github,
+  Pencil,
+  Plus,
+  SignIn,
+  Spinner,
+  Times
 } from '@primeicons/vue'
 import {useDatasourcesStore} from "@/stores/datasource-store.ts";
-import {computed, onBeforeMount, onMounted, ref, useTemplateRef} from "vue";
+import {computed, onMounted, ref, useTemplateRef} from "vue";
 import {DatasourceDto} from "../../../commons/data/dto/datasource-dto.ts";
 import {useRouter} from "vue-router";
 import {useTablesStore} from "@/stores/tables-store.ts";
@@ -25,6 +35,8 @@ import DeleteDatasourceDialog from "../components/delete-datasource-dialog.vue";
 import SettingsDialog from "../components/settings-dialog.vue";
 import {useAppStore} from "@/stores/app-store.ts";
 import {useSettingsStore} from "@/stores/settings-store.ts";
+import {ParametersEnum} from "../../../commons/data/dto/parameters-enum.ts";
+import posthog from "posthog-js";
 
 const appStore = useAppStore();
 const tableStore = useTablesStore();
@@ -78,11 +90,33 @@ const items = ref([
 onMounted(() => {
   loading.value = true;
   Promise.all([settingsStore.getAll(), settingsStore.getAvailableCountries(), datasourceStore.getAll()])
-      .then(() => appStore.setTitle('Connections'))
+      .then(() => {
+        appStore.setTitle('Connections');
+        if(settingsStore.getByCode(ParametersEnum.TELEMETRY)?.value === 'true') {
+          initPostHogTelemetry();
+        }
+      })
       .finally(() => loading.value = false);
 });
 
 const datasources = computed(() => datasourceStore.datasources);
+
+function initPostHogTelemetry() {
+  const POSTHOG_TOKEN = import.meta.env.VITE_POSTHOG_KEY;
+  if(POSTHOG_TOKEN) {
+    posthog.init(POSTHOG_TOKEN, {
+      api_host: 'https://eu.i.posthog.com',
+      defaults: '2026-05-30',
+      session_recording: {
+        canvasCapture: {
+          resolutionScale: 0.2
+        }
+      }
+    });
+  } else {
+    console.error("Unable to start telemetry, Posthog token not provided!");
+  }
+}
 
 function connect(datasource: DatasourceDto) {
   datasourceStore.selectDatasource(datasource).then(() => {

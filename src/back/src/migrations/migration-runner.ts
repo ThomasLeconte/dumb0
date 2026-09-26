@@ -4,12 +4,14 @@ import { initialSchema } from "./001_initial_schema.js";
 import {addParametersMigrations} from "./002_add_parameters_table.js";
 import { addSchemaToDatasource } from "./003_add_schema_to_datasource.js";
 import { addAutoRefreshParameters } from "./004_add_auto_refresh_parameters.js";
+import {addTelemetryParameter} from "./005_add_telemetry_parameter.js";
 
 const migrations: Migration[] = [
     initialSchema,
     addParametersMigrations,
     addSchemaToDatasource,
-    addAutoRefreshParameters
+    addAutoRefreshParameters,
+    addTelemetryParameter
 ];
 
 export class MigrationRunner {

@@ -14,10 +14,12 @@ RUN npm ci && \
 FROM node:24.15.0-alpine AS frontend-builder
 
 ARG VITE_PRIMEVUE_LICENCE_KEY=none
+ARG POSTHOG_KEY=none
 WORKDIR /build/front
 COPY src/front ./
 COPY src/commons ../commons
 RUN echo "VITE_PRIMEVUE_LICENCE_KEY=${VITE_PRIMEVUE_LICENCE_KEY}" > .env
+RUN echo "VITE_POSTHOG_KEY=${POSTHOG_KEY}" >> .env
 
 RUN npm install && \
     npm prune && \
