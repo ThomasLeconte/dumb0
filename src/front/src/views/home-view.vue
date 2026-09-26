@@ -21,7 +21,7 @@ import {
   Pencil,
   Plus,
   SignIn,
-  Spinner,
+  Spinner, ThumbsDown,
   Times
 } from '@primeicons/vue'
 import {useDatasourcesStore} from "@/stores/datasource-store.ts";
@@ -93,36 +93,13 @@ onMounted(() => {
       .then(() => {
         appStore.setTitle('Connections');
         if(settingsStore.getByCode(ParametersEnum.TELEMETRY)?.value === 'true') {
-          initPostHogTelemetry();
+          settingsStore.initPostHogTelemetry();
         }
       })
       .finally(() => loading.value = false);
 });
 
 const datasources = computed(() => datasourceStore.datasources);
-
-function initPostHogTelemetry() {
-  const POSTHOG_TOKEN = import.meta.env.VITE_POSTHOG_KEY;
-  if(POSTHOG_TOKEN) {
-    posthog.init(POSTHOG_TOKEN, {
-      api_host: 'https://eu.i.posthog.com',
-      defaults: '2026-05-30',
-      autocapture: false,
-      capture_pageview: false,
-      capture_exceptions: false,
-      capture_pageleave: false,
-      capture_performance: false,
-      capture_heatmaps: false,
-      session_recording: {
-        canvasCapture: {
-          resolutionScale: 0.2
-        }
-      }
-    });
-  } else {
-    console.error("Unable to start telemetry, Posthog token not provided!");
-  }
-}
 
 function connect(datasource: DatasourceDto) {
   datasourceStore.selectDatasource(datasource).then(() => {
@@ -151,6 +128,14 @@ function showSettingsDialog() {
   settingsDialog.value = true;
 }
 
+function triggerReportIssue() {
+  if(settingsStore.getByCode(ParametersEnum.TELEMETRY)?.value === 'true') {
+    posthog.capture("report_issue")
+  } else {
+    window.open("https://github.com/ThomasLeconte/dumb0/issues", "_blank");
+  }
+}
+
 </script>
 
 <template>
@@ -163,6 +148,7 @@ function showSettingsDialog() {
       <div class="home-background"></div>
 
       <div class="absolute w-full top-0 p-2 flex justify-end gap-2">
+        <Button iconOnly outlined severity="contrast" @click="triggerReportIssue" v-tooltip.left="'Found a bug ? Report it!'"><ThumbsDown /></Button>
         <Button iconOnly outlined severity="contrast" @click="goToGithub"><Github /></Button>
         <Button iconOnly outlined severity="contrast" @click="showSettingsDialog"><Cog /></Button>
       </div>

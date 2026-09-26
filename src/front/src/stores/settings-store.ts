@@ -2,6 +2,7 @@ import {defineStore} from "pinia";
 import {api} from "../api/axios.ts";
 import {ParameterDto} from "../../../commons/data/dto/parameter-dto.ts";
 import {ParametersEnum} from "../../../commons/data/dto/parameters-enum.ts";
+import posthog from "posthog-js";
 
 export const useSettingsStore = defineStore('settingsStore', {
     state: () => ({
@@ -62,6 +63,19 @@ export const useSettingsStore = defineStore('settingsStore', {
         restartAutoRefresh(callback: () => Promise<void>) {
             this.stopAutoRefresh();
             this.startAutoRefresh(callback);
+        },
+
+        initPostHogTelemetry() {
+            const POSTHOG_TOKEN = import.meta.env.VITE_POSTHOG_KEY;
+            if(POSTHOG_TOKEN) {
+                posthog.init(POSTHOG_TOKEN, {
+                    api_host: 'https://eu.i.posthog.com',
+                    defaults: '2026-05-30',
+                    disable_session_recording: true
+                });
+            } else {
+                console.error("Unable to start telemetry, Posthog token not provided!");
+            }
         }
     },
     getters: {
