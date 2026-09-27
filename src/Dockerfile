@@ -26,10 +26,9 @@ RUN npm install && \
     npm run build
 
 # ========== STAGE 3: Final Image ==========
-FROM node:24.15.0-alpine AS final
-
-# Install NGINX (without build tools)
-RUN apk add --no-cache nginx
+FROM alpine:3.24.2 AS final
+# Install NGINX and nodejs (without build tools)
+RUN apk add --no-cache nginx nodejs
 
 # Create nginx folders
 RUN mkdir -p /srv/dumb0/back && \
@@ -38,17 +37,16 @@ RUN mkdir -p /srv/dumb0/back && \
 # Copy bundled API from backend-builder (single self-contained file, no node_modules needed)
 COPY --from=backend-builder /build/back/build ./srv/dumb0/back/build
 
-# Copy build front from frontend-builder
-COPY --from=frontend-builder /build/front/dist ./srv/dumb0/front
+# Copy build front from frontend-builder to NGINX folder
+COPY --from=frontend-builder /build/front/dist ./usr/share/nginx/html
 COPY --from=frontend-builder /build/front/nginx.conf /etc/nginx/http.d/default.conf
 
 # Copy commons model folder and start script
 COPY src/start.sh /srv/dumb0/start.sh
 COPY src/commons /srv/dumb0/commons
 
-# Transfer frontend build to nginx folder and change permissions to execute start script
-RUN cp -r /srv/dumb0/front/. /usr/share/nginx/html/ && \
-    chmod +x /srv/dumb0/start.sh
+# change permissions to execute start script
+RUN chmod +x /srv/dumb0/start.sh
 
 WORKDIR /srv/dumb0
 

@@ -135,22 +135,21 @@ The folder does not need to exist beforehand — Docker creates it (as root on L
 
 ## 🛠️ Tech stack
 
-| Area         | Technology                 |
-|--------------|----------------------------|
-| Backend      | **ExpressJS** |
-| Frontend     | **Vue 3** + TypeScript     |
-| UI           | **PrimeVue**, **Tailwind CSS** |
-| SQL editor   | **Monaco Editor**          |
-| Remote databases | **PostgreSQL** (`pg`)      |
-| Local storage | **SQLite** (`node:sqlite`) |
-| AI           | **Mistral AI**             |
+| Area             | Technology                       |
+|------------------|----------------------------------|
+| Backend          | **ExpressJS**, **NodeJS v24.18** |
+| Frontend         | **Vue 3** + TypeScript           |
+| UI               | **PrimeVue**, **Tailwind CSS**   |
+| SQL editor       | **Monaco Editor**                |
+| Local database   | **SQLite** (`node:sqlite`)       |
+| AI               | **Mistral AI**                   |
 
 ---
 
 ## 🤝 Contributing
 Contributions are welcome! Fork the repository, create a branch, and open a pull request.
 
-> You first need to get a free Community licence key from PrimeUI which owns Primevue, [check this link!](https://primeui.store/primeui).
+> You first need to get a free Community licence key from PrimeUI which owns Primevue, [check this link!](https://primeui.store/primeui)
 
 ### Run project locally
 If you want to run project, you will have to define a `.env` file in `src/front` folder. Then, launch back & front, and have fun!
