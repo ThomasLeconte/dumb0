@@ -81,7 +81,13 @@ onMounted(() => {
   if (datasource.value) {
     loadHistory();
     datasourceStore.getSavedQueries();
+    registerSqlCompletion();
   }
+});
+
+onUnmounted(() => {
+  sqlCompletionProvider?.dispose();
+  sqlCompletionProvider = null;
 });
 
 const datasource = computed(() => datasourceStore.datasourceChoosen);
