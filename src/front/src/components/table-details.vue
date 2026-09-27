@@ -7,7 +7,7 @@
   import {useDatasourcesStore} from "@/stores/datasource-store.ts";
   import {useSettingsStore} from "@/stores/settings-store.ts";
   import {ParametersEnum} from "../../../commons/data/dto/parameters-enum.ts";
-  import TableLocks from "./table-stats/table-locks.vue";
+  import TableLocks from "@/components/table-details/table-locks.vue";
 
   const props = defineProps({
     tableName: {
