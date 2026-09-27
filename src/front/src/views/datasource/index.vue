@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {Database, Plus, Print, Search, SignOut, PenLine, Cog, Table, Play} from '@primeicons/vue';
-import {Toolbar, Button, IconField, InputIcon, Menubar, ProgressBar, Toast} from "primevue";
+import {Toolbar, Button, Menubar, ProgressBar, Toast} from "primevue";
 import {useDatasourcesStore} from "@/stores/datasource-store.ts";
 import {computed, onMounted, ref} from "vue";
 import {useTablesStore} from "@/stores/tables-store.ts";
@@ -62,7 +62,7 @@ const datasource = computed(() => datasourceStore.datasourceChoosen);
 const showRefreshIndicator = computed(() => {
   return !['query'].includes(router.currentRoute.value.name as string);
 })
-const isRefreshing = computed(() => settingsStore.isRefreshing);
+const isRefreshing = computed(() => tablesStore.loadingDetails);
 
 function logout() {
   datasourceStore.clearDatasource();
@@ -90,6 +90,8 @@ function logout() {
           </div>
         </template>
       </Menubar>
+
+      <ProgressBar v-if="isRefreshing" mode="indeterminate" :style="{ height: '6px', width: '100%', position: 'absolute' }" />
 
       <div class="content">
         <div class="background m-h-dvh" />
