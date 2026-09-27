@@ -1,7 +1,7 @@
-import { Router } from "express";
-import { ParametersService } from "../services/parameters.service.js";
-import { asyncHandler } from "./async-handler.js";
-import { requireBodyFields } from "./validation.js";
+import {Router} from "express";
+import {ParametersService} from "../services/parameters.service.js";
+import {asyncHandler} from "./async-handler.js";
+import {requireBodyFields} from "./validation.js";
 
 export const settingsRouter = Router();
 

@@ -12,8 +12,6 @@ const props = defineProps({
 
 const show = ref(false);
 
-onMounted(() => console.log(props.model))
-
 function closeDialog() {
   show.value = false;
 }

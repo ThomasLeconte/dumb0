@@ -1,7 +1,7 @@
-import { Router } from "express";
+import {Router} from "express";
 import PostgresqlService from "../services/postgresql.service.js";
-import { asyncHandler } from "./async-handler.js";
-import { requireParam } from "./validation.js";
+import {asyncHandler} from "./async-handler.js";
+import {requireParam} from "./validation.js";
 
 export const tableRouter = Router();
 

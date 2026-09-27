@@ -1,11 +1,11 @@
-import { DatabaseSync } from "node:sqlite";
-import { DatasourceDto } from "../../../commons/data/dto/datasource-dto.js";
-import { CreateDatasourceFormDto } from "../../../commons/data/dto/forms/create-datasource-form-dto.js";
+import {DatabaseSync} from "node:sqlite";
+import {DatasourceDto} from "../../../commons/data/dto/datasource-dto.js";
+import {CreateDatasourceFormDto} from "../../../commons/data/dto/forms/create-datasource-form-dto.js";
 import PostgresqlService from "./postgresql.service.js";
-import { CryptoService } from "./crypto.service.js";
+import {CryptoService} from "./crypto.service.js";
 import path from 'node:path';
 import fs from 'node:fs';
-import { MigrationRunner } from "../migrations/migration-runner.js";
+import {MigrationRunner} from "../migrations/migration-runner.js";
 
 type DatabaseInstance = DatabaseSync;
 
@@ -127,9 +127,7 @@ export class SqliteService {
     }
 
     private static mapHostForm(host: string) {
-        console.log("map host", host)
         if(process.env.NODE_ENV && process.env.NODE_ENV === 'production') {
-            console.log("env production")
             if(host === 'localhost' || host === '127.0.0.1') {
                 return "host.docker.internal";
             }
@@ -138,9 +136,7 @@ export class SqliteService {
     }
 
     private static mapHostDto(host: string) {
-        console.log("map host", host)
         if(process.env.NODE_ENV && process.env.NODE_ENV === 'production') {
-            console.log("env production")
             if(host === 'host.docker.internal') {
                 return "localhost";
             }
@@ -159,8 +155,6 @@ export class SqliteService {
         const db = this.getDatabase();
 
         form.hostname = this.mapHostForm(form.hostname);
-
-        console.log(form);
 
         try {
             await PostgresqlService.testConnection(form);

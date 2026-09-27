@@ -1,6 +1,5 @@
-import {Client, QueryResult} from "pg";
+import {QueryResult} from "pg";
 import {SqliteService} from "./sqlite.service.js";
-import {DatasourceDto} from "../../..//commons/data/dto/datasource-dto.js";
 import {CreateQueryFormDto} from "../../../commons/data/dto/forms/create-query-form-dto.js";
 import {DatasourceSavedQueryDto} from "../../..//commons/data/dto/datasource-saved-query-dto.js";
 import PostgresqlService from "./postgresql.service.js";

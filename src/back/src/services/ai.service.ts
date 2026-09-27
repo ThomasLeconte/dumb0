@@ -153,8 +153,6 @@ export class AiService {
             ? availableCountries.find((a: { name: string; code: string }) => a.code === ParametersService.getByCode(ParametersEnum.AI_DEFAULT_LANGAGE)!.value)?.name
             : null;
 
-        console.log(indexesStatsFormatted, preferedLanguage)
-
         try {
             const prompt = `Analyse cette requete SQL pour identifier les probl\u00e8mes de performance (scans sequentiels,
                         index manquants, jointures co\u00fbteuses, etc.) et propose des optimisations concr\u00e8tes (ajout d'index,

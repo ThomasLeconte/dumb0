@@ -1,14 +1,9 @@
-import { Router } from "express";
-import { SqliteService } from "../services/sqlite.service.js";
+import {Router} from "express";
+import {SqliteService} from "../services/sqlite.service.js";
 import PostgresqlService from "../services/postgresql.service.js";
-import { QueryService } from "../services/query.service.js";
-import { asyncHandler } from "./async-handler.js";
-import {
-  requireBodyFields,
-  requireNumericParam,
-  requireParam,
-  optionalNumericQuery,
-} from "./validation.js";
+import {QueryService} from "../services/query.service.js";
+import {asyncHandler} from "./async-handler.js";
+import {optionalNumericQuery, requireBodyFields, requireNumericParam, requireParam,} from "./validation.js";
 
 export const datasourceRouter = Router();
 
