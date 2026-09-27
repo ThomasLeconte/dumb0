@@ -275,7 +275,7 @@ function cancelAnalysis() {
                     <span class="text-gray-400 text-xs text-center ml-4">Any query retrieved...</span>
                   </template>
                   <Button
-                      class="w-full"
+                      class="w-full ph-no-capture"
                       v-else
                       v-for="(item, index) in savedQueries" :key="index"
                       severity="secondary"
