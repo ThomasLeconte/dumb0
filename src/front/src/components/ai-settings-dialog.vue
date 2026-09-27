@@ -75,7 +75,7 @@ function onFormSubmit() {
     <div class="content">
       <FormField v-slot="$field" as="section" name="apiKey" initialValue="" class="flex flex-col gap-2 my-2">
         <span class="text-xs">AI API key</span>
-        <InputText type="text" v-model="form.apiKey" placeholder="AI API Key" />
+        <InputText type="text" v-model="form.apiKey" placeholder="AI API Key" class="ph-no-capture" />
         <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{$field.error?.message }}</Message>
       </FormField>
       <Message severity="info" size="small">

@@ -16,6 +16,7 @@ export const useDatasourcesStore = defineStore('datasources', {
         datasourceDetails: null as DatasourceStatsDto | null,
         queryHistory: [] as DatasourceQueryDto[],
         savedQueries: [] as DatasourceSavedQueryDto[],
+        loadingDetails: false,
         // États pour le streaming AI
         aiResponse: '',
         isAnalyzing: false,
@@ -53,8 +54,13 @@ export const useDatasourcesStore = defineStore('datasources', {
             this.datasourceChoosen = null;
         },
         loadDatasourceDetails() {
+            this.loadingDetails = true
             return api.get(`/api/datasources/${this.datasourceChoosen?.id}/stats`)
                 .then((res) => this.datasourceDetails = res.data)
+                .finally(() => {
+                    const randomTimeout = Math.floor(Math.random() * (500 - 100) + 100);
+                    setTimeout(() => this.loadingDetails = false, randomTimeout);
+                })
         },
         executeQuery(query: string) {
             return api.post(`/api/datasources/${this.datasourceChoosen?.id}/query`, {query})

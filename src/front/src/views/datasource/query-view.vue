@@ -23,11 +23,15 @@ import UpsertQueryDialog from "../../components/upsert-query-dialog.vue";
 import AiSettingsDialog from "../../components/ai-settings-dialog.vue";
 import {useSettingsStore} from "@/stores/settings-store.ts";
 import {ParametersEnum} from "../../../../commons/data/dto/parameters-enum.ts";
+import {usePostHog} from "@/composables/use-posthog.ts";
+import {useRouter} from "vue-router";
 
 const datasourceStore = useDatasourcesStore();
 const tablesStore = useTablesStore();
 const settingsStore = useSettingsStore();
 const toast = useToast();
+const {posthog} = usePostHog();
+const router = useRouter();
 
 let sqlCompletionProvider: monaco.IDisposable | null = null;
 
@@ -71,6 +75,20 @@ const editorOptions = ref({
     height: 200
   }
 } as EditorOptions)
+
+onMounted(() => {
+  if(!datasourceStore.datasourceChoosen) router.push({name: 'home'});
+  if (datasource.value) {
+    loadHistory();
+    datasourceStore.getSavedQueries();
+    registerSqlCompletion();
+  }
+});
+
+onUnmounted(() => {
+  sqlCompletionProvider?.dispose();
+  sqlCompletionProvider = null;
+});
 
 const datasource = computed(() => datasourceStore.datasourceChoosen);
 const history = computed(() => {
@@ -231,28 +249,15 @@ function analyzeQuery() {
       life: 5000,
     });
   } else {
+    posthog.capture('analyze_query');
     datasourceStore.startAiAnalysisStream(query.value);
   }
 }
 
 function cancelAnalysis() {
+  posthog.capture('cancel_analyze_query');
   datasourceStore.cancelAiAnalysisStream();
 }
-
-onMounted(() => {
-  registerSqlCompletion();
-
-  if (datasource.value) {
-    loadHistory();
-    datasourceStore.getSavedQueries();
-  }
-}
-);
-
-onUnmounted(() => {
-  sqlCompletionProvider?.dispose();
-  sqlCompletionProvider = null;
-});
 </script>
 
 <template>

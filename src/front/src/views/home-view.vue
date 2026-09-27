@@ -1,21 +1,31 @@
 <script setup lang="ts">
 import {
-  Card, Button, Divider, Carousel, CarouselPrev, Menu, CarouselNext, CarouselContent, CarouselItem } from "primevue";
+  Button,
+  Card,
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrev,
+  Divider,
+  Menu
+} from "primevue";
 import {
-  Plus,
-  Database,
-  SignIn,
-  Times,
+  Bars,
   ChevronLeft,
   ChevronRight,
   Clone,
-  Pencil,
-  Bars,
   Cog,
-  Github, Spinner
+  Database,
+  Github,
+  Pencil,
+  Plus,
+  SignIn,
+  Spinner, ThumbsDown,
+  Times
 } from '@primeicons/vue'
 import {useDatasourcesStore} from "@/stores/datasource-store.ts";
-import {computed, onBeforeMount, onMounted, ref, useTemplateRef} from "vue";
+import {computed, onMounted, ref, useTemplateRef} from "vue";
 import {DatasourceDto} from "../../../commons/data/dto/datasource-dto.ts";
 import {useRouter} from "vue-router";
 import {useTablesStore} from "@/stores/tables-store.ts";
@@ -25,6 +35,8 @@ import DeleteDatasourceDialog from "../components/delete-datasource-dialog.vue";
 import SettingsDialog from "../components/settings-dialog.vue";
 import {useAppStore} from "@/stores/app-store.ts";
 import {useSettingsStore} from "@/stores/settings-store.ts";
+import {ParametersEnum} from "../../../commons/data/dto/parameters-enum.ts";
+import posthog from "posthog-js";
 
 const appStore = useAppStore();
 const tableStore = useTablesStore();
@@ -78,7 +90,12 @@ const items = ref([
 onMounted(() => {
   loading.value = true;
   Promise.all([settingsStore.getAll(), settingsStore.getAvailableCountries(), datasourceStore.getAll()])
-      .then(() => appStore.setTitle('Connections'))
+      .then(() => {
+        appStore.setTitle('Connections');
+        if(settingsStore.getByCode(ParametersEnum.TELEMETRY)?.value === 'true') {
+          settingsStore.initPostHogTelemetry();
+        }
+      })
       .finally(() => loading.value = false);
 });
 
@@ -111,6 +128,14 @@ function showSettingsDialog() {
   settingsDialog.value = true;
 }
 
+function triggerReportIssue() {
+  if(settingsStore.getByCode(ParametersEnum.TELEMETRY)?.value === 'true') {
+    posthog.capture("report_issue")
+  } else {
+    window.open("https://github.com/ThomasLeconte/dumb0/issues", "_blank");
+  }
+}
+
 </script>
 
 <template>
@@ -123,6 +148,7 @@ function showSettingsDialog() {
       <div class="home-background"></div>
 
       <div class="absolute w-full top-0 p-2 flex justify-end gap-2">
+        <Button iconOnly outlined severity="contrast" @click="triggerReportIssue" v-tooltip.left="'Found a bug ? Report it!'"><ThumbsDown /></Button>
         <Button iconOnly outlined severity="contrast" @click="goToGithub"><Github /></Button>
         <Button iconOnly outlined severity="contrast" @click="showSettingsDialog"><Cog /></Button>
       </div>
@@ -176,19 +202,19 @@ function showSettingsDialog() {
                   <Divider />
                   <div class="datasource-details">
                     <span class="datasource-details-title title">Host</span>
-                    <span class="datasource-details-value">{{item.hostname}}</span>
+                    <span class="datasource-details-value ph-no-capture">{{item.hostname}}</span>
                   </div>
                   <div class="datasource-details">
                     <span class="datasource-details-title title">Port</span>
-                    <span class="datasource-details-value">{{item.port}}</span>
+                    <span class="datasource-details-value ph-no-capture">{{item.port}}</span>
                   </div>
                   <div class="datasource-details">
                     <span class="datasource-details-title title">Schema</span>
-                    <span class="datasource-details-value">{{item.schema}}</span>
+                    <span class="datasource-details-value ph-no-capture">{{item.schema}}</span>
                   </div>
                   <div class="datasource-details">
                     <span class="datasource-details-title title">Username</span>
-                    <span class="datasource-details-value">{{item.username}}</span>
+                    <span class="datasource-details-value ph-no-capture">{{item.username}}</span>
                   </div>
                   <Divider />
                 </template>

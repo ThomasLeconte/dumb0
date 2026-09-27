@@ -5,6 +5,7 @@ import App from './App.vue'
 import {Tooltip} from "primevue";
 import ToastService from "primevue/toastservice";
 import PrimeVue from "primevue/config";
+import posthog from "posthog-js";
 import './index.css';
 
 const app = createApp(App)
@@ -16,3 +17,7 @@ app.use(pinia)
 app.use(router)
 
 app.mount('#app')
+
+app.config.errorHandler = (err, instance, info) => {
+    posthog.captureException(err)
+}

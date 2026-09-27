@@ -31,6 +31,7 @@
     "dompurify": "^3.4.14",
     "monaco-editor-vue3": "^1.0.5",
     "pinia": "^4.0.2",
+    "posthog-js": "^1.434.11",
     "primevue": "^5.0.0",
     "showdown": "^2.1.0",
     "tailwindcss": "^4.3.3",

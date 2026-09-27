@@ -25,6 +25,7 @@ const active = ref("");
 const router = useRouter();
 
 onMounted(() => {
+  if(!datasourceStore.datasourceChoosen) router.push({name: 'home'});
   active.value = tablesStore.tables[0] ?? "";
 })
 
