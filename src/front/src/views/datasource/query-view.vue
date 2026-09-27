@@ -47,15 +47,25 @@ function registerSqlCompletion() {
         endColumn: word.endColumn,
       };
 
-      const suggestions = tablesStore.tables.map((table) => ({
+      const tableSuggestions = tablesStore.tables.map((table) => ({
         label: table,
-        kind: monaco.languages.CompletionItemKind.Class,
+        kind: monaco.languages.CompletionItemKind.Field,
         insertText: table,
         detail: "Table",
         range: range,
       }));
 
-      return { suggestions: suggestions };
+      const sqlKeywords = ['SELECT', 'JOIN', 'FROM', 'HAVING', 'GROUP BY', 'ORDER BY', 'DISTINCT', 'COUNT', 'IN'];
+
+      const sqlSuggestions = sqlKeywords.map((keyword) => ({
+        label: keyword,
+        kind: monaco.languages.CompletionItemKind.Enum,
+        insertText: keyword,
+        detail: "Keyword",
+        range: range,
+      }));
+
+      return { suggestions: [...tableSuggestions, ...sqlSuggestions] };
     },
   });
 }
@@ -450,13 +460,6 @@ function cancelAnalysis() {
 }
 .dba-sidebar {
   height: 100dvh;
-}
-
-.query-input {
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  white-space: pre;
-  tab-size: 2;
-  line-height: 1.5;
 }
 
 .sql-editor {

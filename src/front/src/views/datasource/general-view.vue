@@ -154,13 +154,13 @@ onUnmounted(() => {
                     <span>{{formatDate(data.startDate)}}</span>
                   </template>
                 </Column>
-                <Column header="Actions">
+<!--                <Column header="Actions">
                   <template #body="{data}">
-                    <Button iconOnly rounded severity="danger" outlined size="small" style="background-color: var(--p-red-100)">
+                    <Button iconOnly rounded severity="danger" outlined size="small" style="background-color: var(&#45;&#45;p-red-100)">
                       <SignOut />
                     </Button>
                   </template>
-                </Column>
+                </Column>-->
               </DataTable>
             </div>
           </div>
