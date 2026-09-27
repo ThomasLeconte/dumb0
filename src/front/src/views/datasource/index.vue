@@ -62,7 +62,7 @@ const datasource = computed(() => datasourceStore.datasourceChoosen);
 const showRefreshIndicator = computed(() => {
   return !['query'].includes(router.currentRoute.value.name as string);
 })
-const isRefreshing = computed(() => tablesStore.loadingDetails);
+const isRefreshing = computed(() => tablesStore.loadingDetails || datasourceStore.loadingDetails);
 
 function logout() {
   datasourceStore.clearDatasource();
